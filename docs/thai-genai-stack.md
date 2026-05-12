@@ -230,7 +230,71 @@ TTS adapter:
 
 ---
 
-## 8. Translation / Localization (เผื่อขยาย market)
+## 8. API Gateway / Aggregator Strategy (Cost Win สำคัญ)
+
+แทนที่จะเรียก vendor API ตรงๆ → route ผ่าน aggregator ที่ markup ต่ำกว่า direct มาก
+
+### 8.1 Primary — kie.ai (Gateway หลัก)
+- **One API** สำหรับ Veo 3.1 / Veo 3 Fast / **Sora 2 / Sora 2 Pro** / Runway / Runway Aleph / Flux Kontext / Nano Banana / Midjourney / 4o Image / Suno V3.5→V4.5 Plus + LLM/Chat
+- **Pricing ถูกกว่า direct 60-85%**:
+  - Sora 2: $0.015/sec (vs OpenAI $0.10/sec) → 85% off
+  - Sora 2 Pro 720p: $0.045/sec (vs $0.30) → 85% off
+  - Sora 2 Pro 1080p: $0.10-0.13/sec (vs $0.50) → 74-80% off
+  - Veo 3 Fast: ~$0.30/8s clip
+  - Veo 3 Quality: ~$2.00/clip
+  - Nano Banana: ~$0.02/image
+  - Suno V4.5 Plus: ~$0.05/track
+- 99.9% uptime, ~25s latency Veo, ~15s Flux, ~60-90s Suno
+- Credit-based billing, normalized response → adapter layer ของเราเรียบง่ายขึ้น
+- **กำหนด**: kie.ai = primary route สำหรับทุก generation call ใน Auto-Affi
+
+### 8.2 Thai Jurisdiction Option — phaya.io
+- AI infrastructure platform จากกรุงเทพ (Thai-developed)
+- ปัจจุบันโชว์ video transcoding API + media processing เป็นหลัก
+- จุดแข็ง: **PDPA / Thai data residency** (สำคัญถ้ามี user PII ผ่านระบบ)
+- pay-as-you-go + free tier, Bearer auth, dashboard analytics
+- **Use ของเรา**:
+  - Media transcoding pipeline (upload → transcode → mux) — แทน FFmpeg self-host บางจุด
+  - เป็น secondary route สำหรับ scene/asset ที่ต้องอยู่ในไทย (legal/PDPA-sensitive)
+- ข้อจำกัด: gen-AI model catalog ยังไม่ครบ — รอ docs ใหม่ + ติดตาม
+
+### 8.3 Direct Vendor (เก็บไว้ใช้เฉพาะกรณี)
+- ใช้เมื่อ kie.ai ล่ม (fallback), หรือต้องการ feature ที่ aggregator ยังไม่ relay
+- **ElevenLabs / Botnoi / Anthropic** → ใช้ direct ตลอด (kie.ai ไม่ได้ relay TTS Thai / Claude)
+- **Suno + Veo + Sora + Flux + Midjourney + Runway** → ผ่าน kie.ai เป็น default
+
+### 8.4 Routing Adapter Pattern
+```python
+class GenAdapter:
+    def generate_video(self, prompt, model="veo3.1", duration_s=8):
+        # try kie.ai first
+        try:
+            return self.kie.generate(model, prompt, duration_s)
+        except (RateLimit, ServiceDown):
+            return self.direct[model].generate(prompt, duration_s)
+
+    # PDPA route: route through phaya.io for media in TH jurisdiction
+    def transcode(self, video_uri, target_codec="h264", residency=None):
+        if residency == "TH":
+            return self.phaya.transcode(video_uri, target_codec)
+        return self.ffmpeg_self.transcode(video_uri, target_codec)
+```
+
+### 8.5 Revised Cost Model (per video, with kie.ai)
+| Item | Before (direct) | With kie.ai | Saving |
+|---|---|---|---|
+| 5× Veo 3.1 clip | $3.75 | ~$1.50 | 60% |
+| Sora 2 hero (10s) | $1.20 (Sora 2) | ~$0.18 | 85% |
+| 4× Flux image | $0.20 | ~$0.10 | 50% |
+| Suno music | $0.10 | ~$0.05 | 50% |
+| Other (LLM/TTS/Editor) | $1.49 | $1.49 | — |
+| **Total** | **$6.74** | **~$3.32** | **51%** |
+
+> kie.ai เป็น single biggest cost lever ใน Phase 1 — ใช้แทน direct vendor ทันที
+
+---
+
+## 9. Translation / Localization (เผื่อขยาย market)
 
 แม้ scope หลักไทยเท่านั้น แต่ Phase 3 อาจขยายเป็น SEA — เก็บ stack ไว้
 - **Claude Opus 4.7** — translation ที่ดีที่สุดสำหรับไทย → ภาษาอื่น (รักษา nuance)
@@ -239,7 +303,7 @@ TTS adapter:
 
 ---
 
-## 9. Quality Gate ภาษาไทย (Critical)
+## 10. Quality Gate ภาษาไทย (Critical)
 
 ทุก video output ต้องผ่าน 4 check ก่อน publish:
 
