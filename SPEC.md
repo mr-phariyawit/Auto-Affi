@@ -123,7 +123,27 @@
 ### 3.5 Producer Agent (Asset Pipeline Orchestrator)
 - ตัดสินใจว่าแต่ละ scene จะใช้ generator ตัวไหน (Veo 3 / Runway Gen-3 / Kling / stock + Ken Burns)
 - เลือก voice (ElevenLabs / Azure / OpenAI TTS), apply lipsync (Sync.so / Wav2Lip) ถ้าจำเป็น
-- Compose ผ่าน FFmpeg pipeline → master 9:16 1080×1920, 30fps, ≤ 60s, ≤ 100MB
+- Compose ผ่าน FFmpeg + Hyperframe + Remotion pipeline → master 9:16 1080×1920, 30fps, ≤ 60s, ≤ 100MB
+
+### 3.5.1 Editor Sub-agent (AI Video Editor)
+Producer มอบหมายให้ Editor sub-agent ทำ post-production แบบ prompt-driven (เทคนิคแบบ Claude Code + Video-Use + Hyperframe):
+- **Tools (MCP-style)**:
+  - `vfs.read_clip(path)`, `vfs.write_clip(path)` — direct video file manipulation
+  - `editor.cut(in_s, out_s)`, `editor.concat([clips])`, `editor.overlay(layer, t)`
+  - `editor.remove_silence(threshold_db, min_gap_ms)` — auto dead-air trim
+  - `editor.remove_filler_words(["เออ","อืม","อะ","อ่า"])` — ASR-driven filler cut
+  - `editor.add_subtitles(srt, style)` — auto-burned captions
+  - `hyperframe.render(html_template, props)` → motion graphic MP4/WebM (titles, lower-thirds, animated cues)
+  - `editor.preview_server(port=3300)` — start local browser preview สำหรับ human refinement
+- **Style-by-reference**: Storyboard schema มี field `reference_clip_uri` (ถ้ามี) — Editor ใช้เป็น style anchor
+- **Standard passes** (always-on per video):
+  1. Dead-air trim (silence > 400ms)
+  2. Filler-word removal
+  3. Auto-subtitle (Whisper-large-v3 → SRT → burn-in)
+  4. Hook punch-in (first 1.5s zoom/snap-cut emphasis)
+  5. Brand watermark + affiliate handle overlay
+  6. End-card CTA scene
+- **Cost guard**: token cost ของ Editor agent ถูก gate ด้วย scene budget — fallback เป็น deterministic FFmpeg recipe ถ้า budget เกิน
 
 ### 3.6 Publisher Agent
 - เลือก optimal posting time per platform (จาก Wiki)
@@ -282,7 +302,13 @@ outcomes              (id, publish_record_id, label, score, evaluated_at)
     }
   ],
   "cta_scene_idx": 5,
-  "affiliate_link_placement": "pinned_comment + on_screen_qr"
+  "affiliate_link_placement": "pinned_comment + on_screen_qr",
+  "reference_clip_uri": "s3://auto-affi/refs/style-pop-hook-01.mp4",
+  "editor_passes": ["silence_trim", "filler_cut", "auto_subtitle", "hook_punch_in", "brand_overlay", "cta_endcard"],
+  "hyperframe_overlays": [
+    { "scene_idx": 0, "template": "snap_title_v2", "props": { "text_th": "...", "duration_s": 1.2 } },
+    { "scene_idx": 5, "template": "cta_pulse", "props": { "cta_text": "แตะลิงก์ใต้คลิป" } }
+  ]
 }
 ```
 
@@ -304,7 +330,10 @@ outcomes              (id, publish_record_id, label, score, evaluated_at)
 | **Image gen** | Flux 1.1 Pro, Imagen 3, SDXL — adapter pattern | Cost/quality tradeoff per scene |
 | **TTS** | ElevenLabs Multilingual v2 (primary), Azure TTS (fallback) | Native Thai support |
 | **Lipsync** | Sync.so / Wav2Lip (when narrator on-camera) | Optional |
-| **Composition** | FFmpeg + Remotion (programmatic React→video) | Subtitle burn-in, brand overlay |
+| **Composition** | FFmpeg + Remotion (programmatic React→video) + Hyperframe (HTML→motion graphic) | Subtitle burn-in, brand overlay, animated titles/lower-thirds |
+| **AI video editing layer** | Custom MCP server (`video-use`-style) exposing cut/concat/overlay/silence-trim/filler-cut/subtitle tools to agents | Lets Editor agent edit files directly via prompt |
+| **ASR (for filler + subtitle)** | Whisper-large-v3 (self-hosted) + WhisperX for word-level timestamps | Thai+English code-switch support |
+| **Local preview** | Browser-based editor on `localhost:3300` (Remotion Studio / custom) | Human refinement after auto-edit |
 | **Social publishing** | Meta Graph API (FB+IG), YouTube Data API v3; n8n สำหรับ glue ที่ไม่ใช่ core | Official APIs first |
 | **Shopee** | Shopee Affiliate Open API + Shopee Open Platform | Official endpoints + retry adapter |
 | **Frontend (ops console)** | Next.js 15 + shadcn/ui | Internal supervisor dashboard |
@@ -504,15 +533,63 @@ Forbidden: medical claims, "guaranteed" language, comparative claims
 without source.
 ```
 
-## Appendix B — Cost Model (Phase 1 per video, target)
+## Appendix B — AI Video Editor Stack (inspired by Claude Code + Video-Use + Hyperframe)
+
+Pattern: ให้ Editor agent ใช้ MCP-style tools คุยกับไฟล์วีดีโอตรงๆ + Hyperframe สำหรับ motion graphic overlay + Whisper สำหรับ subtitle/filler-word detection
+
+**MCP tool surface ที่ต้อง implement:**
+```
+filesystem MCP:    read/write/list ภายใน workspace ของ campaign
+video-use MCP:     cut, trim, concat, mux, overlay, speed, fade, mask
+hyperframe MCP:    render(html_template, props) → mp4/webm transparent layer
+asr MCP:           transcribe(audio) → words+timestamps (Whisper-large-v3)
+preview MCP:       start preview server on localhost:3300, expose URL
+```
+
+**Editor agent prompt pattern** (ผูกเข้า §3.5.1):
+```
+You have access to MCP tools: filesystem, video-use, hyperframe, asr, preview.
+
+Inputs:
+- workspace: {path}
+- raw_clips: [...]
+- storyboard: {json}
+- reference_clip_uri: {url}  # imitate THIS style
+
+Required passes (in order):
+  1. ASR every clip → words+timestamps
+  2. silence_trim threshold=-35dB min_gap=400ms
+  3. filler_cut words=["เออ","อืม","อะ","อ่า"]
+  4. cut+concat per storyboard scenes
+  5. hyperframe.render overlays per scene
+  6. burn subtitles (style matches reference)
+  7. add brand watermark + affiliate handle
+  8. add CTA endcard scene
+  9. export 1080×1920, 30fps, H.264, ≤ 100MB
+
+Budget: stop and report if total Claude token cost > $0.40 per video at
+editor stage. Fall back to deterministic FFmpeg recipe in that case.
+```
+
+**Why this matters for Auto-Affi:**
+- การให้ AI "ตัดต่อจริง" ผ่าน tool call ทำให้ Editor sample จาก reference clip ได้ → output มี style consistency ระดับ creator คนเดียว แต่ scale ได้
+- Filler-cut + silence-trim เป็นมาตรฐาน → engagement rate สูงขึ้น (hook density ต่อวินาที)
+- Hyperframe template ใช้ซ้ำได้ → Feedback Curator วัด CTR ต่อ template ได้ และเลื่อน template ที่ทำงานดีไป Canonical tier ใน Wiki
+
+---
+
+## Appendix C — Cost Model (Phase 1 per video, target)
 | Item | Est. cost USD |
 |---|---|
 | Scout + Strategist LLM | 0.05 |
 | Writer LLM | 0.10 |
+| Editor agent (token, capped) | 0.30 |
 | 8 scenes × image | 0.25 |
 | Video gen (Veo) | 1.80 |
 | TTS (60s) | 0.18 |
+| ASR (Whisper, self-hosted) | 0.02 |
+| Hyperframe overlays render | 0.05 |
 | Compose + storage | 0.05 |
 | Publish API | ~0 |
 | Metrics + wiki write | 0.07 |
-| **Total target** | **≤ 2.50** |
+| **Total target** | **≤ 2.87** (revised with editor stage) |
