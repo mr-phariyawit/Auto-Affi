@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-004",
+  "type": "epic",
+  "title": "Video Production (Editor + Producer)",
+  "description": "Master video rendering, editor passes, Hyperframe overlay, TTS, budget cap",
+  "phase": 1,
+  "requirements": ["FR-VD-01", "FR-VD-02", "FR-VD-03", "FR-VD-04", "FR-VD-05"],
+  "points": 21,
+  "status": "TODO",
+  "tasks": ["AFFI-T-012", "AFFI-T-013", "AFFI-T-014", "AFFI-T-015", "AFFI-T-016"],
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "created": "2026-05-13"
+}

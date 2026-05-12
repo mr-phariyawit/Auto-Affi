@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-008",
+  "type": "epic",
+  "title": "Safety (Supervisor Agent)",
+  "description": "Pre-publish gates, music license, disclosure, kill switch, auto-kill",
+  "phase": 1,
+  "requirements": ["FR-SF-01", "FR-SF-02", "FR-SF-03", "FR-SF-04", "FR-SF-05"],
+  "points": 13,
+  "status": "TODO",
+  "tasks": ["AFFI-T-029", "AFFI-T-030", "AFFI-T-031", "AFFI-T-032", "AFFI-T-033"],
+  "block0_mode": "full",
+  "tags": ["feature", "security"],
+  "created": "2026-05-13"
+}

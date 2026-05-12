@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-010",
+  "type": "epic",
+  "title": "Ops Console (Dashboard)",
+  "description": "Internal dashboard with candidate queue, campaign status, kill switches",
+  "phase": 2,
+  "requirements": ["FR-OC-01", "FR-OC-02"],
+  "points": 8,
+  "status": "TODO",
+  "tasks": ["AFFI-T-037", "AFFI-T-038"],
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "created": "2026-05-13"
+}

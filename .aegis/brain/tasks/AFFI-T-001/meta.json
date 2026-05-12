@@ -1,0 +1,23 @@
+{
+  "id": "AFFI-T-001",
+  "type": "task",
+  "epic": "AFFI-E-001",
+  "title": "Shopee GraphQL adapter -- productOfferV2 search",
+  "description": "Complete the Shopee adapter: HMAC signing, search by keyword/category/min_commission, response parsing, rate limiting, retry with backoff",
+  "requirements": ["FR-SC-01"],
+  "points": 5,
+  "status": "TODO",
+  "sprint": "sprint-1",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Implement HMAC SHA256 request signing",
+    "Build productOfferV2 GraphQL query builder",
+    "Parse response into ProductCandidate schema",
+    "Add rate limiter (1 req/sec) with tenacity retry",
+    "Unit tests with VCR cassettes"
+  ],
+  "files": ["src/auto_affi/adapters/shopee.py", "tests/unit/test_shopee_adapter.py"],
+  "created": "2026-05-13"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-006",
+  "type": "epic",
+  "title": "Analytics (Collector Agent)",
+  "description": "Metrics polling, full metrics recording, click-conversion attribution",
+  "phase": 1,
+  "requirements": ["FR-AN-01", "FR-AN-02", "FR-AN-03"],
+  "points": 8,
+  "status": "TODO",
+  "tasks": ["AFFI-T-022", "AFFI-T-023", "AFFI-T-024"],
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "created": "2026-05-13"
+}

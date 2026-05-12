@@ -1,0 +1,22 @@
+{
+  "id": "AFFI-T-002",
+  "type": "task",
+  "epic": "AFFI-E-001",
+  "title": "Scout scoring rubric implementation",
+  "description": "Score products 0-100 using rubric: price band, commission %, rating, sales velocity, review sentiment, novelty vs wiki saturation. Return score + reasoning string.",
+  "requirements": ["FR-SC-02"],
+  "points": 3,
+  "status": "TODO",
+  "sprint": "sprint-1",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Define scoring weights per rubric dimension",
+    "Implement score_product() with reasoning trace",
+    "Edge cases: missing fields, zero commission, no reviews",
+    "Unit tests covering all rubric dimensions"
+  ],
+  "files": ["src/auto_affi/agents/scout_scoring.py", "tests/unit/test_scout_scoring.py"],
+  "created": "2026-05-13"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-009",
+  "type": "epic",
+  "title": "Orchestration (Temporal Workflows)",
+  "description": "Five core workflows, idempotent activities, budget circuit-breaker",
+  "phase": 1,
+  "requirements": ["FR-OR-01", "FR-OR-02", "FR-OR-03"],
+  "points": 13,
+  "status": "TODO",
+  "tasks": ["AFFI-T-034", "AFFI-T-035", "AFFI-T-036"],
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "created": "2026-05-13"
+}

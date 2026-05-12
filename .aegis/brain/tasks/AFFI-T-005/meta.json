@@ -1,0 +1,22 @@
+{
+  "id": "AFFI-T-005",
+  "type": "task",
+  "epic": "AFFI-E-002",
+  "title": "CampaignBrief schema + Strategist skeleton",
+  "description": "Finalize CampaignBrief Pydantic schema with all required fields (product_id, persona, angle, hook, cta, hypothesis, expected_ctr). Create Strategist agent skeleton that accepts ProductCandidate and returns CampaignBrief.",
+  "requirements": ["FR-ST-01"],
+  "points": 3,
+  "status": "TODO",
+  "sprint": "sprint-1",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Finalize CampaignBrief schema with validation rules",
+    "Create Strategist agent class with generate_brief()",
+    "Wire Anthropic client for brief generation",
+    "Unit tests for schema validation"
+  ],
+  "files": ["src/auto_affi/schemas/campaign_brief.py", "tests/unit/test_campaign_brief.py"],
+  "created": "2026-05-13"
+}

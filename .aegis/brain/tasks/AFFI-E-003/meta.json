@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-003",
+  "type": "epic",
+  "title": "Writers' Room (Storyboard Generation)",
+  "description": "Storyboard JSON creation, Writers' Room multi-agent panel, Thai script safety",
+  "phase": 1,
+  "requirements": ["FR-WR-01", "FR-WR-02", "FR-WR-03", "FR-WR-04"],
+  "points": 13,
+  "status": "TODO",
+  "tasks": ["AFFI-T-008", "AFFI-T-009", "AFFI-T-010", "AFFI-T-011"],
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "created": "2026-05-13"
+}

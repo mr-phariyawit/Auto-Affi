@@ -1,0 +1,22 @@
+{
+  "id": "AFFI-T-011",
+  "type": "task",
+  "epic": "AFFI-E-003",
+  "title": "Claim auditor -- Thai script safety validation",
+  "description": "Validate Thai scripts have no medical/whitening/guarantee claims. Integrate with claim_auditor module. Must pass before storyboard is promoted.",
+  "requirements": ["FR-WR-04"],
+  "points": 3,
+  "status": "TODO",
+  "sprint": "sprint-1",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": ["feature", "security"],
+  "sub_tasks": [
+    "Define banned claim patterns (Thai medical/whitening/guarantee)",
+    "Implement claim_auditor.audit_script(text_th)",
+    "Return structured verdict with flagged phrases",
+    "Unit tests with Thai text samples (pass + fail cases)"
+  ],
+  "files": ["src/auto_affi/agents/claim_auditor.py", "tests/unit/test_claim_auditor.py"],
+  "created": "2026-05-13"
+}

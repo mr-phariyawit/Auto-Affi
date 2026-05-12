@@ -1,0 +1,14 @@
+{
+  "id": "AFFI-E-002",
+  "type": "epic",
+  "title": "Strategy (Strategist Agent)",
+  "description": "Campaign brief generation, wiki RAG, mega-sale calendar",
+  "phase": 1,
+  "requirements": ["FR-ST-01", "FR-ST-02", "FR-ST-03"],
+  "points": 8,
+  "status": "TODO",
+  "tasks": ["AFFI-T-005", "AFFI-T-006", "AFFI-T-007"],
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "created": "2026-05-13"
+}
