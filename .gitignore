@@ -58,3 +58,4 @@ logs/
 # Temporal / docker
 .tctl/
 docker-compose.override.yml
+out/

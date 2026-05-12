@@ -59,6 +59,7 @@ dev = [
     "mypy>=1.13.0",
     "pre-commit>=4.0.0",
     "types-redis",
+    "pillow>=12.2.0",
 ]
 
 [build-system]
