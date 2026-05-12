@@ -1,0 +1,23 @@
+{
+  "id": "AFFI-T-017",
+  "type": "task",
+  "epic": "AFFI-E-005",
+  "title": "IG Reels publisher adapter via Meta Graph API",
+  "description": "Implement Phase 1 publisher: upload video to IG Reels via Meta Graph API Content Publishing flow. Return PublishRecord with media_id, platform, posted_at.",
+  "requirements": ["FR-PB-01"],
+  "points": 5,
+  "status": "TODO",
+  "sprint": "sprint-2",
+  "assignee": "spider-man",
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Define PublishAdapter Protocol (publish(video, caption, link) -> PublishRecord)",
+    "Implement Meta Graph API adapter (upload flow: create container -> publish)",
+    "Handle long-lived page token refresh",
+    "Create PublishRecord Pydantic schema",
+    "Unit tests with mock API responses"
+  ],
+  "files": ["src/auto_affi/adapters/"],
+  "created": "2026-05-13"
+}

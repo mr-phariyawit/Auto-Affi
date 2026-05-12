@@ -1,14 +1,15 @@
-# Kanban Board -- Sprint 1
+# Kanban Board -- Sprint 2
 
-- **Sprint**: sprint-1
-- **Updated**: 2026-05-13T10:15Z
+- **Sprint**: sprint-2
+- **Updated**: 2026-05-13T12:30Z
 - **WIP Limit**: 3
+- **Status**: CLOSED (28/28 pts, 100%)
 
 ---
 
 ## TODO
 
-(empty -- all tasks moved to IN_REVIEW or DONE)
+(empty)
 
 ## IN_PROGRESS
 
@@ -16,10 +17,7 @@
 
 ## IN_REVIEW
 
-| Task | Title | Points | Assignee | Notes |
-|------|-------|--------|----------|-------|
-| AFFI-T-005 | CampaignBrief schema + Strategist skeleton | 3 | spider-man | Strategist agent class created, needs Python 3.12+ to verify tests |
-| AFFI-T-029 | Pre-publish safety gate | 5 | spider-man | 3-check composed pipeline created, needs Python 3.12+ to verify tests |
+(empty)
 
 ## QA
 
@@ -29,25 +27,32 @@
 
 | Task | Title | Points | Assignee | Notes |
 |------|-------|--------|----------|-------|
-| AFFI-T-001 | Shopee GraphQL adapter -- productOfferV2 search | 5 | spider-man | Full impl + 6 unit tests exist. HMAC signing, retry, rate-limit, GraphQL error handling. |
-| AFFI-T-002 | Scout scoring rubric implementation | 3 | spider-man | 6-dimension weighted rubric + 9 unit tests. Hard filters + breakdown. |
-| AFFI-T-003 | Restricted category filter | 2 | spider-man | Integrated in scout_scoring.py. 10 restricted categories. Parametrized tests. |
-| AFFI-T-008 | Storyboard JSON schema + single Writer agent | 5 | spider-man | Full Pydantic model with 7 validators. Tests exist. |
-| AFFI-T-011 | Claim auditor -- Thai script safety | 3 | spider-man | 10 regex patterns, 4 categories, severity levels. 7 unit tests. |
+| AFFI-T-020 | Caption builder with ad disclosure | 2 | spider-man | 17 tests. All platforms + disclosure enforcement. |
+| AFFI-T-004 | Wiki saturation query for Scout dedup | 3 | spider-man | 11 tests. In-memory tracker with thresholds. |
+| AFFI-T-016 | TTS provider adapter (ElevenLabs + fallback) | 3 | spider-man | 14 tests. Whitelist, OpenAI banned. |
+| AFFI-T-012 | Video gen adapter + Veo 3 impl | 5 | spider-man | 12 tests. Protocol + kie.ai + local fallback. |
+| AFFI-T-019 | SubId taxonomy injection | 2 | spider-man | 8 tests. compose_sub_ids + roundtrip. |
+| AFFI-T-015 | Editor budget cap + FFmpeg fallback | 3 | spider-man | 11 tests. $0.40 cap, mode decision. |
+| AFFI-T-017 | IG Reels publisher (Meta Graph API) | 5 | spider-man | 9 tests. 3-step Content Publishing + dry-run. |
+| AFFI-T-013 | Editor standard passes framework | 5 | spider-man | 13 tests. 6 passes + pipeline composition. |
 
 ---
 
 ## Burndown
 
-| Day | TODO | WIP | Review | Done | Points Done |
-|-----|------|-----|--------|------|-------------|
-| D1 (May 13) | 7 | 0 | 0 | 0 | 0/26 |
-| D1 (May 13 update) | 0 | 0 | 2 | 5 | 18/26 |
+| Day | TODO | WIP | Done | Points Done |
+|-----|------|-----|------|-------------|
+| D1 (May 13) | 8 | 0 | 0 | 0/28 |
+| D1 (update 1) | 2 | 0 | 6 | 18/28 |
+| D1 (update 2) | 0 | 0 | 8 | 28/28 |
 
 ---
 
-## Notes
-- 5 tasks moved to DONE based on existing codebase review -- full implementations with tests already exist
-- 2 tasks in IN_REVIEW: new code written this session (strategist.py, safety_gate.py) with tests -- pending Python 3.12+ verification
-- Sprint 1 velocity: 18 points done (pending verification), 8 points in review
-- Blocked: Python 3.12+ not available on system -- tests cannot execute to verify new code
+## Sprint 2 Verdict
+
+- **Points committed**: 28
+- **Points delivered**: 28 (100%)
+- **Tests**: 214 passed, 0 failed (8.18s via .venv/bin/python)
+- **New modules**: 8 source files, 8 test files
+- **New tests**: 93 (from 121 to 214)
+- **Regressions**: 0

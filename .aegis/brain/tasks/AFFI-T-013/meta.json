@@ -1,0 +1,25 @@
+{
+  "id": "AFFI-T-013",
+  "type": "task",
+  "epic": "AFFI-E-004",
+  "title": "Editor agent standard passes framework",
+  "description": "Implement the 6 mandatory editor passes as a pipeline: silence_trim, filler_cut, auto_subtitle, hook_punch_in, brand_overlay, cta_endcard. Each pass is a composable function operating on a video file path.",
+  "requirements": ["FR-VD-02"],
+  "points": 5,
+  "status": "TODO",
+  "sprint": "sprint-2",
+  "assignee": "spider-man",
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Define EditorPass protocol (apply(input_path) -> output_path)",
+    "Implement silence_trim (ffmpeg -af silenceremove)",
+    "Implement hook_punch_in (first 1.5s zoom effect)",
+    "Implement brand_overlay (watermark + handle overlay)",
+    "Implement cta_endcard (final scene card)",
+    "Compose into run_editor_pipeline(passes, input) -> output",
+    "Unit tests for pass composition and error handling"
+  ],
+  "files": ["src/auto_affi/pipeline/"],
+  "created": "2026-05-13"
+}

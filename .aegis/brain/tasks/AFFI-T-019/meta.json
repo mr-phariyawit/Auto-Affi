@@ -1,0 +1,22 @@
+{
+  "id": "AFFI-T-019",
+  "type": "task",
+  "epic": "AFFI-E-005",
+  "title": "SubId taxonomy injection into affiliate deep links",
+  "description": "Wire the SubIds taxonomy (platform, account, video_id, campaign_id, variant) into the publishing flow so every published video has a trackable Shopee deep link. This bridges shopee_subids.py with the publisher.",
+  "requirements": ["FR-PB-03"],
+  "points": 2,
+  "status": "TODO",
+  "sprint": "sprint-2",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Create link_generator that takes PublishRecord + CampaignBrief -> SubIds",
+    "Call ShopeeClient.generate_short_link with composed SubIds",
+    "Inject short_link into caption/first-comment template",
+    "Unit tests for SubIds composition from publish context"
+  ],
+  "files": ["src/auto_affi/adapters/shopee_subids.py", "src/auto_affi/adapters/shopee.py"],
+  "created": "2026-05-13"
+}

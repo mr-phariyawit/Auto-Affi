@@ -44,6 +44,9 @@ Last reviewed: 2026-05-06
    - 🛡️ `on-stop.sh` hook scans the last response for the option-menu pattern and logs violations
    - 👤 **Human-required items go to [`.aegis/brain/human-queue.md`](.aegis/brain/human-queue.md)** — bilingual EN/TH, surfaces at `/aegis-start`, `/aegis-status`, `/aegis-handoff`, session end. Use `tools/aegis-queue-human.sh` to append, `tools/aegis-queue-resolve.sh` to resolve.
 
+## Project-Specific Rules (Auto-Affi)
+8. **ALWAYS use `.venv/bin/python`** -- never bare `python` or `python3` for project commands. The project requires Python 3.12+ (PEP 695 generics); system Python is 3.9. The `.venv/` ships Python 3.13.9. Applies to: pytest, ruff, mypy, pip, any src/ script. See `.aegis/brain/instincts/promoted/venv-python-rule.md`.
+
 ## Nick Fury (🧬)
 After /aegis-start, Nick Fury takes full control:
 - Scans project state (git, tests, specs, deps, tech debt)

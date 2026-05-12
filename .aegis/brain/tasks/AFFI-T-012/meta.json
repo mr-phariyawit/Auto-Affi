@@ -1,0 +1,24 @@
+{
+  "id": "AFFI-T-012",
+  "type": "task",
+  "epic": "AFFI-E-004",
+  "title": "Video gen adapter interface + Veo 3 implementation",
+  "description": "Define the VideoGenAdapter protocol for multi-vendor video generation. Implement Veo 3 as the Phase 1 primary provider via kie.ai gateway. Adapter must return asset path + cost + latency in ToolResult.",
+  "requirements": ["FR-VD-01"],
+  "points": 5,
+  "status": "TODO",
+  "sprint": "sprint-2",
+  "assignee": "spider-man",
+  "block0_mode": "full",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Define VideoGenAdapter Protocol (generate_scene -> ToolResult[AssetPath])",
+    "Implement kie.ai HTTP adapter using _http_base pattern",
+    "Map Storyboard.Scene to kie.ai generation request",
+    "Cost tracking per scene (kie.ai pricing)",
+    "Fallback: local_renderer for development without credentials",
+    "Unit tests with mock HTTP responses"
+  ],
+  "files": ["src/auto_affi/adapters/"],
+  "created": "2026-05-13"
+}

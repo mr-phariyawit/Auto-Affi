@@ -1,0 +1,22 @@
+{
+  "id": "AFFI-T-015",
+  "type": "task",
+  "epic": "AFFI-E-004",
+  "title": "Editor budget cap + FFmpeg fallback",
+  "description": "Implement per-video cost tracking for the Editor agent. If token cost exceeds $0.40/video, fall back to deterministic FFmpeg recipe instead of LLM-driven editing.",
+  "requirements": ["FR-VD-04"],
+  "points": 3,
+  "status": "TODO",
+  "sprint": "sprint-2",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": ["feature"],
+  "sub_tasks": [
+    "Define cost tracker (accumulate per-pass costs)",
+    "Implement budget check before each LLM-driven pass",
+    "Implement FFmpeg fallback recipe for over-budget cases",
+    "Unit tests for budget threshold and fallback trigger"
+  ],
+  "files": ["src/auto_affi/pipeline/"],
+  "created": "2026-05-13"
+}
