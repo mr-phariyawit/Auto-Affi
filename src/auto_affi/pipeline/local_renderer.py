@@ -112,9 +112,32 @@ def _pick_thai_font(size: int) -> ImageFont.FreeTypeFont:
     for path in _THAI_FONT_CANDIDATES:
         if Path(path).exists():
             return ImageFont.truetype(path, size=size)
+    # Fall back to fontconfig so we work on any distro that has SOME Thai font
+    # installed but not under a path we hardcoded.
+    via_fc = _font_path_via_fc_match()
+    if via_fc is not None:
+        return ImageFont.truetype(via_fc, size=size)
     raise RendererError(
-        f"no Thai-capable font found; install one of: {', '.join(_THAI_FONT_CANDIDATES)}"
+        "no Thai-capable font found; install fonts-tlwg or fonts-thai-tlwg "
+        "or any font listing 'lang=th' to fontconfig"
     )
+
+
+def _font_path_via_fc_match() -> str | None:
+    """Resolve a Thai-capable font via fontconfig. Returns ``None`` if absent."""
+    fc_match = shutil.which("fc-match")
+    if fc_match is None:
+        return None
+    proc = subprocess.run(  # noqa: S603 -- fc_match is absolute, args are static
+        [fc_match, "-f", "%{file}", ":lang=th"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        return None
+    path = proc.stdout.strip()
+    return path if path and Path(path).exists() else None
 
 
 def _render_scene_panel(scene: Scene, workdir: Path) -> Path:

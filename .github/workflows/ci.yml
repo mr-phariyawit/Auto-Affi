@@ -59,8 +59,12 @@ jobs:
 
       - name: Install system tools for local renderer
         run: |
+          set -e
           sudo apt-get update
-          sudo apt-get install -y ffmpeg espeak-ng fonts-tlwg
+          sudo apt-get install -y ffmpeg espeak-ng fontconfig fonts-tlwg fonts-freefont-otf
+          # Force the font cache so fc-match resolves Thai immediately.
+          sudo fc-cache -f -v >/dev/null
+          fc-match :lang=th
 
       - name: Install dependencies
         run: uv sync --group dev
