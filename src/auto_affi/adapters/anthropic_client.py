@@ -19,23 +19,15 @@ the per-agent code in src/auto_affi/agents/.
 
 from __future__ import annotations
 
-import time
-import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel, Field, SecretStr
-from tenacity import (
-    AsyncRetrying,
-    RetryError,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
-from auto_affi.exceptions import AdapterError, RateLimitError, SchemaValidationError
+from auto_affi.adapters._http_base import HttpExecutor, call_with_result
+from auto_affi.exceptions import AdapterError, SchemaValidationError
 from auto_affi.schemas.tool_result import ToolResult
 
 # --------------------------------------------------------------------- #
@@ -145,9 +137,12 @@ class AnthropicClient:
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
         self._api_version = api_version
-        self._timeout_s = timeout_s
-        self._max_retries = max_retries
-        self._client = client
+        self._executor = HttpExecutor(
+            vendor="Anthropic",
+            timeout_s=timeout_s,
+            max_retries=max_retries,
+            client=client,
+        )
 
     async def complete(
         self,
@@ -183,77 +178,16 @@ class AnthropicClient:
         if extra_headers:
             headers.update(extra_headers)
 
-        trace_id = uuid.uuid4().hex
-        start = time.perf_counter()
-        try:
-            payload = await self._do_request(body=body, headers=headers)
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            result = _parse_response(payload, model=model)
-            cost_usd = compute_cost_usd(model, result.usage)
-            return ToolResult(
-                ok=True,
-                data=result,
-                cost_usd=cost_usd,
-                latency_ms=latency_ms,
-                trace_id=trace_id,
-            )
-        except RateLimitError as err:
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            return ToolResult(
-                ok=False,
-                error=f"rate_limited: {err}",
-                latency_ms=latency_ms,
-                trace_id=trace_id,
-            )
-        except (AdapterError, SchemaValidationError) as err:
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            return ToolResult(ok=False, error=str(err), latency_ms=latency_ms, trace_id=trace_id)
-
-    # ------------------------------------------------------------------ #
-    # transport                                                          #
-    # ------------------------------------------------------------------ #
-
-    async def _do_request(
-        self, *, body: Mapping[str, Any], headers: dict[str, str]
-    ) -> dict[str, Any]:
-        retrying = AsyncRetrying(
-            stop=stop_after_attempt(self._max_retries),
-            wait=wait_exponential(multiplier=1, min=1, max=10),
-            retry=retry_if_exception_type(RateLimitError),
-            reraise=True,
-        )
-        try:
-            async for attempt in retrying:
-                with attempt:
-                    return await self._raw_post(body=body, headers=headers)
-        except RetryError as err:
-            raise RateLimitError("Anthropic API rate-limited after retries") from err
-        raise AdapterError("Anthropic request did not execute")
-
-    async def _raw_post(
-        self, *, body: Mapping[str, Any], headers: dict[str, str]
-    ) -> dict[str, Any]:
         url = self._base_url + MESSAGES_PATH
-        client = self._client or httpx.AsyncClient(timeout=self._timeout_s)
-        owns_client = self._client is None
-        try:
-            response = await client.post(url, json=dict(body), headers=headers)
-        finally:
-            if owns_client:
-                await client.aclose()
 
-        if response.status_code == 429:
-            raise RateLimitError("HTTP 429 from Anthropic")
-        if response.status_code >= 500:
-            raise RateLimitError(f"HTTP {response.status_code} from Anthropic (transient)")
-        if response.status_code >= 400:
-            raise AdapterError(f"HTTP {response.status_code}: {response.text[:200]}")
+        async def _do() -> CompletionResult:
+            payload = await self._executor.post(url=url, body=body, headers=headers)
+            return _parse_response(payload, model=model)
 
-        try:
-            payload: dict[str, Any] = response.json()
-        except ValueError as err:
-            raise AdapterError("Anthropic returned non-JSON body") from err
-        return payload
+        return await call_with_result(
+            _do,
+            cost_fn=lambda result: compute_cost_usd(model, result.usage),
+        )
 
 
 # --------------------------------------------------------------------- #

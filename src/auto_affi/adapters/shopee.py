@@ -21,23 +21,16 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-import uuid
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
 import httpx
 from pydantic import BaseModel, Field, SecretStr
-from tenacity import (
-    AsyncRetrying,
-    RetryError,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
+from auto_affi.adapters._http_base import HttpExecutor, call_with_result
 from auto_affi.adapters.shopee_subids import SubIds
-from auto_affi.exceptions import AdapterError, RateLimitError, SchemaValidationError
+from auto_affi.exceptions import AdapterError, SchemaValidationError
 from auto_affi.schemas.tool_result import ToolResult
 
 
@@ -124,9 +117,12 @@ class ShopeeClient:
         self._app_id = app_id
         self._secret = secret
         self._endpoint = endpoint
-        self._timeout_s = timeout_s
-        self._client = client
-        self._max_retries = max_retries
+        self._executor = HttpExecutor(
+            vendor="Shopee",
+            timeout_s=timeout_s,
+            max_retries=max_retries,
+            client=client,
+        )
 
     # ------------------------------------------------------------------ #
     # public surface                                                     #
@@ -186,7 +182,7 @@ class ShopeeClient:
     async def _call[T](
         self,
         *,
-        body: Mapping[str, Any],
+        body: dict[str, Any],
         parser: Callable[[dict[str, Any]], T],
     ) -> ToolResult[T]:
         body_str = json.dumps(body, separators=(",", ":"))
@@ -199,62 +195,18 @@ class ShopeeClient:
                 f"Timestamp={timestamp}, Signature={signature}"
             ),
         }
-        trace_id = uuid.uuid4().hex
-        start = time.perf_counter()
-        try:
-            payload = await self._do_request(body_str=body_str, headers=headers)
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            data = parser(payload)
-            return ToolResult(ok=True, data=data, latency_ms=latency_ms, trace_id=trace_id)
-        except RateLimitError as err:
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            return ToolResult(
-                ok=False, error=f"rate_limited: {err}", latency_ms=latency_ms, trace_id=trace_id
+
+        async def _do() -> T:
+            payload = await self._executor.post(
+                url=self._endpoint.url, body=body_str, headers=headers
             )
-        except (AdapterError, SchemaValidationError) as err:
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            return ToolResult(ok=False, error=str(err), latency_ms=latency_ms, trace_id=trace_id)
+            if payload.get("errors"):
+                # GraphQL-level errors arrive with HTTP 200 — translate to AdapterError so
+                # the standard ToolResult wrapper surfaces them as ``ok=False``.
+                raise AdapterError(f"GraphQL errors: {payload['errors']}")
+            return parser(payload)
 
-    async def _do_request(self, *, body_str: str, headers: dict[str, str]) -> dict[str, Any]:
-        retrying = AsyncRetrying(
-            stop=stop_after_attempt(self._max_retries),
-            wait=wait_exponential(multiplier=1, min=1, max=10),
-            retry=retry_if_exception_type(RateLimitError),
-            reraise=True,
-        )
-        try:
-            async for attempt in retrying:
-                with attempt:
-                    return await self._raw_post(body_str=body_str, headers=headers)
-        except RetryError as err:
-            raise RateLimitError("Shopee API rate-limited after retries") from err
-        # Defensive: AsyncRetrying always yields at least once with reraise=True.
-        raise AdapterError("Shopee request did not execute")
-
-    async def _raw_post(self, *, body_str: str, headers: dict[str, str]) -> dict[str, Any]:
-        client = self._client or httpx.AsyncClient(timeout=self._timeout_s)
-        owns_client = self._client is None
-        try:
-            response = await client.post(self._endpoint.url, content=body_str, headers=headers)
-        finally:
-            if owns_client:
-                await client.aclose()
-
-        if response.status_code == 429:
-            raise RateLimitError("HTTP 429 from Shopee")
-        if response.status_code >= 500:
-            raise RateLimitError(f"HTTP {response.status_code} from Shopee (transient)")
-        if response.status_code >= 400:
-            raise AdapterError(f"HTTP {response.status_code}: {response.text[:200]}")
-
-        try:
-            payload: dict[str, Any] = response.json()
-        except json.JSONDecodeError as err:
-            raise AdapterError("Shopee returned non-JSON body") from err
-
-        if payload.get("errors"):
-            raise AdapterError(f"GraphQL errors: {payload['errors']}")
-        return payload
+        return await call_with_result(_do)
 
     def _sign(self, *, body: str, timestamp: int) -> str:
         payload = f"{self._app_id}{timestamp}{body}{self._secret.get_secret_value()}"
