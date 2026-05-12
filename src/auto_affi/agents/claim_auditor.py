@@ -19,6 +19,7 @@ docs/execution-playbook.md section 10 for the policy justification.
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -43,20 +44,14 @@ class ClaimViolation(BaseModel):
     severity: int = Field(ge=1, le=3, description="1=advise, 2=block, 3=hard-block")
 
 
+@dataclass(frozen=True, slots=True)
 class _Pattern:
-    __slots__ = ("category", "name", "regex", "severity")
+    """One regex + metadata used by :func:`audit`."""
 
-    def __init__(
-        self,
-        category: ClaimCategory,
-        name: str,
-        regex: re.Pattern[str],
-        severity: int,
-    ) -> None:
-        self.category = category
-        self.name = name
-        self.regex = regex
-        self.severity = severity
+    category: ClaimCategory
+    name: str
+    regex: re.Pattern[str]
+    severity: int
 
 
 def _compile(pattern: str) -> re.Pattern[str]:
