@@ -50,6 +50,7 @@ assets/
 *.mp3
 !tests/fixtures/**/*.mp4
 !tests/fixtures/**/*.wav
+!docs/demo/*.mp4
 
 # Logs
 *.log
