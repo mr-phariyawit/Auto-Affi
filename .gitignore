@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# uv / venv
+.venv/
+venv/
+env/
+.python-version
+
+# Secrets & config
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Project data (large / volatile)
+data/
+assets/
+.cache/
+*.mp4
+*.webm
+*.wav
+*.mp3
+!tests/fixtures/**/*.mp4
+!tests/fixtures/**/*.wav
+
+# Logs
+*.log
+logs/
+
+# Temporal / docker
+.tctl/
+docker-compose.override.yml
