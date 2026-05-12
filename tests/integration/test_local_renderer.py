@@ -24,7 +24,8 @@ def _require_binaries() -> None:
 
 
 def test_demo_storyboard_renders_to_valid_9x16_mp4(tmp_path: Path) -> None:
-    from auto_affi.pipeline.local_renderer import build_demo_storyboard, render_storyboard
+    from auto_affi.pipeline.demo_storyboard import build_demo_storyboard
+    from auto_affi.pipeline.local_renderer import render_storyboard
 
     storyboard = build_demo_storyboard()
     output = tmp_path / "demo.mp4"

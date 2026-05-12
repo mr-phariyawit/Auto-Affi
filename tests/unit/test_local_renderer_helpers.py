@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from auto_affi.pipeline.local_renderer import build_demo_storyboard
+from auto_affi.pipeline.demo_storyboard import build_demo_storyboard
 from auto_affi.schemas.storyboard import REQUIRED_EDITOR_PASSES
 
 

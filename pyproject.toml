@@ -17,6 +17,9 @@ dependencies = [
     "python-dotenv>=1.0.1",
 ]
 
+[project.scripts]
+auto-affi-demo = "auto_affi.ops.make_demo:main"
+
 [project.optional-dependencies]
 workflow = [
     "temporalio>=1.8.0",

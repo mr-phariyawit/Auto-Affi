@@ -17,11 +17,8 @@ import argparse
 import tempfile
 from pathlib import Path
 
-from auto_affi.pipeline.local_renderer import (
-    RenderResult,
-    build_demo_storyboard,
-    render_storyboard,
-)
+from auto_affi.pipeline.demo_storyboard import build_demo_storyboard
+from auto_affi.pipeline.local_renderer import RenderResult, render_storyboard
 
 
 def main(argv: list[str] | None = None) -> int:
