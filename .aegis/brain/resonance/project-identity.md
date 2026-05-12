@@ -5,7 +5,7 @@
 - **Name**: Auto-Affi
 - **Purpose**: Autonomous AI marketing platform that scouts Shopee products, creates Thai-native 9:16 vertical videos, publishes to social platforms with affiliate links, collects metrics, and self-improves through an LLM Wiki feedback loop.
 - **One-line**: "AI Marketing Company operating 24/7 -- product discovery to video to revenue to learning"
-- **Owner**: mr.phariyawit@gmail.com
+- **Owner**: mr.phariyawit@gmail.com (SPEC says "TBD" -- reconciled: using git author email as canonical owner)
 - **Created**: 2026-05-13
 - **Framework**: AEGIS v12.0
 - **Agents**: 10 Marvel characters (v9 consolidation)
@@ -54,3 +54,27 @@
 - **Phase 1** (Week 1-6): Single closed loop -- Beauty niche, 5 video/day, GMV >= $200/14d
 - **Phase 2** (Week 7-14): Multi-platform + portfolio, Writers' Room full team
 - **Phase 3** (Week 15-24): Self-improving autonomous, harness-evolver, MoM CTR uplift >= 5%
+
+## Resonance Index (soul files)
+
+| File | Concern |
+|------|---------|
+| `project-identity.md` | Core identity, domain, tech stack, phases (this file) |
+| `north-stars.md` | KPI table, phase exit gates, operational SLOs |
+| `non-goals.md` | What we will NOT build, with sunset dates |
+| `architecture-principles.md` | 5 core principles, subsystem map, ADR cross-refs |
+| `agent-hierarchy.md` | Hollywood writers' room, agent roles, handoff chain |
+| `autonomy-stance.md` | Human as supervisor only, escalation policy, kill switches |
+| `cost-model.md` | Per-node budgets, circuit-breakers, fallback recipes |
+| `domain-thai.md` | Thai market, Beauty niche, 9:16 format, regulatory, mega-sale calendar |
+| `learning-loop.md` | LLM Wiki, tiering, feedback loop, anti-forgetting |
+
+## ADR Index
+
+| ADR | Decision |
+|-----|----------|
+| ADR-001 | Agent hierarchy vs peer mesh -> hierarchy |
+| ADR-002 | Schema validation strategy -> Pydantic at every handoff |
+| ADR-003 | Bilateral wiki sync -> review queue + Safety promotion |
+| ADR-004 | Cost control architecture -> 3-layer caps + circuit-breakers |
+| ADR-005 | Temporal orchestration -> durable workflows |
