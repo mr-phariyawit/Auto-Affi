@@ -18,6 +18,7 @@ External tools required (already on the dev image):
 
 from __future__ import annotations
 
+import functools
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -102,25 +103,45 @@ def render_storyboard(
 
 
 def _check_tools(*, enable_tts: bool) -> None:
-    if shutil.which("ffmpeg") is None:
-        raise RendererError("ffmpeg not on PATH; install ffmpeg")
-    if enable_tts and shutil.which("espeak-ng") is None:
-        raise RendererError("espeak-ng not on PATH; install espeak-ng or pass enable_tts=False")
+    required: tuple[tuple[str, str], ...] = (("ffmpeg", "install ffmpeg"),)
+    if enable_tts:
+        required = (*required, ("espeak-ng", "install espeak-ng or pass enable_tts=False"))
+    missing = [(name, hint) for name, hint in required if shutil.which(name) is None]
+    if missing:
+        first_name, first_hint = missing[0]
+        raise RendererError(f"{first_name} not on PATH; {first_hint}")
 
 
-def _pick_thai_font(size: int) -> ImageFont.FreeTypeFont:
+@functools.cache
+def _resolve_thai_font_path() -> str:
+    """Resolve a Thai-capable font path once per process.
+
+    Returns the first hit from the hardcoded candidate list, then falls back
+    to fontconfig (``fc-match :lang=th``) for distros where Thai fonts live
+    under a path we did not predict. Cached because resolution does a
+    ``stat`` per candidate plus an optional subprocess.
+    """
     for path in _THAI_FONT_CANDIDATES:
         if Path(path).exists():
-            return ImageFont.truetype(path, size=size)
-    # Fall back to fontconfig so we work on any distro that has SOME Thai font
-    # installed but not under a path we hardcoded.
+            return path
     via_fc = _font_path_via_fc_match()
     if via_fc is not None:
-        return ImageFont.truetype(via_fc, size=size)
+        return via_fc
     raise RendererError(
         "no Thai-capable font found; install fonts-tlwg or fonts-thai-tlwg "
         "or any font listing 'lang=th' to fontconfig"
     )
+
+
+@functools.cache
+def _pick_thai_font(size: int) -> ImageFont.FreeTypeFont:
+    """Return a cached :class:`ImageFont.FreeTypeFont` at the requested size.
+
+    Caching matters because ``render_storyboard`` calls this twice per scene
+    (headline + badge) at fixed sizes; without the cache each call walks the
+    candidate list and reopens the truetype file.
+    """
+    return ImageFont.truetype(_resolve_thai_font_path(), size=size)
 
 
 def _font_path_via_fc_match() -> str | None:
@@ -176,17 +197,30 @@ def _scene_headline(scene: Scene) -> str:
 def _fill_gradient(
     image: Image.Image, *, top: tuple[int, int, int], bottom: tuple[int, int, int]
 ) -> None:
-    pixels = image.load()
-    if pixels is None:  # pragma: no cover - PIL guarantees this
+    """Paint a vertical top→bottom gradient onto ``image`` in place.
+
+    Builds a 1-pixel-wide gradient column (one ``putpixel`` per row) and
+    resizes it to image width with ``Image.NEAREST``. This is ~100x faster
+    than the previous per-pixel Python loop (avoids ``WIDTH * HEIGHT``
+    Python attribute accesses) and the visual output is identical because
+    the gradient varies only along Y.
+    """
+    width, height = image.size
+    if height == 0 or width == 0:  # pragma: no cover - defensive
         return
-    height = image.size[1]
+    column = Image.new("RGB", (1, height))
+    column_pixels = column.load()
+    if column_pixels is None:  # pragma: no cover - PIL guarantees this
+        return
+    denom = max(height - 1, 1)
     for y in range(height):
-        t = y / max(height - 1, 1)
-        r = int(top[0] + (bottom[0] - top[0]) * t)
-        g = int(top[1] + (bottom[1] - top[1]) * t)
-        b = int(top[2] + (bottom[2] - top[2]) * t)
-        for x in range(image.size[0]):
-            pixels[x, y] = (r, g, b)
+        t = y / denom
+        column_pixels[0, y] = (
+            int(top[0] + (bottom[0] - top[0]) * t),
+            int(top[1] + (bottom[1] - top[1]) * t),
+            int(top[2] + (bottom[2] - top[2]) * t),
+        )
+    image.paste(column.resize((width, height), Image.Resampling.NEAREST))
 
 
 def _draw_centered(
