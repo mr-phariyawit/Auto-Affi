@@ -1,0 +1,29 @@
+{
+  "id": "AFFI-T-036",
+  "type": "task",
+  "epic": "AFFI-E-009",
+  "title": "Budget circuit-breaker for workflows",
+  "requirements": [
+    "FR-OR-03"
+  ],
+  "points": 3,
+  "status": "DONE",
+  "sprint": "sprint-4",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": [
+    "feature"
+  ],
+  "sub_tasks": [
+    "Define BudgetCircuitBreaker with per-node and daily caps from cost-model.md",
+    "Implement check_budget(node, cost) -> allow/deny/alert",
+    "Wire into InProcessExecutor as pre-step guard",
+    "Implement daily-spend aggregation with auto-stop at budget*1.1",
+    "Unit tests for per-node cap, daily cap, auto-stop, alert thresholds"
+  ],
+  "files": [
+    "src/auto_affi/workflows/budget.py",
+    "tests/unit/test_workflow_budget.py"
+  ],
+  "created": "2026-05-13"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "AFFI-T-032",
+  "type": "task",
+  "epic": "AFFI-E-008",
+  "title": "Auto-kill trigger (3 violations in 24h -> freeze)",
+  "requirements": [
+    "FR-SF-05"
+  ],
+  "points": 3,
+  "status": "DONE",
+  "sprint": "sprint-4",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": [
+    "feature",
+    "security"
+  ],
+  "sub_tasks": [
+    "Define ViolationTracker with rolling 24h window",
+    "Implement auto_kill_check(violations) -> bool trigger",
+    "Wire into SafetyGate: on violation, increment tracker; if threshold hit, activate global kill",
+    "Add alert mechanism (log + flag for human review)",
+    "Unit tests for rolling window, threshold, auto-activation"
+  ],
+  "files": [
+    "src/auto_affi/agents/kill_switch.py",
+    "tests/unit/test_kill_switch.py"
+  ],
+  "created": "2026-05-13"
+}

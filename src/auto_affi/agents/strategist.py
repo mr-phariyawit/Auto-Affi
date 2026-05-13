@@ -15,7 +15,7 @@ the Writers' Room subsumes some Strategist reasoning.
 from __future__ import annotations
 
 import json
-from datetime import UTC, date, datetime
+from datetime import date
 from typing import Any
 
 from auto_affi.adapters.anthropic_client import AnthropicClient, Model
@@ -26,15 +26,31 @@ from auto_affi.schemas.tool_result import ToolResult
 from auto_affi.wiki.hook_library import HOOK_TEMPLATES
 
 # Shopee mega-sale dates (month.day) — FR-ST-03.
+# Full calendar from domain-thai.md resonance:
+#   Monthly doubles, Valentine's Day, Songkran, Mid-Year,
+#   Mother's Day TH, 11.11, 12.12, New Year, PayDay patterns.
 _MEGA_SALES: tuple[tuple[int, int], ...] = (
-    (3, 3),
-    (6, 6),
-    (9, 9),
-    (10, 10),
-    (11, 11),
-    (12, 12),
+    (1, 1),    # 1.1
+    (2, 2),    # 2.2
+    (2, 14),   # Valentine's Day (beauty gift surge)
+    (3, 3),    # 3.3
+    (4, 4),    # 4.4
+    (4, 13),   # Songkran (sunscreen, waterproof makeup)
+    (5, 5),    # 5.5
+    (6, 6),    # 6.6 / Mid-Year Sale
+    (7, 7),    # 7.7
+    (8, 8),    # 8.8
+    (8, 12),   # Mother's Day TH (major beauty gifting)
+    (9, 9),    # 9.9
+    (10, 10),  # 10.10
+    (11, 11),  # 11.11 (biggest single-day sale in SEA)
+    (12, 12),  # 12.12 (year-end mega-sale)
+    (12, 25),  # Christmas / New Year gifting season
 )
 _MEGA_SALE_WINDOW_DAYS = 14
+
+# Budget multiplier when in mega-sale window (FR-ST-03: budget x 2)
+MEGA_SALE_BUDGET_MULTIPLIER = 2.0
 
 
 def is_mega_sale_window(*, today: date | None = None) -> bool:

@@ -15,11 +15,9 @@ and metadata for analytics tracking.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import Final, Protocol
 
 import httpx
 from pydantic import BaseModel, Field, SecretStr
@@ -223,3 +221,71 @@ class DryRunPublisher:
             )
 
         return await call_with_result(_do)
+
+
+# --------------------------------------------------------------------- #
+# FB Reels publisher stub (Phase 2, FR-PB-02)                          #
+# --------------------------------------------------------------------- #
+
+
+class FBReelsPublisher:
+    """FB Reels publisher stub -- Phase 2 implementation.
+
+    Shares the Meta Graph API surface with IG Reels. Phase 1 uses
+    DryRunPublisher; this stub defines the contract for Phase 2.
+    """
+
+    def __init__(self) -> None:
+        self._dry_run = DryRunPublisher(PublishPlatform.FB)
+
+    @property
+    def platform(self) -> PublishPlatform:
+        return PublishPlatform.FB
+
+    async def publish(
+        self,
+        *,
+        video_url: str,
+        caption: str,
+        affiliate_link: str = "",
+    ) -> ToolResult[PublishRecord]:
+        """Stub: delegates to dry-run in Phase 1."""
+        return await self._dry_run.publish(
+            video_url=video_url,
+            caption=caption,
+            affiliate_link=affiliate_link,
+        )
+
+
+# --------------------------------------------------------------------- #
+# YouTube Shorts publisher stub (Phase 2, FR-PB-02)                    #
+# --------------------------------------------------------------------- #
+
+
+class YTShortsPublisher:
+    """YouTube Shorts publisher stub -- Phase 2 implementation.
+
+    Uses YouTube Data API v3 (videos.insert). Phase 1 uses
+    DryRunPublisher; this stub defines the contract for Phase 2.
+    """
+
+    def __init__(self) -> None:
+        self._dry_run = DryRunPublisher(PublishPlatform.YT)
+
+    @property
+    def platform(self) -> PublishPlatform:
+        return PublishPlatform.YT
+
+    async def publish(
+        self,
+        *,
+        video_url: str,
+        caption: str,
+        affiliate_link: str = "",
+    ) -> ToolResult[PublishRecord]:
+        """Stub: delegates to dry-run in Phase 1."""
+        return await self._dry_run.publish(
+            video_url=video_url,
+            caption=caption,
+            affiliate_link=affiliate_link,
+        )
