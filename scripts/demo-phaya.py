@@ -31,6 +31,12 @@ from pydantic import SecretStr
 from auto_affi.adapters.phaya import JobState, PhayaClient
 from auto_affi.pipeline.demo_storyboard import build_demo_storyboard
 
+try:
+    from auto_affi.adapters.gcs_storage import GcsStorage, StoredAsset
+except ImportError:  # google-cloud-storage not installed in some envs
+    GcsStorage = None  # type: ignore[assignment]
+    StoredAsset = None  # type: ignore[assignment]
+
 
 async def _download(url: str, dest: Path) -> None:
     async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as c:
@@ -43,6 +49,25 @@ def _parse_scene_arg(arg: str, total: int) -> list[int]:
     if arg == "all":
         return list(range(total))
     return [int(x) for x in arg.split(",")]
+
+
+_TTS_PREFIX_STRIP = ("POV ", "POV: ", "POV:", "[narrator] ", "Narrator: ")
+
+
+def _tts_clean(text: str) -> str:
+    """Strip TTS-unfriendly instruction-style prefixes.
+
+    Gemini TTS (under Phaya) interprets prefixes like ``POV ...`` as a
+    *generation instruction* rather than a transcript to recite, and fails
+    with "Model tried to generate text". Strip the common offenders before
+    submission so the storyboard's source text stays human-readable.
+    """
+    cleaned = text.strip()
+    for prefix in _TTS_PREFIX_STRIP:
+        if cleaned.lower().startswith(prefix.lower()):
+            cleaned = cleaned[len(prefix):].lstrip(" :")
+            break
+    return cleaned
 
 
 def _mux(video: Path, audio: Path, out: Path) -> None:
@@ -99,11 +124,13 @@ async def _process_scene(
     print(f"   dialogue: {scene.dialogue.text_th}")
 
     # Phaya Sora 2 only accepts n_frames="10" or "15" (string enum). "15" = max.
+    # Sanitize TTS text — Gemini TTS rejects instruction-style prefixes.
+    tts_text = _tts_clean(scene.dialogue.text_th)
     video_submit, tts_submit = await asyncio.gather(
         client.create_sora2_video(
             prompt=scene.visual_prompt, n_frames="15", aspect_ratio="portrait"
         ),
-        client.create_tts(prompt=scene.dialogue.text_th, voice="Algenib", language="th"),
+        client.create_tts(prompt=tts_text, voice="Algenib", language="th"),
     )
     if not video_submit.ok or video_submit.data is None:
         print(f"   ❌ video submit failed: {video_submit.error}")
@@ -150,7 +177,7 @@ async def _process_scene(
     clip_path = workdir / f"s{scene_idx}-clip.mp4"
     _mux(video_path, audio_path, clip_path)
     cost_thb = (video_done.data.cost_thb or 0.0) + (tts_done.data.cost_thb or 0.0)
-    return clip_path, cost_thb
+    return clip_path, cost_thb, video_path, audio_path
 
 
 async def main() -> int:
@@ -183,8 +210,23 @@ async def main() -> int:
     print(f"📊 balance before: ฿{bal0.data.balance_thb:.4f} (≈${bal0.data.balance_usd:.4f})")
     print(f"🎬 scenes: {indices} · {len(indices)} of {len(sb.scenes)} · workdir={workdir}")
 
+    # GCS staging per ADR-006 — initialize lazily, fall back if not configured
+    gcs: GcsStorage | None = None
+    bucket_name = os.environ.get("AUTO_AFFI__GCS_BUCKET")
+    if GcsStorage is not None and bucket_name:
+        try:
+            gcs = GcsStorage(bucket_name=bucket_name)
+            print(f"🪣 GCS: gs://{gcs.bucket_name}/ (per ADR-006)")
+        except Exception as e:
+            print(f"⚠️  GCS init failed ({e}); falling back to local-only")
+    else:
+        print("ℹ️  GCS not configured; local-only output (supabase URLs transient)")
+
     clips: list[Path] = []
     total_cost_thb = 0.0
+    gcs_uris: list[str] = []
+    run_date = time.strftime("%Y-%m-%d", time.gmtime())
+
     for idx in indices:
         if idx >= len(sb.scenes):
             print(f"   skip: scene {idx} out of range")
@@ -193,31 +235,67 @@ async def main() -> int:
         if result is None:
             print(f"⚠️  scene {idx} failed; continuing with remaining scenes")
             continue
-        clip, cost = result
+        clip, cost, video_path, audio_path = result
         clips.append(clip)
         total_cost_thb += cost
+
+        # Republish raw assets to GCS per ADR-006 (supabase URLs never persisted)
+        if gcs is not None:
+            try:
+                video_asset = gcs.upload_file(
+                    video_path,
+                    key=f"sora2/{run_date}/scene{idx}.mp4",
+                    content_type="video/mp4",
+                )
+                audio_asset = gcs.upload_file(
+                    audio_path,
+                    key=f"tts/{run_date}/scene{idx}.wav",
+                    content_type="audio/wav",
+                )
+                print(f"   ☁️  {video_asset.gs_uri}")
+                print(f"   ☁️  {audio_asset.gs_uri}")
+                gcs_uris.extend([video_asset.gs_uri, audio_asset.gs_uri])
+            except Exception as e:
+                print(f"   ⚠️  GCS republish failed: {e}")
 
     if not clips:
         print("\n❌ no scenes succeeded")
         return 3
 
     if len(clips) == 1:
-        # Single scene → final output is the muxed clip itself
         clips[0].replace(args.output)
         out_path = args.output
     else:
         _concat(clips, workdir, args.output)
         out_path = args.output
 
+    # Republish the final muxed mp4 too
+    final_gs_uri: str | None = None
+    if gcs is not None:
+        try:
+            final_asset = gcs.upload_file(
+                out_path,
+                key=f"demo/{run_date}/{out_path.name}",
+                content_type="video/mp4",
+                cache_control="public, max-age=3600",
+            )
+            final_gs_uri = final_asset.gs_uri
+            gcs_uris.append(final_gs_uri)
+        except Exception as e:
+            print(f"   ⚠️  final GCS republish failed: {e}")
+
     bal1 = await client.get_credits()
     spent = bal0.data.balance_thb - (bal1.data.balance_thb if bal1.data else 0.0)
 
     print("\n" + "=" * 60)
-    print(f"✅ output: {out_path} ({out_path.stat().st_size//1024} KB)")
+    print(f"✅ local output: {out_path} ({out_path.stat().st_size//1024} KB)")
+    if final_gs_uri:
+        print(f"☁️  GCS canonical: {final_gs_uri}")
     print(f"💰 reported cost_thb sum: ฿{total_cost_thb:.4f}")
     print(f"💰 balance delta:          ฿{spent:.4f}  (≈${spent*0.028:.4f})")
     print(f"📊 balance after:          ฿{bal1.data.balance_thb if bal1.data else 0:.4f}")
     print(f"🎞️  scenes rendered:       {len(clips)} / {len(indices)} requested")
+    print(f"🪣 GCS objects:            {len(gcs_uris)}")
     return 0
 
 
