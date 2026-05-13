@@ -11,8 +11,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from auto_affi.adapters.gcs_storage import GcsStorage, StoredAsset
-from auto_affi.exceptions import AdapterError
+# google-cloud-storage is in the adapters extras but not yet pinned in
+# pyproject.toml (human-queue item). Skip the whole module if the SDK
+# isn't installed locally so the suite stays green on fresh checkouts.
+pytest.importorskip("google.cloud.storage")
+
+from auto_affi.adapters.gcs_storage import GcsStorage, StoredAsset  # noqa: E402
+from auto_affi.exceptions import AdapterError  # noqa: E402
 
 
 def _mock_client(bucket_name: str) -> tuple[MagicMock, MagicMock, MagicMock]:
