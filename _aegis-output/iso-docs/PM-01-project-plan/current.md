@@ -26,12 +26,29 @@
 
 ## 3. Schedule (High-Level Baseline)
 
-| Phase | Window | Exit Criteria |
-|-------|--------|---------------|
-| **Phase 0** -- PM setup | Week 0 (current) | Linear board ready, Tier 1 docs merged, repo skeleton |
-| **Phase 1** -- Single closed loop | Week 1-6 | Beauty niche x 5 video/day x loop complete x GMV >= $200/14d |
-| **Phase 2** -- Multi-platform + portfolio | Week 7-14 | FB+IG+YT, 10 burner accounts, Writers' Room complete |
-| **Phase 3** -- Self-improving autonomous | Week 15-24 | Harness-evolver online, MoM CTR uplift >= 5% |
+| Phase | Window | Exit Criteria | Status |
+|-------|--------|---------------|--------|
+| **Phase 0** -- PM setup | Week 0 | Linear board ready, Tier 1 docs merged, repo skeleton | COMPLETE |
+| **Phase 1** -- Single closed loop | Week 1-6 | Beauty niche x 5 video/day x loop complete x GMV >= $200/14d | COMPLETE (Sprint 1-6, 163pt) |
+| **Phase 1.5** -- ADR-007 Studio Workflow | Week 6-8 | 10-stage production pipeline operational | COMPLETE (Sprint 7-9, 40pt) |
+| **Phase 1.6** -- MANUAL mode launch prep | Week 8-9 | Kill-switch, LLM storyboard, cron, monitoring | IN PROGRESS (Sprint 10, 10pt) |
+| **Phase 2** -- Multi-platform + portfolio | Week 10-17 | FB+IG+YT live, Writers' Room debate panel | PLANNED |
+| **Phase 3** -- Self-improving autonomous | Week 18-27 | Harness-evolver online, MoM CTR uplift >= 5% | PLANNED |
+
+### Sprint History (updated 2026-05-13)
+
+| Sprint | Points | Tests | Key Deliverables |
+|--------|--------|-------|-----------------|
+| 1 | 26 | 121 | Scout + Strategy |
+| 2 | 28 | 214 | Writers' Room + Video Production |
+| 3 | 27 | 322 | Publishing + Analytics |
+| 4 | 27 | 377 | Wiki/Feedback + Safety + Orchestration |
+| 5 | 27 | 451 | Phase 1 close-out + Phase 2 foundation |
+| 6 | 28 | 481 | Ops Console + Multi-platform + Deploy |
+| 7 | 16 | 509 | ADR-007 stages 1-3 (creative direction) |
+| 8 | 14 | 543 | ADR-007 stages 4-7 (asset production) |
+| 9 | 10 | 557 | ADR-007 stages 8-10 (post-prod + publish) |
+| 10 | 10 | 605+ | MANUAL mode: kill-switch, LLM storyboard, cron, monitoring |
 
 ## 4. Roles & Responsibilities
 

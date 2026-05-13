@@ -1,14 +1,12 @@
 # Kanban Board -- Sprint 10
 
 - **Sprint**: sprint-10
-- **Status**: ACTIVE (9/10 pts)
+- **Status**: COMPLETE (10/10 pts, 100%)
 - **Goal**: MANUAL mode launch-ready code
 
 ## TODO
 
-| Task | Title | Points | Assignee |
-|------|-------|--------|----------|
-| AFFI-T-059 | ISO docs refresh (PM.01 + SI.02) | 1 | coulson |
+_(none)_
 
 ## IN_PROGRESS
 
@@ -31,5 +29,6 @@ _(none)_
 | AFFI-T-056 | Deploy: laptop cron + posting-window scheduler | 2 | deploy-cron.sh + ICT posting windows |
 | AFFI-T-057 | Monitoring lite: JSONL metrics exporter | 2 | metrics_export.py + DailySummary + 10 tests |
 | AFFI-T-058 | Stale kanban + roadmap refresh | 1 | Sprint 7-9 history, sprint-10 board |
+| AFFI-T-059 | ISO docs refresh (PM.01 + SI.02) | 1 | PM.01 schedule + SI.02 full refresh |
 
 ## WIP Limit: 3
