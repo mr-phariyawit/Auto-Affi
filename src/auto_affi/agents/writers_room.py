@@ -14,8 +14,11 @@ to the Phaya video/image pipeline.
 
 from __future__ import annotations
 
+import json
+import logging
+import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol
 
 from auto_affi.schemas.campaign_brief import CampaignBrief
 from auto_affi.schemas.storyboard import (
@@ -29,6 +32,25 @@ from auto_affi.schemas.storyboard import (
     VoiceProfile,
 )
 from auto_affi.schemas.tool_result import ToolResult
+
+logger = logging.getLogger(__name__)
+
+
+# ------------------------------------------------------------------ #
+# LLM client protocol (duck-typed for PhayaClient / AnthropicClient) #
+# ------------------------------------------------------------------ #
+
+class _ChatClient(Protocol):
+    """Minimal chat interface — PhayaClient.chat() satisfies this."""
+
+    async def chat(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        model: str,
+        max_tokens: int | None,
+        temperature: float | None,
+    ) -> ToolResult[Any]: ...
 
 # ------------------------------------------------------------------ #
 # Storyboard generation prompt                                        #
@@ -483,6 +505,72 @@ def create_default_storyboard(brief: CampaignBrief) -> Storyboard:
 
 
 # ------------------------------------------------------------------ #
+# LLM storyboard parsing                                              #
+# ------------------------------------------------------------------ #
+
+
+def _extract_json_from_text(text: str) -> str:
+    """Extract JSON object from LLM response text.
+
+    Handles common patterns:
+    - Bare JSON object
+    - JSON wrapped in markdown code fences (```json ... ```)
+    - JSON preceded by explanatory text
+    """
+    # Try markdown code fence first
+    m = re.search(r"```(?:json)?\s*\n?(\{.*?\})\s*\n?```", text, re.DOTALL)
+    if m:
+        return m.group(1)
+    # Try to find the outermost JSON object
+    start = text.find("{")
+    if start == -1:
+        raise ValueError("No JSON object found in LLM response")
+    # Find matching closing brace
+    depth = 0
+    for i, ch in enumerate(text[start:], start=start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    raise ValueError("Unbalanced braces in LLM response JSON")
+
+
+def _build_user_prompt(brief: CampaignBrief) -> str:
+    """Format the user prompt from a CampaignBrief."""
+    return _USER_TEMPLATE.format(
+        product_name=f"Product #{brief.product_id}",
+        product_id=brief.product_id,
+        angle=brief.angle,
+        hook_template=brief.hook_template_slug,
+        persona_label=brief.persona.label,
+        cta_text=brief.cta.text_th,
+        hypothesis=brief.hypothesis,
+    )
+
+
+def parse_llm_storyboard(raw_text: str, brief_id: str) -> Storyboard:
+    """Parse raw LLM JSON output into a validated Storyboard.
+
+    Raises ValueError or pydantic.ValidationError on invalid input.
+    """
+    json_str = _extract_json_from_text(raw_text)
+    data = json.loads(json_str)
+
+    # Ensure brief_id is set from caller (LLM may echo a placeholder)
+    data["brief_id"] = brief_id
+
+    # Normalize scene purposes to match our StrEnum values
+    for scene_data in data.get("scenes", []):
+        purpose = scene_data.get("purpose", "")
+        # LLM might use camelCase or different casing
+        scene_data["purpose"] = purpose.lower().replace("-", "_").replace(" ", "_")
+
+    return Storyboard.model_validate(data)
+
+
+# ------------------------------------------------------------------ #
 # Writers' Room agent                                                  #
 # ------------------------------------------------------------------ #
 
@@ -490,11 +578,16 @@ def create_default_storyboard(brief: CampaignBrief) -> Storyboard:
 class WritersRoom:
     """Writers' Room agent — generates storyboards from campaign briefs.
 
-    Phase 1: deterministic template + optional LLM enhancement.
+    When ``llm_client`` is provided (PhayaClient with chat capability),
+    the room generates storyboards via LLM with detailed per-scene
+    visual prompts (lighting, framing, color, mood). Falls back to
+    deterministic template if LLM is unavailable or fails.
+
     Phase 2: full debate panel with Director authority.
     """
 
-    llm_client: Any | None = None  # PhayaClient or AnthropicClient
+    llm_client: Any | None = None  # PhayaClient or compatible _ChatClient
+    llm_model: str = "phaya-gpt"
     enable_critic: bool = True
 
     async def generate_storyboard(
@@ -503,19 +596,82 @@ class WritersRoom:
     ) -> ToolResult[Storyboard]:
         """Generate a storyboard from a campaign brief.
 
-        Falls back to template if LLM is unavailable or fails.
-        """
-        storyboard = create_default_storyboard(brief)
+        Strategy:
+        1. If llm_client is set, generate via LLM (Phaya GPT / Gemini Flash)
+        2. Parse + validate the result against Storyboard schema
+        3. Run critic review (rule-based quality gate)
+        4. On ANY failure: fall back to deterministic template
 
-        # Phase 1: critic review (rule-based)
+        Returns ToolResult with cost_usd reflecting LLM spend (0 for template).
+        """
+        cost_usd = 0.0
+        storyboard: Storyboard | None = None
+
+        # --- LLM path (QW-8a) ---
+        if self.llm_client is not None:
+            storyboard, cost_usd = await self._generate_via_llm(brief)
+
+        # --- Fallback: deterministic template ---
+        if storyboard is None:
+            storyboard = create_default_storyboard(brief)
+
+        # --- Critic review ---
         if self.enable_critic:
             feedback = critic_review(storyboard, brief)
             if not feedback.approved:
-                # Log issues but don't block — template is pre-validated
-                pass
+                logger.warning(
+                    "Critic flagged issues on storyboard %s: %s",
+                    storyboard.storyboard_id,
+                    feedback.issues,
+                )
+                # If LLM storyboard failed critic, fall back to template
+                # (template is pre-validated and always passes)
+                if self.llm_client is not None:
+                    logger.info("Falling back to template storyboard after critic rejection")
+                    storyboard = create_default_storyboard(brief)
+                    cost_usd = 0.0
 
         return ToolResult(
             ok=True,
             data=storyboard,
-            cost_usd=0.0,  # Template is free; LLM cost added in Phase 2
+            cost_usd=cost_usd,
         )
+
+    async def _generate_via_llm(
+        self,
+        brief: CampaignBrief,
+    ) -> tuple[Storyboard | None, float]:
+        """Attempt LLM-based storyboard generation. Returns (storyboard, cost)."""
+        try:
+            messages = [
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user", "content": _build_user_prompt(brief)},
+            ]
+            result = await self.llm_client.chat(
+                messages,
+                model=self.llm_model,
+                max_tokens=4096,
+                temperature=0.7,
+            )
+            if not result.ok or result.data is None:
+                logger.warning("LLM returned error: %s", result.error)
+                return None, 0.0
+
+            raw_text = result.data.content
+            cost_usd = result.cost_usd
+
+            storyboard = parse_llm_storyboard(raw_text, brief.brief_id)
+            logger.info(
+                "LLM storyboard generated: %d scenes, %.1fs total, $%.4f",
+                len(storyboard.scenes),
+                storyboard.total_duration_s,
+                cost_usd,
+            )
+            return storyboard, cost_usd
+
+        except (json.JSONDecodeError, ValueError) as exc:
+            logger.warning("LLM storyboard parse failed: %s", exc)
+            return None, 0.0
+        except Exception as exc:  # noqa: BLE001 — fallback is safer than crash
+            logger.warning("LLM storyboard generation failed: %s", exc)
+            return None, 0.0
