@@ -184,8 +184,8 @@ class TestFullStages1To7:
         for i in range(1, 8):
             assert run.get_stage(i).status == ProductionStageStatus.APPROVED
 
-        # Stage 8 should be DRAFT (not implemented as stage runner yet)
-        assert run.get_stage(8).status == ProductionStageStatus.DRAFT
+        # Stage 8 fires after stage 7 approval (implemented in Sprint 9)
+        assert run.get_stage(8).status == ProductionStageStatus.IN_REVIEW
 
         # Cost should have accumulated
         assert run.total_cost_thb > 0

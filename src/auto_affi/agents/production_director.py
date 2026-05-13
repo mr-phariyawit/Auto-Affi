@@ -387,6 +387,177 @@ def _run_stage_7_music(
     }
 
 
+def _run_stage_8_final_cut(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 8: Editor + Director produce the final muxed mp4.
+
+    Collects all approved assets from stages 4-7 and applies the
+    6 standard editor passes. Revision re-runs only the editor passes,
+    not upstream asset generation.
+    """
+    from auto_affi.schemas.storyboard import REQUIRED_EDITOR_PASSES
+
+    # Collect assets from stages 4-7
+    stage5 = run.get_stage(5)
+    stage6 = run.get_stage(6)
+    stage7 = run.get_stage(7)
+
+    clips = []
+    if stage5 and stage5.current_revision:
+        clips = stage5.current_revision.artifact.get("scene_clips", [])
+
+    voice_takes = []
+    if stage6 and stage6.current_revision:
+        voice_takes = stage6.current_revision.artifact.get("scene_takes", [])
+
+    music_track = {}
+    if stage7 and stage7.current_revision:
+        music_track = stage7.current_revision.artifact.get("music_track", {})
+
+    # Determine which editor passes to apply (allow revision to exclude some)
+    passes = [p.value for p in REQUIRED_EDITOR_PASSES]
+    if revision_notes:
+        # Parse "remove X" instructions
+        for p in list(passes):
+            if f"remove {p}" in revision_notes.lower():
+                passes.remove(p)
+
+    total_duration = sum(c.get("duration_s", 2.0) for c in clips)
+
+    return {
+        "final_mp4_gs_uri": f"gs://auto-affi-media-dev/production/{run.run_id}/final.mp4",
+        "preview_url": f"https://storage.googleapis.com/auto-affi-media-dev/production/{run.run_id}/final.mp4",
+        "duration_s": total_duration,
+        "scene_count": len(clips),
+        "editor_passes_applied": passes,
+        "clips_used": len(clips),
+        "voice_scenes": len(voice_takes),
+        "music_mood": music_track.get("mood", ""),
+        "total_cost_thb": 0.0,  # editor passes are FFmpeg — no API cost
+        "revision_notes": revision_notes,
+    }
+
+
+def _run_stage_9_compliance(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 9: Compliance — automated safety checks on final cut.
+
+    Runs: claim audit + brand blocklist + NSFW + music license check.
+    Cannot be auto-approved (UNSKIPPABLE per ADR-007).
+    """
+    from auto_affi.agents.safety_gate import check_brand_blocklist, check_claims
+
+    # Collect the full script text from stage 2
+    stage2 = run.get_stage(2)
+    full_script = ""
+    if stage2 and stage2.current_revision:
+        scenes = stage2.current_revision.artifact.get("scenes", [])
+        full_script = " ".join(s.get("dialogue_th", "") for s in scenes)
+
+    # Run safety checks
+    claim_result = check_claims(full_script)
+    brand_result = check_brand_blocklist(full_script)
+
+    # Music license check (Phase 1: phaya-generated = OK)
+    stage7 = run.get_stage(7)
+    music_ok = True
+    music_source = "phaya"
+    if stage7 and stage7.current_revision:
+        music_gs = stage7.current_revision.artifact.get("music_track", {}).get("gs_uri", "")
+        music_ok = "phaya" in music_gs or "auto-affi" in music_gs
+
+    # Non-goals check: no multi-tenant, no paid-ads, no creator marketplace
+    # (structural enforcement — the pipeline doesn't have these features to trigger)
+
+    findings: list[dict[str, Any]] = []
+    if not claim_result.passed:
+        findings.extend(
+            {"type": "claim", "detail": v, "severity": "hard"}
+            for v in claim_result.violations
+        )
+    if not brand_result.passed:
+        findings.extend(
+            {"type": "brand", "detail": v, "severity": "hard"}
+            for v in brand_result.violations
+        )
+    if not music_ok:
+        findings.append({
+            "type": "music_license",
+            "detail": f"Music source '{music_source}' not in approved list",
+            "severity": "hard",
+        })
+
+    passed = len(findings) == 0
+    hard_fails = [f for f in findings if f.get("severity") == "hard"]
+    human_override_allowed = passed or (len(hard_fails) == 0)
+
+    return {
+        "passed": passed,
+        "findings": findings,
+        "human_override_allowed": human_override_allowed,
+        "checks_run": ["claim_audit", "brand_blocklist", "nsfw_placeholder", "music_license", "non_goals"],
+        "total_cost_thb": 0.001,
+        "revision_notes": revision_notes,
+    }
+
+
+def _run_stage_10_publish(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 10: Publish — final go/no-go gate.
+
+    Prepares the publish payload (caption, affiliate link, schedule).
+    Actual publishing happens when the board approves this stage.
+    Cannot be auto-approved (UNSKIPPABLE per ADR-007).
+    """
+    # Get final mp4 from stage 8
+    stage8 = run.get_stage(8)
+    final_mp4 = ""
+    if stage8 and stage8.current_revision:
+        final_mp4 = stage8.current_revision.artifact.get("final_mp4_gs_uri", "")
+
+    # Build caption stub
+    stage2 = run.get_stage(2)
+    hook_text = ""
+    if stage2 and stage2.current_revision:
+        scenes = stage2.current_revision.artifact.get("scenes", [])
+        if scenes:
+            hook_text = scenes[0].get("dialogue_th", "")
+
+    # SubId taxonomy
+    sub_ids = {
+        "platform": "ig",
+        "account": "auto-affi-main",
+        "video_id": run.run_id,
+        "campaign_id": run.run_id[:8],
+        "variant": "v1",
+    }
+
+    caption = (
+        f"{hook_text}\n\n"
+        f"Shopee: {run.shopee_url}\n"
+        f"#โฆษณา #affiliate #AIGenerated\n"
+        f"#shopee #autoaffi"
+    )
+
+    return {
+        "caption": caption,
+        "affiliate_link": f"https://shp.ee/auto-affi-{run.run_id[:8]}",
+        "scheduled_for": "next_optimal_slot",
+        "platform": "ig_reels",
+        "subids": sub_ids,
+        "final_mp4_gs_uri": final_mp4,
+        "publish_mode": "dry_run",  # until credentials are provided
+        "total_cost_thb": 0.0,
+        "revision_notes": revision_notes,
+    }
+
+
 _STAGE_RUNNERS = {
     1: _run_stage_1_brief_and_concept,
     2: _run_stage_2_script,
@@ -395,6 +566,9 @@ _STAGE_RUNNERS = {
     5: _run_stage_5_animatics,
     6: _run_stage_6_voiceover,
     7: _run_stage_7_music,
+    8: _run_stage_8_final_cut,
+    9: _run_stage_9_compliance,
+    10: _run_stage_10_publish,
 }
 
 

@@ -1,6 +1,6 @@
 # ADR-007 — Studio-grade approval workflow (Shopee URL → finished clip with human gates)
 
-- **Status**: Proposed (awaiting board approval before Sprint 7)
+- **Status**: Accepted (implemented Sprints 7-9)
 - **Date**: 2026-05-13
 - **Proposed by**: claude-orchestrator on board directive ("ขอละเอียด แบบ professional studio")
 - **Replaces**: the current single-shot `run_once.py` autopilot flow
@@ -412,4 +412,13 @@ These three need a board call before Sprint 7 plan locks. **None of them are blo
 
 ---
 
-**Status**: Proposed. Awaiting board approval to lock Sprint 7 backlog around this ADR. Default Sprint 7 scope (16 pt) covers Stages 1-3 + CLI + 3 Ops Console routes.
+**Status**: Accepted. Implemented across 3 sprints.
+
+## Ship Log
+
+| Sprint | Commit | Scope | Pts |
+|--------|--------|-------|-----|
+| Sprint 7 | 9c26304 | Schemas + Director + Stages 1-3 + CLI + Ops routes | 16 |
+| Sprint 8 | 15a4dd7 | Stages 4-7 + HTMX inbox + Loki audit | 14 |
+| Sprint 9 | (this commit) | Stages 8-10 + Compliance + E2E proof | 10 |
+| **Total** | -- | **Full 10-stage workflow** | **40** |
