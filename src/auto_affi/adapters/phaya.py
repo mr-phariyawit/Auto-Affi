@@ -1,27 +1,27 @@
 """Phaya.io adapter — Thai AI gateway consolidating video + TTS + music + embeddings.
 
-Phaya.io (Bangkok) exposes a single REST surface at ``api.phaya.io/api/v1``
-covering capabilities that Auto-Affi currently sources from four separate
-vendors:
+Phaya.io (Bangkok) is a model GATEWAY (similar to OpenRouter): it exposes a
+unified REST API at ``api.phaya.io`` that fronts third-party models —
+``phaya-gpt`` routes to ``google/gemini-2.5-flash``, Sora 2 T2V from OpenAI,
+Nano Banana / Seedream image gen, etc. Auth is per-account API key; costs
+are billed in **Thai Baht (THB)**, returned as ``credits_used`` on each
+response. Conversion to USD uses a fixed 0.028 rate for budget reporting.
 
-- **Sora 2 video gen** (replaces kie.ai for Sora 2 line, 8 credits/video)
-- **Native Thai TTS** (replaces ElevenLabs Multilingual v2 for Thai content)
-- **Text-to-Music** (replaces Suno via kie.ai, 3 credits/track)
-- **Embeddings** (฿2.80 / M tokens — for Wiki RAG vector backend)
-- **Image gen** (Nano Banana 2 / Seedream 5.0, 1-4 credits)
-- **Image-to-Video** (storyboard scene → motion clip)
-- **Thai Subtitle** (auto-subtitle pass for editor pipeline)
-- **Phaya GPT** (LLM, ฿10.50-87.50 / M tokens — for non-reasoning agents)
+Capabilities exercised by this adapter:
 
-Auth: ``Authorization: Bearer phaya_live_xxx``. Set via ``PHAYA_API_KEY`` env.
+- **Embedding** (``Phaya Text Embedding``, 4096-dim) — ฿2.80 / M tokens
+- **Chat completion** (``Phaya-GPT`` → Gemini 2.5 Flash) — ฿10.50 / M in, ฿87.50 / M out
+- **Sora 2 text-to-video** — async job, watermark-removable, 9:16 native
+- **Text-to-speech** — multilingual incl. Thai, voice catalog at ``/voices``
+- **Text-to-music** — async job, prompt-driven
 
-Architecture: thin ``PhayaClient`` does HTTP + jobs polling; thin protocol
-adapters (``PhayaVideoGenAdapter``, ``PhayaTTSAdapter``) wrap the client to
-conform to the existing :class:`VideoGenAdapter` / :class:`TTSAdapter`
-protocols so they drop in alongside kie.ai / ElevenLabs without a refactor.
+Each capability has its own ``/create`` (or ``/generate``) endpoint and its
+own ``/status/{job_id}`` poller — there is **no unified Jobs API**.
 
-Cost tables are best-known-current; verify against ``/pricing`` endpoint
-once the live key is available.
+The adapter conforms to existing protocols (:class:`VideoGenAdapter`,
+:class:`TTSAdapter`) so it drops into the kie.ai / ElevenLabs slots without
+callsite refactors. Endpoint paths and response shapes verified against
+``api.phaya.io/openapi.json`` and live probes (2026-05-13).
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Any, Final
 
 import httpx
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, SecretStr
 
 from auto_affi.adapters._http_base import HttpExecutor, call_with_result
 from auto_affi.adapters.tts import TTSProvider, TTSResult
@@ -43,39 +43,45 @@ from auto_affi.exceptions import AdapterError
 from auto_affi.schemas.storyboard import Scene
 from auto_affi.schemas.tool_result import ToolResult
 
-_BASE_URL: Final[str] = "https://api.phaya.io/api/v1"
+_BASE_URL: Final[str] = "https://api.phaya.io"
+_USD_PER_THB: Final[float] = 0.028  # ฿1 ≈ $0.028 (May 2026)
 
-# Phaya pricing (May 2026, from public docs). Verify against live /pricing
-# once the API key is available. Credits-to-USD ratio is the main unknown:
-# assumed ฿0.50 / credit ≈ $0.014 / credit pending live confirmation.
-_USD_PER_CREDIT: Final[float] = 0.014
-_USD_PER_M_TOKENS_GPT_IN: Final[float] = 0.30  # ฿10.50/M
-_USD_PER_M_TOKENS_GPT_OUT: Final[float] = 2.50  # ฿87.50/M
-_USD_PER_M_TOKENS_EMBED: Final[float] = 0.08  # ฿2.80/M
 
-_COST_PER_SORA2_VIDEO: Final[float] = 8 * _USD_PER_CREDIT  # ≈ $0.11
-_COST_PER_MUSIC: Final[float] = 3 * _USD_PER_CREDIT  # ≈ $0.042
-_COST_PER_IMAGE_NANO_BANANA: Final[float] = 2 * _USD_PER_CREDIT
-_COST_PER_IMAGE_NANO_BANANA_4K: Final[float] = 4 * _USD_PER_CREDIT
+def _thb_to_usd(thb: float) -> float:
+    return round(thb * _USD_PER_THB, 6)
 
 
 class PhayaModel(StrEnum):
-    """Identifiers for Phaya-backed models referenced by the adapter."""
+    """Identifiers used in request bodies (Phaya routes to upstream model)."""
 
-    SORA2 = "sora-2"
-    NANO_BANANA_2 = "nano-banana-2"
-    SEEDREAM_5 = "seedream-5.0"
-    PHAYA_GPT = "phaya-gpt"
+    PHAYA_GPT = "phaya-gpt"  # → google/gemini-2.5-flash
     PHAYA_EMBEDDING = "phaya-text-embedding"
+    SORA2 = "sora2"
 
 
 class JobState(StrEnum):
-    """States returned by ``GET /jobs/{id}``."""
+    """States returned by per-capability ``/status/{job_id}`` endpoints.
+
+    Phaya uses a richer state set than the generic queued/processing pair;
+    we collapse to the four terminal-or-not buckets the orchestrator cares
+    about. Unknown states are mapped to PROCESSING (safe — keeps polling).
+    """
 
     QUEUED = "queued"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+def _coerce_state(raw: str) -> JobState:
+    s = raw.lower().strip()
+    if s in ("completed", "success", "succeeded", "done"):
+        return JobState.COMPLETED
+    if s in ("failed", "error", "cancelled", "canceled"):
+        return JobState.FAILED
+    if s in ("queued", "pending"):
+        return JobState.QUEUED
+    return JobState.PROCESSING
 
 
 class JobHandle(BaseModel):
@@ -85,43 +91,60 @@ class JobHandle(BaseModel):
     state: JobState = JobState.QUEUED
     result_url: str | None = None
     error: str | None = None
-    cost_usd: float = 0.0
+    cost_thb: float = 0.0
+
+    @property
+    def cost_usd(self) -> float:
+        return _thb_to_usd(self.cost_thb)
 
 
 class ChatResponse(BaseModel):
-    """Phaya GPT chat completion response."""
-
     content: str
     model: str
     usage_in_tokens: int = 0
     usage_out_tokens: int = 0
-    cost_usd: float = 0.0
+    cost_thb: float = 0.0
+
+    @property
+    def cost_usd(self) -> float:
+        return _thb_to_usd(self.cost_thb)
 
 
 class EmbeddingResponse(BaseModel):
-    """Phaya embeddings response (single batch)."""
-
     vectors: list[list[float]]
     model: str
     usage_tokens: int = 0
-    cost_usd: float = 0.0
+    cost_thb: float = 0.0
+
+    @property
+    def cost_usd(self) -> float:
+        return _thb_to_usd(self.cost_thb)
 
 
 class TTSResponse(BaseModel):
-    """Phaya TTS synthesis response (sync — short clips only)."""
+    """Initial TTS submission — TTS is async via /status/{job_id}."""
 
-    audio_url: str
-    duration_s: float
-    voice_id: str
-    cost_usd: float = 0.0
+    job_id: str
+    voice: str
+    state: JobState = JobState.QUEUED
+
+
+class CreditsBalance(BaseModel):
+    user_id: str
+    email: str | None = None
+    balance_thb: float
+    balance_usd: float
 
 
 class PhayaClient:
-    """Thin Phaya REST client. Handles auth + retry + jobs polling.
+    """Thin Phaya REST client. Auth + retry + per-capability polling.
 
-    Async-job endpoints (video, music) return a :class:`JobHandle`; call
-    :meth:`wait_for_job` to poll until terminal state. Sync endpoints
-    (chat, embeddings, TTS short, image) return their typed model directly.
+    Notes:
+    - Base URL is ``https://api.phaya.io`` (paths carry the ``/api/v1`` prefix).
+    - Auth header: ``Authorization: Bearer <key>``. Both ``pk_*`` (publishable)
+      and ``phaya_*`` (legacy) key shapes are accepted.
+    - Each capability returns ``credits_used`` in **THB**; we surface both
+      THB (native) and USD (converted) for budget tracking.
     """
 
     def __init__(
@@ -135,9 +158,9 @@ class PhayaClient:
     ) -> None:
         if not api_key.get_secret_value().strip():
             raise AdapterError("Phaya: api_key is empty")
-        if not api_key.get_secret_value().startswith("phaya_"):
+        if not api_key.get_secret_value().startswith(("phaya_", "pk_", "sk_")):
             raise AdapterError(
-                "Phaya: api_key must start with 'phaya_' (e.g. phaya_live_xxx)"
+                "Phaya: api_key must start with 'pk_', 'sk_', or 'phaya_'"
             )
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
@@ -152,125 +175,168 @@ class PhayaClient:
             "User-Agent": "auto-affi/0.1 (phaya-adapter)",
         }
 
-    # ---- LLM: Phaya GPT chat ------------------------------------------ #
+    # ---- Account ------------------------------------------------------ #
+
+    async def get_credits(self) -> ToolResult[CreditsBalance]:
+        async def _go() -> CreditsBalance:
+            client = self._http.client or httpx.AsyncClient(timeout=self._http.timeout_s)
+            owns = self._http.client is None
+            try:
+                r = await client.get(
+                    f"{self._base_url}/api/v1/user/profile", headers=self._headers()
+                )
+            finally:
+                if owns:
+                    await client.aclose()
+            if r.status_code >= 400:
+                raise AdapterError(f"Phaya HTTP {r.status_code}: {r.text[:200]}")
+            data = r.json()
+            balance = float(data.get("credits_balance", 0.0))
+            return CreditsBalance(
+                user_id=str(data.get("user_id", "")),
+                email=data.get("email"),
+                balance_thb=balance,
+                balance_usd=_thb_to_usd(balance),
+            )
+
+        return await call_with_result(_go)
+
+    # ---- LLM: Phaya GPT chat (Gemini 2.5 Flash under the hood) -------- #
 
     async def chat(
-        self, messages: list[dict[str, str]], *, model: str = PhayaModel.PHAYA_GPT
+        self,
+        messages: list[dict[str, str]],
+        *,
+        model: str = PhayaModel.PHAYA_GPT,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
     ) -> ToolResult[ChatResponse]:
         async def _go() -> ChatResponse:
+            body: dict[str, Any] = {"messages": messages, "model": model}
+            if max_tokens is not None:
+                body["max_tokens"] = max_tokens
+            if temperature is not None:
+                body["temperature"] = temperature
             payload = await self._http.post(
-                url=f"{self._base_url}/chat/completions",
-                body={"model": model, "messages": messages, "stream": False},
+                url=f"{self._base_url}/api/v1/phaya-gpt/chat/completions",
+                body=body,
                 headers=self._headers(),
             )
-            content = (
-                payload.get("choices", [{}])[0].get("message", {}).get("content", "")
-            )
+            msg = payload.get("message") or {}
+            content = str(msg.get("content", ""))
             usage = payload.get("usage", {})
-            in_tok = int(usage.get("prompt_tokens", 0))
-            out_tok = int(usage.get("completion_tokens", 0))
-            cost = (
-                in_tok * _USD_PER_M_TOKENS_GPT_IN / 1_000_000
-                + out_tok * _USD_PER_M_TOKENS_GPT_OUT / 1_000_000
-            )
             return ChatResponse(
                 content=content,
                 model=str(payload.get("model", model)),
-                usage_in_tokens=in_tok,
-                usage_out_tokens=out_tok,
-                cost_usd=cost,
+                usage_in_tokens=int(usage.get("prompt_tokens", 0)),
+                usage_out_tokens=int(usage.get("completion_tokens", 0)),
+                cost_thb=float(payload.get("credits_used", 0.0)),
             )
 
         return await call_with_result(_go, cost_fn=lambda r: r.cost_usd)
 
-    # ---- Embeddings ---------------------------------------------------- #
+    # ---- Embeddings (4096-dim) ---------------------------------------- #
 
     async def embed(
-        self, texts: list[str], *, model: str = PhayaModel.PHAYA_EMBEDDING
+        self, texts: list[str], *, model: str | None = None
     ) -> ToolResult[EmbeddingResponse]:
         async def _go() -> EmbeddingResponse:
+            body: dict[str, Any] = {"input": texts}
+            if model is not None:
+                body["model"] = model
             payload = await self._http.post(
-                url=f"{self._base_url}/embeddings",
-                body={"model": model, "input": texts},
+                url=f"{self._base_url}/api/v1/embedding/create",
+                body=body,
                 headers=self._headers(),
             )
             data = payload.get("data", [])
             vectors = [item.get("embedding", []) for item in data]
-            usage_tok = int(payload.get("usage", {}).get("total_tokens", 0))
-            cost = usage_tok * _USD_PER_M_TOKENS_EMBED / 1_000_000
+            usage = payload.get("usage", {})
             return EmbeddingResponse(
                 vectors=vectors,
-                model=str(payload.get("model", model)),
-                usage_tokens=usage_tok,
-                cost_usd=cost,
+                model=str(payload.get("model", "Phaya Text Embedding")),
+                usage_tokens=int(usage.get("total_tokens", 0)),
+                cost_thb=float(payload.get("credits_used", 0.0)),
             )
 
         return await call_with_result(_go, cost_fn=lambda r: r.cost_usd)
 
-    # ---- Video: Sora 2 (async job) ------------------------------------ #
+    # ---- Sora 2 Text-to-Video (async job) ----------------------------- #
 
     async def create_sora2_video(
-        self, prompt: str, *, duration_s: int = 5, aspect_ratio: str = "9:16"
+        self,
+        prompt: str,
+        *,
+        aspect_ratio: str = "9:16",
+        n_frames: int = 120,
+        remove_watermark: bool = True,
     ) -> ToolResult[JobHandle]:
+        """Submit a Sora 2 T2V job. Poll via :meth:`wait_for_sora2`."""
+
         async def _go() -> JobHandle:
             payload = await self._http.post(
-                url=f"{self._base_url}/sora-2/create",
+                url=f"{self._base_url}/api/v1/sora2-text-to-video/create",
                 body={
                     "prompt": prompt,
-                    "duration": duration_s,
                     "aspect_ratio": aspect_ratio,
+                    "n_frames": n_frames,
+                    "remove_watermark": remove_watermark,
                 },
                 headers=self._headers(),
             )
             return JobHandle(
-                job_id=str(payload["job_id"]),
-                state=JobState(payload.get("state", "queued")),
-                cost_usd=_COST_PER_SORA2_VIDEO,
+                job_id=str(payload.get("job_id") or payload.get("id", "")),
+                state=_coerce_state(str(payload.get("state", "queued"))),
+                cost_thb=float(payload.get("credits_used", 0.0)),
             )
 
         return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
 
-    # ---- Image-to-Video (async job) ----------------------------------- #
+    async def get_sora2_status(self, job_id: str) -> ToolResult[JobHandle]:
+        return await self._get_status(
+            f"/api/v1/sora2-text-to-video/status/{job_id}", job_id=job_id
+        )
 
-    async def create_image_to_video(
-        self, image_url: str, *, duration_s: int = 5
+    async def wait_for_sora2(
+        self, job_id: str, *, poll_interval_s: float = 3.0, timeout_s: float = 300.0
     ) -> ToolResult[JobHandle]:
-        async def _go() -> JobHandle:
-            payload = await self._http.post(
-                url=f"{self._base_url}/image-to-video/create",
-                body={"image_url": image_url, "duration": duration_s},
-                headers=self._headers(),
-            )
-            return JobHandle(
-                job_id=str(payload["job_id"]),
-                state=JobState(payload.get("state", "queued")),
-                cost_usd=_COST_PER_SORA2_VIDEO,  # same tier
-            )
+        return await self._wait(
+            poller=self.get_sora2_status, job_id=job_id, interval=poll_interval_s, timeout=timeout_s
+        )
 
-        return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
+    # ---- TTS (async job — generate → status) -------------------------- #
 
-    # ---- TTS (sync, short clips) -------------------------------------- #
-
-    async def tts(
-        self, text_th: str, *, voice_id: str = "th-female-energetic"
+    async def create_tts(
+        self,
+        prompt: str,
+        *,
+        voice: str = "Algenib",
+        language: str = "th",
+        slow: bool = False,
     ) -> ToolResult[TTSResponse]:
         async def _go() -> TTSResponse:
             payload = await self._http.post(
-                url=f"{self._base_url}/tts/create",
-                body={"text": text_th, "voice_id": voice_id, "language": "th"},
+                url=f"{self._base_url}/api/v1/text-to-speech/generate",
+                body={
+                    "prompt": prompt,
+                    "voice": voice,
+                    "language": language,
+                    "slow": slow,
+                },
                 headers=self._headers(),
             )
-            chars = len(text_th)
-            # Token-priced TTS — approximate at GPT input rate for now.
-            cost = chars / 4 * _USD_PER_M_TOKENS_GPT_IN / 1_000_000
             return TTSResponse(
-                audio_url=str(payload["audio_url"]),
-                duration_s=float(payload.get("duration", 0.0)),
-                voice_id=voice_id,
-                cost_usd=cost,
+                job_id=str(payload.get("job_id") or payload.get("id", "")),
+                voice=voice,
+                state=_coerce_state(str(payload.get("state", "queued"))),
             )
 
-        return await call_with_result(_go, cost_fn=lambda r: r.cost_usd)
+        return await call_with_result(_go)
+
+    async def get_tts_status(self, job_id: str) -> ToolResult[JobHandle]:
+        return await self._get_status(
+            f"/api/v1/text-to-speech/status/{job_id}", job_id=job_id
+        )
 
     # ---- Music (async job) -------------------------------------------- #
 
@@ -279,59 +345,61 @@ class PhayaClient:
     ) -> ToolResult[JobHandle]:
         async def _go() -> JobHandle:
             payload = await self._http.post(
-                url=f"{self._base_url}/music/create",
+                url=f"{self._base_url}/api/v1/text-to-music/generate",
                 body={"prompt": prompt, "duration": duration_s},
                 headers=self._headers(),
             )
             return JobHandle(
-                job_id=str(payload["job_id"]),
-                state=JobState(payload.get("state", "queued")),
-                cost_usd=_COST_PER_MUSIC,
+                job_id=str(payload.get("job_id") or payload.get("id", "")),
+                state=_coerce_state(str(payload.get("state", "queued"))),
+                cost_thb=float(payload.get("credits_used", 0.0)),
             )
 
         return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
 
-    # ---- Jobs API ----------------------------------------------------- #
+    async def get_music_status(self, job_id: str) -> ToolResult[JobHandle]:
+        return await self._get_status(
+            f"/api/v1/text-to-music/status/{job_id}", job_id=job_id
+        )
 
-    async def get_job(self, job_id: str) -> ToolResult[JobHandle]:
+    # ---- Internal: status GET + polling helpers ----------------------- #
+
+    async def _get_status(self, path: str, *, job_id: str) -> ToolResult[JobHandle]:
         async def _go() -> JobHandle:
-            # GET via POST-only HttpExecutor would need extending; use raw httpx.
             client = self._http.client or httpx.AsyncClient(timeout=self._http.timeout_s)
             owns = self._http.client is None
             try:
-                response = await client.get(
-                    f"{self._base_url}/jobs/{job_id}", headers=self._headers()
-                )
+                r = await client.get(f"{self._base_url}{path}", headers=self._headers())
             finally:
                 if owns:
                     await client.aclose()
-            if response.status_code >= 400:
-                raise AdapterError(f"Phaya job poll HTTP {response.status_code}")
-            payload = response.json()
+            if r.status_code >= 400:
+                raise AdapterError(f"Phaya status HTTP {r.status_code}: {r.text[:200]}")
+            payload = r.json()
             return JobHandle(
                 job_id=job_id,
-                state=JobState(payload.get("state", "queued")),
-                result_url=payload.get("result_url"),
+                state=_coerce_state(str(payload.get("state", "processing"))),
+                result_url=payload.get("result_url") or payload.get("output_url"),
                 error=payload.get("error"),
+                cost_thb=float(payload.get("credits_used", 0.0)),
             )
 
         return await call_with_result(_go)
 
-    async def wait_for_job(
-        self, job_id: str, *, poll_interval_s: float = 2.0, timeout_s: float = 300.0
+    async def _wait(
+        self, *, poller: Any, job_id: str, interval: float, timeout: float
     ) -> ToolResult[JobHandle]:
-        """Poll ``get_job`` until terminal state or timeout."""
-        deadline = time.monotonic() + timeout_s
+        deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            result = await self.get_job(job_id)
+            result = await poller(job_id)
             if not result.ok or result.data is None:
                 return result
             if result.data.state in (JobState.COMPLETED, JobState.FAILED):
                 return result
-            await asyncio.sleep(poll_interval_s)
+            await asyncio.sleep(interval)
         return ToolResult(
             ok=False,
-            error=f"Phaya job {job_id} timed out after {timeout_s}s",
+            error=f"Phaya job {job_id} timed out after {timeout}s",
             trace_id="",
         )
 
@@ -344,11 +412,7 @@ class PhayaClient:
 
 @dataclass(frozen=True)
 class PhayaVideoGenAdapter:
-    """Drops in alongside KieAiVideoGenAdapter for the Sora 2 line.
-
-    The :attr:`generator` is ``SORA2`` so existing budget / dispatch logic
-    keyed on the enum keeps working unchanged.
-    """
+    """Drops in alongside the kie.ai Sora 2 path."""
 
     client: PhayaClient
     _generator: VideoGenerator = VideoGenerator.SORA2
@@ -360,87 +424,96 @@ class PhayaVideoGenAdapter:
     async def generate_scene(
         self, scene: Scene, *, output_dir: Path
     ) -> ToolResult[GeneratedAsset]:
-        create_result = await self.client.create_sora2_video(
-            prompt=scene.visual_prompt, duration_s=int(scene.duration_s)
+        # n_frames at 24 fps ≈ scene.duration_s; round up to nearest integer
+        n_frames = max(24, int(scene.duration_s * 24))
+        create = await self.client.create_sora2_video(
+            prompt=scene.visual_prompt, n_frames=n_frames
         )
-        if not create_result.ok or create_result.data is None:
+        if not create.ok or create.data is None:
             return ToolResult(
                 ok=False,
-                error=create_result.error or "phaya: create failed",
-                trace_id=create_result.trace_id,
+                error=create.error or "phaya: sora2 create failed",
+                trace_id=create.trace_id,
             )
-        job_result = await self.client.wait_for_job(create_result.data.job_id)
-        if not job_result.ok or job_result.data is None:
+        wait = await self.client.wait_for_sora2(create.data.job_id)
+        if not wait.ok or wait.data is None:
             return ToolResult(
                 ok=False,
-                error=job_result.error or "phaya: job wait failed",
-                trace_id=job_result.trace_id,
+                error=wait.error or "phaya: sora2 wait failed",
+                trace_id=wait.trace_id,
             )
-        job = job_result.data
-        if job.state == JobState.FAILED:
+        job = wait.data
+        if job.state is JobState.FAILED:
             return ToolResult(
                 ok=False,
-                error=f"phaya: job {job.job_id} failed: {job.error}",
-                trace_id=job_result.trace_id,
+                error=f"phaya: sora2 job {job.job_id} failed: {job.error}",
+                trace_id=wait.trace_id,
             )
         if not job.result_url:
             return ToolResult(
                 ok=False,
                 error="phaya: completed job has no result_url",
-                trace_id=job_result.trace_id,
+                trace_id=wait.trace_id,
             )
-        asset_path = output_dir / f"scene_{scene.idx}_phaya.mp4"
-        # NOTE: actual download of result_url to asset_path is left to the
-        # Producer's asset-fetch step (same pattern as kie.ai). The adapter
-        # surfaces the URL + cost; the orchestrator pulls bytes once.
         return ToolResult(
             ok=True,
             data=GeneratedAsset(
                 scene_idx=scene.idx,
-                asset_path=asset_path,
+                asset_path=output_dir / f"scene_{scene.idx}_phaya.mp4",
                 generator=self._generator,
                 duration_s=scene.duration_s,
-                cost_usd=_COST_PER_SORA2_VIDEO,
+                cost_usd=job.cost_usd,
             ),
-            cost_usd=_COST_PER_SORA2_VIDEO,
-            trace_id=job_result.trace_id,
+            cost_usd=job.cost_usd,
+            trace_id=wait.trace_id,
         )
 
 
 @dataclass(frozen=True)
 class PhayaTTSAdapter:
-    """Drops in alongside ElevenLabsTTSAdapter for native Thai TTS.
-
-    Uses ``TTSProvider.ELEVENLABS`` enum value as a temporary placeholder
-    until ``TTSProvider`` gains a ``PHAYA`` member in the next sprint
-    (avoids enum migration in this scaffolding commit).
-    """
+    """Drops in alongside ElevenLabsTTSAdapter for native Thai TTS."""
 
     client: PhayaClient
-    voice_id: str = "th-female-energetic"
+    voice: str = "Algenib"
 
     @property
     def provider(self) -> TTSProvider:
-        return TTSProvider.ELEVENLABS  # placeholder; will add PHAYA in S5
+        # Placeholder — TTSProvider gains a PHAYA member in Sprint 5.
+        return TTSProvider.ELEVENLABS
 
     async def synthesize(
         self, text_th: str, *, output_path: Path
     ) -> ToolResult[TTSResult]:
-        result = await self.client.tts(text_th, voice_id=self.voice_id)
-        if not result.ok or result.data is None:
+        submit = await self.client.create_tts(
+            prompt=text_th, voice=self.voice, language="th"
+        )
+        if not submit.ok or submit.data is None:
             return ToolResult(
                 ok=False,
-                error=result.error or "phaya tts failed",
-                trace_id=result.trace_id,
+                error=submit.error or "phaya tts create failed",
+                trace_id=submit.trace_id,
+            )
+        # Wait via the TTS status route.
+        wait = await self.client._wait(
+            poller=self.client.get_tts_status,
+            job_id=submit.data.job_id,
+            interval=2.0,
+            timeout=120.0,
+        )
+        if not wait.ok or wait.data is None or wait.data.state is JobState.FAILED:
+            return ToolResult(
+                ok=False,
+                error=(wait.error if wait else "phaya tts wait failed"),
+                trace_id=wait.trace_id if wait else "",
             )
         return ToolResult(
             ok=True,
             data=TTSResult(
                 audio_path=output_path,
                 provider=self.provider,
-                duration_s=result.data.duration_s,
-                cost_usd=result.data.cost_usd,
+                duration_s=0.0,  # Phaya TTS status doesn't return duration; caller measures post-download
+                cost_usd=wait.data.cost_usd,
             ),
-            cost_usd=result.data.cost_usd,
-            trace_id=result.trace_id,
+            cost_usd=wait.data.cost_usd,
+            trace_id=wait.trace_id,
         )

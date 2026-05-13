@@ -76,6 +76,21 @@
 - **Raised**: 2026-05-13T09:17:08Z
 - **Resolved**: _(pending)_
 
+### [2026-05-13] EXTERNAL — Top up Phaya.io credits (recommend ฿1,000+) / เติม credit Phaya.io (แนะนำ ฿1,000+)
+
+- **EN**: Initial 150 THB (~$4.20) covers probes + ~1,300 Sora 2 videos at ฿0.10/job test scale, but real Phase 1 daily ops (5 videos/day premium Sora 2) burn ~฿125/day. Top up to ฿1,000+ for first 8-day live test cycle. Console: https://phaya.io/dashboard or wherever Phaya hosts billing.
+- **TH**: ตอนนี้มี ฿150 (~$4.20) เติม ฿1,000+ พอใช้ Phase 1 ราว 8 วัน — Sora 2 + TTS + embed รวมๆ ราว ฿125/วัน
+- **Category**: External access
+- **Raised by**: claude-orchestrator
+- **Blocks**: phase-1-live-test
+- **Raised**: 2026-05-13T09:35:51Z
+- **Resolved**: _(pending)_
+<!-- PENDING_END -->
+
+## Resolved
+
+<!-- RESOLVED_START -->
+
 ### [2026-05-13] EXTERNAL — Provide PHAYA_API_KEY (phaya_live_xxx) / ส่ง PHAYA_API_KEY (phaya_live_xxx) ให้ระบบ
 
 - **EN**: Phaya.io = Thai AI gateway (Bangkok). Sora 2 video, Thai TTS, Music, Embeddings, Image gen, Thai Subtitle — one vendor consolidates kie.ai + ElevenLabs + Flux + Suno (Phase 1 video stack). Adapter skeleton + tests landing this commit; only needs the live key to flip from dry-run to production. Set in .env as PHAYA_API_KEY. Never log, never commit.
@@ -84,10 +99,5 @@
 - **Raised by**: claude-orchestrator
 - **Blocks**: phaya-live-integration
 - **Raised**: 2026-05-13T09:21:10Z
-- **Resolved**: _(pending)_
-<!-- PENDING_END -->
-
-## Resolved
-
-<!-- RESOLVED_START -->
+- **Resolved**: 2026-05-13T09:35:51Z — Key delivered via clipboard, written to .env (0600). Live probes confirmed: auth OK (email=mr.phariyawit@gmail.com, balance=฿150), embed OK (4096-dim, ฿0.000028/call), chat OK in raw probe (Thai response). Adapter rewritten with correct paths from openapi.json. 12 unit tests pass.
 <!-- RESOLVED_END -->
