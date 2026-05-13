@@ -33,6 +33,8 @@ from auto_affi.agents.analytics_collector import (
 from auto_affi.agents.caption_builder import CaptionInput, Platform, build_caption
 from auto_affi.agents.safety_gate import safety_gate
 from auto_affi.agents.writers_room import WritersRoom
+from auto_affi.registry import ProductEntry, Registry
+from auto_affi.registry.models import StoryboardSceneOverride
 from auto_affi.schemas.campaign_brief import (
     CTA,
     BriefStatus,
@@ -40,6 +42,15 @@ from auto_affi.schemas.campaign_brief import (
     Persona,
 )
 from auto_affi.schemas.metrics import PollSchedule
+from auto_affi.schemas.storyboard import (
+    Dialogue,
+    MusicBrief,
+    OnScreenText,
+    Scene,
+    ScenePurpose,
+    Storyboard,
+    VoiceProfile,
+)
 
 
 @dataclass
@@ -130,6 +141,131 @@ _NICHE_BRIEFS: dict[str, dict[str, object]] = {
 }
 
 
+def storyboard_from_registry(
+    *,
+    entry: ProductEntry,
+    overrides: list[StoryboardSceneOverride],
+    brief: CampaignBrief,
+) -> Storyboard:
+    """Build a ``Storyboard`` directly from registry override rows.
+
+    This is the canonical "no-LLM" path — when the board has curated scene
+    rows in the ``storyboards`` tab, we use them verbatim. Voice + music
+    defaults come from the ``ProductEntry`` (Sheet's products tab).
+
+    The overrides must be contiguous from idx=0 and the first must be a
+    HOOK with duration ≤ 2 s (Storyboard validators).
+    """
+    if not overrides:
+        raise ValueError("storyboard_from_registry requires at least one override")
+    scenes_sorted = sorted(overrides, key=lambda o: o.scene_idx)
+    cta_idx = next(
+        (o.scene_idx for o in scenes_sorted if o.purpose.lower() == "cta"),
+        len(scenes_sorted) - 1,
+    )
+    scenes = []
+    for o in scenes_sorted:
+        on_screen = (
+            OnScreenText(th=o.on_screen_text_th, style="bold-pop", position="center-upper")
+            if o.on_screen_text_th
+            else None
+        )
+        scenes.append(
+            Scene(
+                idx=o.scene_idx,
+                duration_s=o.duration_s,
+                purpose=ScenePurpose(o.purpose.lower()),
+                shot_type=o.shot_type or "medium-shot",
+                movement=o.movement or "static",
+                visual_prompt=o.visual_prompt,
+                generator="sora2",
+                dialogue=(
+                    Dialogue(speaker="narrator", text_th=o.dialogue_th)
+                    if o.dialogue_th
+                    else None
+                ),
+                on_screen_text=on_screen,
+                transition_out=o.transition_out or "cut",
+            )
+        )
+    return Storyboard(
+        brief_id=brief.brief_id,
+        voice_profile=VoiceProfile(
+            lang="th",
+            gender="m",
+            tone=entry.voice_tone,
+            tts_engine="elevenlabs",
+            voice_id="auto",
+        ),
+        music_brief=MusicBrief(
+            genre=entry.music_genre,
+            bpm_range=(entry.music_bpm_min, entry.music_bpm_max),
+            license="epidemic-sound",
+        ),
+        scenes=scenes,
+        cta_scene_idx=cta_idx,
+        affiliate_link_placement="pinned_comment + on_screen_qr",
+    )
+
+
+def brief_from_registry_entry(
+    product: ShopeeProduct, entry: ProductEntry
+) -> CampaignBrief:
+    """Build a CampaignBrief directly from a registry ``ProductEntry``.
+
+    This is the canonical path — when the registry has the product, we
+    bypass all hard-coded ``_NICHE_BRIEFS`` defaults. Persona, angle, CTA,
+    and KPIs are sourced from the Sheet/JSONL row.
+    """
+    return CampaignBrief(
+        product_id=product.item_id,
+        shop_id=product.shop_id,
+        persona=Persona(
+            label=entry.persona_label,
+            age_range=entry.persona_age_range or "",
+            pain_points=list(entry.persona_pain_points),
+            daily_context=entry.persona_daily_context or "",
+        ),
+        angle=entry.angle,
+        hook_template_slug=entry.hook_template,
+        cta=CTA(text_th=entry.cta_text, placement="pinned_comment"),
+        hypothesis=entry.hypothesis,
+        expected_ctr=entry.expected_ctr,
+        confidence=0.8,
+        status=BriefStatus.APPROVED,
+    )
+
+
+def resolve_product_with_registry(
+    *,
+    shopee_url: str,
+    registry: Registry,
+) -> tuple[ShopeeProduct, ProductEntry | None, dict[str, object] | None]:
+    """Registry-first product resolver — preferred over ``_resolve_product``.
+
+    1. Try registry by item_id (from URL).
+    2. Try fixture (legacy bootstrap path).
+    3. Return (product, entry_or_None, fixture_niche_hints_or_None).
+
+    Callers should prefer the registry entry when present and only fall
+    back to the fixture-derived niche_hints when no registry row exists.
+    """
+    product = fetch_or_fixture(url=shopee_url)
+    _, item_id = parse_url_to_ids(shopee_url)
+    entry = registry.find_product_by_item_id(item_id)
+    if entry is not None:
+        return product, entry, None
+    # Legacy: fixture-derived niche_hints
+    fx = find_fixture_by_item_id(item_id)
+    niche_hints: dict[str, object] | None = None
+    if fx is not None:
+        try:
+            niche_hints = json.loads(fx.read_text(encoding="utf-8")).get("niche_hints")
+        except Exception:
+            pass
+    return product, None, niche_hints
+
+
 def _niche_aware_brief(
     product: ShopeeProduct, niche_hints: dict[str, object] | None
 ) -> CampaignBrief:
@@ -148,7 +284,8 @@ def _niche_aware_brief(
         elif niche:
             niche_key = niche
     else:
-        # Fallback keyword detection on product name
+        # Fallback keyword detection on product name (last-resort only —
+        # the registry is the canonical source per ADR-010 follow-up).
         name_lower = product.name.lower()
         if any(k in name_lower for k in ("socket", "bolt", "nut driver", "bit", "ประแจ")):
             niche_key = "Electronics/hardware-tools"

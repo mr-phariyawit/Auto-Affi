@@ -526,6 +526,87 @@ class PhayaClient:
             timeout=timeout_s,
         )
 
+    # ---- Seedance 1.5 Pro (image-to-video with optional start+end frames) #
+
+    async def create_seedance_video(
+        self,
+        prompt: str,
+        *,
+        input_urls: list[str] | None = None,
+        aspect_ratio: str = "9:16",
+        resolution: str = "720p",
+        duration: str = "8",
+        fixed_lens: bool = False,
+        generate_audio: bool = False,
+    ) -> ToolResult[JobHandle]:
+        """Submit a Seedance 1.5 Pro video job. Poll via :meth:`wait_for_seedance`.
+
+        Two-keyframe mode: pass ``input_urls=[start_frame_url, end_frame_url]``
+        and Seedance interpolates motion between them. Single-image mode
+        (one URL) animates forward from the still. Text-only mode (no
+        input_urls) generates the whole clip from prompt.
+
+        Phaya/Seedance constraints (from openapi.json):
+        - ``aspect_ratio``: 1:1, 21:9, 4:3, 3:4, 16:9, 9:16
+        - ``resolution``: 480p, 720p, 1080p
+        - ``duration``: literal string ``"4"``, ``"8"``, or ``"12"`` seconds
+        - ``fixed_lens``: lock the virtual camera (no auto-pan/zoom drift)
+        - ``generate_audio``: produce diegetic foley alongside the video
+        """
+        if aspect_ratio not in {"1:1", "21:9", "4:3", "3:4", "16:9", "9:16"}:
+            raise AdapterError(
+                f"Phaya Seedance: aspect_ratio {aspect_ratio!r} not in supported enum"
+            )
+        if resolution not in {"480p", "720p", "1080p"}:
+            raise AdapterError(
+                f"Phaya Seedance: resolution {resolution!r} must be 480p/720p/1080p"
+            )
+        if duration not in {"4", "8", "12"}:
+            raise AdapterError(
+                f"Phaya Seedance: duration {duration!r} must be '4', '8', or '12'"
+            )
+
+        async def _go() -> JobHandle:
+            body: dict[str, Any] = {
+                "prompt": prompt,
+                "aspect_ratio": aspect_ratio,
+                "resolution": resolution,
+                "duration": duration,
+                "fixed_lens": fixed_lens,
+                "generate_audio": generate_audio,
+            }
+            if input_urls:
+                body["input_urls"] = list(input_urls)
+            payload = await self._http.post(
+                url=f"{self._base_url}/api/v1/seedance-video/create",
+                body=body,
+                headers=self._headers(),
+            )
+            return JobHandle(
+                job_id=str(payload.get("job_id") or payload.get("id", "")),
+                state=_coerce_state(str(payload.get("status") or payload.get("state", "queued"))),
+                cost_thb=float(payload.get("credits_used") or 0.0),
+            )
+
+        return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
+
+    async def get_seedance_status(self, job_id: str) -> ToolResult[JobHandle]:
+        return await self._get_status(
+            f"/api/v1/seedance-video/status/{job_id}",
+            job_id=job_id,
+            kind="seedance",
+        )
+
+    async def wait_for_seedance(
+        self, job_id: str, *, poll_interval_s: float = 5.0, timeout_s: float = 600.0
+    ) -> ToolResult[JobHandle]:
+        return await self._wait(
+            poller=self.get_seedance_status,
+            job_id=job_id,
+            interval=poll_interval_s,
+            timeout=timeout_s,
+        )
+
     # ---- Music (async job) -------------------------------------------- #
 
     async def create_music(
@@ -568,6 +649,7 @@ class PhayaClient:
         ext_ct = {
             "sora2": ("mp4", "video/mp4"),
             "i2v": ("mp4", "video/mp4"),
+            "seedance": ("mp4", "video/mp4"),
             "tts": ("wav", "audio/wav"),
             "nano-banana": ("jpg", "image/jpeg"),
             "music": ("mp3", "audio/mpeg"),

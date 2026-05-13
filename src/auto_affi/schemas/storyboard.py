@@ -84,7 +84,7 @@ class Scene(BaseModel):
     purpose: ScenePurpose
     shot_type: str = Field(min_length=1, max_length=60)
     movement: str = Field(default="static", max_length=60)
-    visual_prompt: str = Field(min_length=1, max_length=1000)
+    visual_prompt: str = Field(min_length=1, max_length=2000)
     generator: Literal["veo3", "veo3_fast", "sora2", "kling", "hailuo", "flux", "imagen"]
     dialogue: Dialogue | None = None
     on_screen_text: OnScreenText | None = None
@@ -124,7 +124,10 @@ REQUIRED_EDITOR_PASSES: tuple[EditorPass, ...] = (
 _MAX_TOTAL_DURATION_S = 60.0
 _MAX_HOOK_DURATION_S = 2.0
 _AVG_SHOT_MIN_S = 1.0
-_AVG_SHOT_MAX_S = 3.0
+# 2026-05-14: raised from 3.0 → 5.0 to accommodate cinematic narrative pacing
+# (4-6s holds for emotional beats, per John Lewis / Apple "Misunderstood" /
+# Cannes-Lions short-film grammar). Sketch-style 1-3s cuts still fit comfortably.
+_AVG_SHOT_MAX_S = 5.0
 
 
 class Storyboard(BaseModel):

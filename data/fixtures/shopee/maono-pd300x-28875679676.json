@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "source": "manual-curation",
+    "source_url": "https://shopee.co.th/Maono-PD300X-Dynamic-Microphone-XLR-USB-Dual-Mode-Podcast-Microphone-Professional-Studio-Recording-Mic-with-Maono-Link-App-192kHz-24bit-Noise-Reduction-Mic-Gain-Moniing-and-Mute-for-Recording-i.339662882.28875679676",
+    "reason": "Shopee Affiliate API pending approval (human-queue item). Curated from URL slug — Maono PD300X dynamic XLR/USB podcast microphone. Replace with live Affiliate API fetch once approved.",
+    "captured_at": "2026-05-14",
+    "captured_by": "claude-orchestrator",
+    "confidence": {
+      "name": "exact (decoded from URL slug)",
+      "item_id": "exact",
+      "shop_id": "exact",
+      "price_range": "estimated (฿2,500-3,800 typical Maono PD300X street price in TH)",
+      "commission_rate": "estimated (3-5% typical for Shopee TH electronics/audio niche)",
+      "rating_star": "estimated (4.7-4.9 typical for popular pro-audio listings)",
+      "sales": "estimated (medium-volume listing)",
+      "image_url": "unknown (placeholder None)"
+    }
+  },
+  "product": {
+    "item_id": 28875679676,
+    "shop_id": 339662882,
+    "name": "Maono PD300X Dynamic Microphone XLR/USB Dual-Mode Podcast Mic — Professional Studio Recording, 192kHz/24-bit, Noise Reduction, Mic Gain, Monitoring & Mute (with Maono Link App)",
+    "price_min": 2590.0,
+    "price_max": 3790.0,
+    "commission_rate": 0.04,
+    "rating_star": 4.8,
+    "sales": 850,
+    "image_url": null
+  },
+  "niche_hints": {
+    "niche": "Electronics",
+    "sub_niche": "audio-podcast",
+    "target_persona": "Thai content creators / podcasters / streamers / home-studio musicians 22-40",
+    "use_case_keywords": ["dynamic microphone", "XLR", "USB", "podcast", "streaming", "recording", "noise reduction", "Maono Link"],
+    "language": "th-TH",
+    "format": "9:16 vertical (TikTok / Reels / Shorts)"
+  }
+}

@@ -34,6 +34,7 @@ import os
 import subprocess
 import sys
 import time
+import uuid
 from datetime import timedelta
 from pathlib import Path
 
@@ -42,8 +43,15 @@ from pydantic import SecretStr
 
 from auto_affi.adapters.phaya import JobState, PhayaClient
 from auto_affi.agents.writers_room import WritersRoom
-from auto_affi.ops.run_once import _niche_aware_brief, _resolve_product
+from auto_affi.ops.run_once import (
+    _niche_aware_brief,
+    _resolve_product,
+    brief_from_registry_entry,
+    resolve_product_with_registry,
+    storyboard_from_registry,
+)
 from auto_affi.pipeline.demo_storyboard import build_demo_storyboard
+from auto_affi.registry import build_run_prefix, registry_from_env
 
 try:
     from auto_affi.adapters.gcs_storage import GcsStorage
@@ -127,12 +135,23 @@ async def _download(url: str, dest: Path, *, gcs: "GcsStorage | None" = None) ->
         dest.write_bytes(r.content)
 
 
-def _mux(video: Path, audio: Path, out: Path) -> None:
-    subprocess.run(
-        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(video), "-i", str(audio),
-         "-c:v", "copy", "-c:a", "aac", "-shortest", str(out)],
-        check=True,
-    )
+def _mux(video: Path, audio: Path | None, out: Path) -> None:
+    """Mux video + audio. If audio is None, mux video with a silent track."""
+    if audio is not None:
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(video), "-i", str(audio),
+             "-c:v", "copy", "-c:a", "aac", "-shortest", str(out)],
+            check=True,
+        )
+    else:
+        # Add silent audio so concat across silent + voiced clips has consistent audio streams
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error",
+             "-i", str(video),
+             "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+             "-c:v", "copy", "-c:a", "aac", "-shortest", str(out)],
+            check=True,
+        )
 
 
 def _concat(clips: list[Path], workdir: Path, out: Path) -> None:
@@ -143,6 +162,125 @@ def _concat(clips: list[Path], workdir: Path, out: Path) -> None:
          "-i", str(listfile), "-c", "copy", str(out)],
         check=True,
     )
+
+
+async def _upload_cached_image(
+    gcs: "GcsStorage | None",
+    *,
+    image_path: Path,
+    idx: int,
+    order_no: int | None,
+    run_no: int | None,
+) -> tuple[str, str]:
+    """Upload a cached approved still to GCS, return (gs_uri, signed_https_url).
+
+    The signed URL is what Phaya's i2v endpoint needs (it can't fetch gs://).
+    """
+    if gcs is None:
+        raise RuntimeError(
+            "--use-cached-images needs AUTO_AFFI__GCS_BUCKET configured so "
+            "Phaya i2v can read the still via a signed URL"
+        )
+    key_prefix = build_run_prefix(order_no, run_no) if (order_no and run_no) else "demo-perfect/cached"
+    key = f"{key_prefix}/stage4-visuals/scene_{idx}.jpg"
+    asset = await asyncio.to_thread(
+        gcs.upload_file,
+        image_path,
+        key=key,
+        content_type="image/jpeg",
+        cache_control="public, max-age=3600",
+    )
+    url = await asyncio.to_thread(gcs.signed_url, key, ttl=timedelta(hours=1))
+    return asset.gs_uri, url
+
+
+async def _process_scene_with_cached_image(
+    client: PhayaClient,
+    idx: int,
+    scene: "Scene",
+    workdir: Path,
+    *,
+    gcs: "GcsStorage | None",
+    order_no: int | None,
+    run_no: int | None,
+) -> "tuple[Path, float, Path, Path, Path] | None":
+    """Variant of _process_scene that reuses an approved still from workdir.
+
+    Skips Nano Banana 2; uploads the local still to GCS, hands the signed
+    URL to Phaya's i2v + TTS. Used when --use-cached-images is set.
+    """
+    has_dialogue = scene.dialogue is not None and scene.dialogue.text_th.strip()
+    print(f"\n── scene {idx}: {scene.purpose} ({scene.duration_s}s) · cached image")
+    image_path = workdir / f"s{idx}-image.jpg"
+    if not image_path.exists():
+        print(f"   ❌ no cached image at {image_path}")
+        return None
+    print(f"   1/3 uploading cached still + signing URL…")
+    try:
+        _, phaya_image_url = await _upload_cached_image(
+            gcs, image_path=image_path, idx=idx, order_no=order_no, run_no=run_no
+        )
+    except Exception as e:
+        print(f"   ❌ cached-image upload failed: {e}")
+        return None
+
+    duration_s = max(5, int(round(scene.duration_s)))
+    if has_dialogue:
+        tts_text = _tts_clean(scene.dialogue.text_th)
+        print(f"   2/3 image-to-video ({duration_s}s) + tts in parallel…")
+        i2v_submit, tts_submit = await asyncio.gather(
+            client.create_image_to_video(image_url=phaya_image_url, duration_s=duration_s),
+            client.create_tts(prompt=tts_text, voice="Algenib", language="th"),
+        )
+        if not i2v_submit.ok or i2v_submit.data is None:
+            print(f"   ❌ i2v submit failed: {i2v_submit.error}"); return None
+        if not tts_submit.ok or tts_submit.data is None:
+            print(f"   ❌ tts submit failed: {tts_submit.error}"); return None
+        i2v_wait, tts_wait = await asyncio.gather(
+            client.wait_for_image_to_video(i2v_submit.data.job_id),
+            client._wait(
+                poller=client.get_tts_status,
+                job_id=tts_submit.data.job_id,
+                interval=3.0, timeout=240.0,
+            ),
+        )
+        if not tts_wait.ok or tts_wait.data is None or tts_wait.data.state is not JobState.COMPLETED:
+            print(f"   ❌ tts render failed"); return None
+        if not tts_wait.data.result_url:
+            print("   ❌ tts completed but no result_url"); return None
+    else:
+        print(f"   2/3 image-to-video ({duration_s}s), no tts (silent scene)…")
+        i2v_submit = await client.create_image_to_video(
+            image_url=phaya_image_url, duration_s=duration_s
+        )
+        if not i2v_submit.ok or i2v_submit.data is None:
+            print(f"   ❌ i2v submit failed: {i2v_submit.error}"); return None
+        i2v_wait = await client.wait_for_image_to_video(i2v_submit.data.job_id)
+        tts_wait = None
+
+    if not i2v_wait.ok or i2v_wait.data is None or i2v_wait.data.state is not JobState.COMPLETED:
+        print(f"   ❌ i2v render failed")
+        return None
+    if not i2v_wait.data.result_url:
+        print("   ❌ i2v completed but no result_url")
+        return None
+
+    print("   3/3 download + mux…")
+    video_path = workdir / f"s{idx}-video.mp4"
+    audio_path: Path | None = workdir / f"s{idx}-audio.wav" if has_dialogue else None
+    downloads = [_download(i2v_wait.data.result_url, video_path, gcs=gcs)]
+    if has_dialogue and tts_wait is not None and audio_path is not None:
+        downloads.append(_download(tts_wait.data.result_url, audio_path, gcs=gcs))
+    await asyncio.gather(*downloads)
+    clip_path = workdir / f"s{idx}-clip.mp4"
+    _mux(video_path, audio_path, clip_path)
+
+    cost_thb = (
+        (i2v_wait.data.cost_thb or 0.0)
+        + ((tts_wait.data.cost_thb if (has_dialogue and tts_wait and tts_wait.data) else 0.0) or 0.0)
+    )
+    print(f"   ✅ scene done · cost ฿{cost_thb:.4f}")
+    return clip_path, cost_thb, image_path, video_path, audio_path or video_path
 
 
 async def _process_scene(
@@ -164,9 +302,10 @@ async def _process_scene(
         detailed_prompt = scene.visual_prompt
     else:
         detailed_prompt = PERFECT_PROMPTS.get(idx, scene.visual_prompt)
+    has_dialogue = scene.dialogue is not None and scene.dialogue.text_th.strip()
     print(f"\n── scene {idx}: {scene.purpose} ({scene.duration_s}s)")
     print(f"   prompt: {detailed_prompt[:100]}…")
-    print(f"   dialogue: {scene.dialogue.text_th}")
+    print(f"   dialogue: {scene.dialogue.text_th if has_dialogue else '<silent>'}")
 
     # 1. Image gen
     print("   1/3 image (nano-banana-2)…")
@@ -200,57 +339,74 @@ async def _process_scene(
                 gcs.signed_url, key, ttl=timedelta(hours=1)
             )
     duration_s = max(5, int(round(scene.duration_s)))
-    tts_text = _tts_clean(scene.dialogue.text_th)
-    print(f"   2/3 image-to-video ({duration_s}s) + tts in parallel…")
-    i2v_submit, tts_submit = await asyncio.gather(
-        client.create_image_to_video(image_url=phaya_image_url, duration_s=duration_s),
-        client.create_tts(prompt=tts_text, voice="Algenib", language="th"),
-    )
-    if not i2v_submit.ok or i2v_submit.data is None:
-        print(f"   ❌ i2v submit failed: {i2v_submit.error}")
-        return None
-    if not tts_submit.ok or tts_submit.data is None:
-        print(f"   ❌ tts submit failed: {tts_submit.error}")
-        return None
-    i2v_wait, tts_wait = await asyncio.gather(
-        client.wait_for_image_to_video(i2v_submit.data.job_id),
-        client._wait(
-            poller=client.get_tts_status,
-            job_id=tts_submit.data.job_id,
-            interval=3.0,
-            timeout=240.0,
-        ),
-    )
+    if has_dialogue:
+        tts_text = _tts_clean(scene.dialogue.text_th)
+        print(f"   2/3 image-to-video ({duration_s}s) + tts in parallel…")
+        i2v_submit, tts_submit = await asyncio.gather(
+            client.create_image_to_video(image_url=phaya_image_url, duration_s=duration_s),
+            client.create_tts(prompt=tts_text, voice="Algenib", language="th"),
+        )
+        if not i2v_submit.ok or i2v_submit.data is None:
+            print(f"   ❌ i2v submit failed: {i2v_submit.error}")
+            return None
+        if not tts_submit.ok or tts_submit.data is None:
+            print(f"   ❌ tts submit failed: {tts_submit.error}")
+            return None
+        i2v_wait, tts_wait = await asyncio.gather(
+            client.wait_for_image_to_video(i2v_submit.data.job_id),
+            client._wait(
+                poller=client.get_tts_status,
+                job_id=tts_submit.data.job_id,
+                interval=3.0,
+                timeout=240.0,
+            ),
+        )
+        if not tts_wait.ok or tts_wait.data is None or tts_wait.data.state is not JobState.COMPLETED:
+            print(f"   ❌ tts render failed")
+            return None
+        if not tts_wait.data.result_url:
+            print("   ❌ tts completed but no result_url")
+            return None
+    else:
+        print(f"   2/3 image-to-video ({duration_s}s), no tts (silent scene)…")
+        i2v_submit = await client.create_image_to_video(
+            image_url=phaya_image_url, duration_s=duration_s
+        )
+        if not i2v_submit.ok or i2v_submit.data is None:
+            print(f"   ❌ i2v submit failed: {i2v_submit.error}")
+            return None
+        i2v_wait = await client.wait_for_image_to_video(i2v_submit.data.job_id)
+        tts_wait = None
+
     if not i2v_wait.ok or i2v_wait.data is None or i2v_wait.data.state is not JobState.COMPLETED:
         print(f"   ❌ i2v render failed")
         return None
-    if not tts_wait.ok or tts_wait.data is None or tts_wait.data.state is not JobState.COMPLETED:
-        print(f"   ❌ tts render failed")
-        return None
-    if not i2v_wait.data.result_url or not tts_wait.data.result_url:
-        print("   ❌ completed but no result_url")
+    if not i2v_wait.data.result_url:
+        print("   ❌ i2v completed but no result_url")
         return None
 
     # 3. Download + mux
     print("   3/3 download + mux…")
     image_path = workdir / f"s{idx}-image.jpg"
     video_path = workdir / f"s{idx}-video.mp4"
-    audio_path = workdir / f"s{idx}-audio.wav"
-    await asyncio.gather(
+    audio_path: Path | None = workdir / f"s{idx}-audio.wav" if has_dialogue else None
+    downloads = [
         _download(image_url, image_path, gcs=gcs),
         _download(i2v_wait.data.result_url, video_path, gcs=gcs),
-        _download(tts_wait.data.result_url, audio_path, gcs=gcs),
-    )
+    ]
+    if has_dialogue and tts_wait is not None and audio_path is not None:
+        downloads.append(_download(tts_wait.data.result_url, audio_path, gcs=gcs))
+    await asyncio.gather(*downloads)
     clip_path = workdir / f"s{idx}-clip.mp4"
     _mux(video_path, audio_path, clip_path)
 
     cost_thb = (
         (img_wait.data.cost_thb or 0.0)
         + (i2v_wait.data.cost_thb or 0.0)
-        + (tts_wait.data.cost_thb or 0.0)
+        + ((tts_wait.data.cost_thb if (has_dialogue and tts_wait and tts_wait.data) else 0.0) or 0.0)
     )
     print(f"   ✅ scene done · cost ฿{cost_thb:.4f}")
-    return clip_path, cost_thb, image_path, video_path, audio_path
+    return clip_path, cost_thb, image_path, video_path, audio_path or video_path
 
 
 def _parse_scenes(arg: str, total: int) -> list[int]:
@@ -270,34 +426,60 @@ async def main() -> int:
         default=None,
         help="Real Shopee URL — drives Writers' Room storyboard instead of the Beauty fixture",
     )
+    parser.add_argument(
+        "--music-prompt",
+        type=str,
+        default=None,
+        help="Phaya text-to-music prompt; if set, music is generated and mixed under final concat",
+    )
+    parser.add_argument(
+        "--music-duration",
+        type=int,
+        default=30,
+        help="Duration in seconds for the music track (default 30)",
+    )
+    parser.add_argument(
+        "--music-mix-db",
+        type=float,
+        default=-12.0,
+        help="dB to attenuate the music track when mixing under voice (default -12dB)",
+    )
+    parser.add_argument(
+        "--use-cached-images",
+        action="store_true",
+        help="Skip Nano Banana 2 generation; reuse workdir/s{idx}-image.jpg approved stills (uploaded via signed URL for Phaya i2v).",
+    )
     args = parser.parse_args()
 
     key = os.environ.get("PHAYA_API_KEY")
     if not key:
         print("ERROR: PHAYA_API_KEY missing"); return 1
 
-    use_scene_prompt = args.shopee_url is not None
+    # ---- Registry: source of truth for product brief + run numbering ---- #
+    registry = registry_from_env()
+    order_no: int | None = None
+    run_no: int | None = None
+    run_id = str(uuid.uuid4())[:12]
     if args.shopee_url:
-        product, niche_hints = _resolve_product(
-            product_id=None, shopee_url=args.shopee_url, fixture_path=None
+        product, entry, niche_hints = resolve_product_with_registry(
+            shopee_url=args.shopee_url, registry=registry
         )
-        brief = _niche_aware_brief(product, niche_hints)
-        room = WritersRoom()
-        sb_result = await room.generate_storyboard(brief)
-        if not sb_result.ok or sb_result.data is None:
-            print(f"ERROR: Writers' Room failed: {sb_result.error}")
-            return 4
-        sb = sb_result.data
-        print(f"🛒 product:   {product.name[:70]}…")
-        print(f"📋 niche:     {(niche_hints or {}).get('niche', '?')}/{(niche_hints or {}).get('sub_niche', '?')}")
-        print(f"📝 brief:     {brief.persona.label} · angle={brief.angle[:60]}…")
-        print(f"🎬 storyboard from Writers' Room (using scene.visual_prompt as-is)")
-    else:
-        sb = build_demo_storyboard()
-        print("🎬 demo storyboard fixture (Beauty) with PERFECT_PROMPTS override")
-    indices = _parse_scenes(args.scenes, len(sb.scenes))
-    args.workdir.mkdir(parents=True, exist_ok=True)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
+        if entry is None:
+            print(f"⚠️  product not in registry — falling back to niche-hint brief")
+            brief = _niche_aware_brief(product, niche_hints)
+        else:
+            brief = brief_from_registry_entry(product, entry)
+            order_no = entry.order_no
+            print(f"📒 registry:  order_no={order_no:04d}  niche={entry.niche}/{entry.sub_niche}")
+        if order_no is not None:
+            run_entry = registry.start_run(
+                order_no=order_no, run_id=run_id, publish_mode="dry_run"
+            )
+            run_no = run_entry.run_no
+            print(f"🔢 run:       run_no={run_no:04d}  run_id={run_id}")
+    gcs_key_prefix = (
+        build_run_prefix(order_no, run_no) if (order_no and run_no) else "demo-perfect"
+    )
 
     # GCS staging: per ADR-006, pass GcsStorage into the client so Phaya
     # supabase URLs auto-republish to gs:// before any caller sees them.
@@ -306,10 +488,50 @@ async def main() -> int:
     if GcsStorage is not None and bucket:
         try:
             gcs = GcsStorage(bucket_name=bucket)
-            print(f"🪣 GCS: gs://{gcs.bucket_name}/  (adapter auto-republishes)")
+            print(f"🪣 GCS: gs://{gcs.bucket_name}/{gcs_key_prefix}/")
         except Exception as e:
             print(f"⚠️  GCS init failed: {e}")
-    client = PhayaClient(api_key=SecretStr(key), timeout_s=60.0, gcs=gcs)
+    client = PhayaClient(
+        api_key=SecretStr(key),
+        timeout_s=60.0,
+        gcs=gcs,
+        gcs_key_prefix=gcs_key_prefix,
+    )
+
+    use_scene_prompt = args.shopee_url is not None
+    if args.shopee_url:
+        # Storyboard precedence: (1) registry overrides → (2) LLM → (3) fallback
+        overrides = (
+            registry.get_storyboard_overrides(order_no) if order_no else []
+        )
+        if overrides and entry is not None:
+            sb = storyboard_from_registry(
+                entry=entry, overrides=overrides, brief=brief
+            )
+            print(f"🛒 product:   {product.name[:70]}…")
+            print(f"📝 brief:     {brief.persona.label} · angle={brief.angle[:60]}…")
+            print(f"🎬 storyboard: registry overrides ({len(overrides)} scenes, board-curated)")
+        else:
+            room = WritersRoom(llm_client=client)
+            sb_result = await room.generate_storyboard(brief)
+            if not sb_result.ok or sb_result.data is None:
+                print(f"ERROR: Writers' Room failed: {sb_result.error}")
+                if order_no and run_no:
+                    registry.finalize_run(
+                        run_no=run_no, order_no=order_no, status="FAILED",
+                        error=f"writers_room: {sb_result.error}",
+                    )
+                return 4
+            sb = sb_result.data
+            print(f"🛒 product:   {product.name[:70]}…")
+            print(f"📝 brief:     {brief.persona.label} · angle={brief.angle[:60]}…")
+            print(f"🎬 storyboard: Writers' Room (LLM via Phaya GPT, fallback to template)")
+    else:
+        sb = build_demo_storyboard()
+        print("🎬 demo storyboard fixture (Beauty) with PERFECT_PROMPTS override")
+    indices = _parse_scenes(args.scenes, len(sb.scenes))
+    args.workdir.mkdir(parents=True, exist_ok=True)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     bal0 = await client.get_credits()
     if not bal0.ok or bal0.data is None:
         print(f"ERROR: get_credits failed: {bal0.error}"); return 2
@@ -325,11 +547,17 @@ async def main() -> int:
     for idx in indices:
         if idx >= len(sb.scenes):
             continue
-        result = await _process_scene(
-            client, idx, sb.scenes[idx], args.workdir,
-            use_scene_prompt=use_scene_prompt,
-            gcs=gcs,
-        )
+        if args.use_cached_images:
+            result = await _process_scene_with_cached_image(
+                client, idx, sb.scenes[idx], args.workdir,
+                gcs=gcs, order_no=order_no, run_no=run_no,
+            )
+        else:
+            result = await _process_scene(
+                client, idx, sb.scenes[idx], args.workdir,
+                use_scene_prompt=use_scene_prompt,
+                gcs=gcs,
+            )
         if result is None:
             print(f"⚠️  scene {idx} failed; continuing")
             continue
@@ -344,17 +572,71 @@ async def main() -> int:
     if not clips:
         print("\n❌ no scenes succeeded"); return 3
 
+    # Concat or single — write to intermediate path so we can optionally mux music
+    intermediate = args.workdir / "concat.mp4"
     if len(clips) == 1:
-        clips[0].replace(args.output)
+        clips[0].replace(intermediate)
     else:
-        _concat(clips, args.workdir, args.output)
+        _concat(clips, args.workdir, intermediate)
+
+    # Optional music layer
+    music_path: Path | None = None
+    if args.music_prompt:
+        print(f"\n🎵 generating music ({args.music_duration}s) via Phaya text-to-music…")
+        music_submit = await client.create_music(
+            prompt=args.music_prompt, duration_s=args.music_duration
+        )
+        if music_submit.ok and music_submit.data is not None:
+            music_wait = await client._wait(
+                poller=client.get_music_status,
+                job_id=music_submit.data.job_id,
+                interval=4.0,
+                timeout=300.0,
+            )
+            if (
+                music_wait.ok
+                and music_wait.data is not None
+                and music_wait.data.state is JobState.COMPLETED
+                and music_wait.data.result_url
+            ):
+                music_path = args.workdir / "music.mp3"
+                await _download(music_wait.data.result_url, music_path, gcs=gcs)
+                print(f"   ✅ music ready ({music_path.stat().st_size//1024} KB)")
+            else:
+                print(f"   ⚠️  music render failed; continuing without music")
+        else:
+            print(f"   ⚠️  music submit failed: {music_submit.error}; continuing without music")
+
+    if music_path is not None:
+        # Mix concat audio + music at music-mix-db with -shortest to clip to video length
+        print(f"🎚️  mixing music under voice @ {args.music_mix_db} dB…")
+        gain_db = args.music_mix_db
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error",
+             "-i", str(intermediate),
+             "-i", str(music_path),
+             "-filter_complex",
+             f"[1:a]volume={gain_db}dB[bg];[0:a][bg]amix=inputs=2:duration=first:dropout_transition=0[aout]",
+             "-map", "0:v", "-map", "[aout]",
+             "-c:v", "copy", "-c:a", "aac", "-shortest",
+             str(args.output)],
+            check=True,
+        )
+    else:
+        intermediate.replace(args.output)
 
     final_gs: str | None = None
     if gcs is not None:
         try:
+            # Numbered registry path takes precedence over date-based legacy path
+            final_key = (
+                f"{gcs_key_prefix}/final.mp4"
+                if order_no and run_no
+                else f"demo-perfect/{run_date}/{args.output.name}"
+            )
             asset = gcs.upload_file(
                 args.output,
-                key=f"demo-perfect/{run_date}/{args.output.name}",
+                key=final_key,
                 content_type="video/mp4",
                 cache_control="public, max-age=3600",
             )
@@ -365,10 +647,26 @@ async def main() -> int:
     bal1 = await client.get_credits()
     spent = bal0.data.balance_thb - (bal1.data.balance_thb if bal1.data else 0.0)
 
+    # Finalize registry run row — real spend from balance delta, not the
+    # buggy per-scene reported sum.
+    if order_no and run_no:
+        registry.finalize_run(
+            run_no=run_no,
+            order_no=order_no,
+            status="APPROVED" if clips else "FAILED",
+            total_cost_thb=spent,
+            gcs_prefix=gcs_key_prefix,
+            final_mp4_gs_uri=final_gs or "",
+            scene_count=len(clips),
+            last_decision="dry-run-complete" if clips else "no-scenes-rendered",
+        )
+
     print("\n" + "=" * 60)
     print(f"✅ local: {args.output} ({args.output.stat().st_size//1024} KB)")
     if final_gs:
         print(f"☁️  canonical: {final_gs}")
+    if order_no and run_no:
+        print(f"📒 registry:  order_no={order_no:04d}  run_no={run_no:04d}  → finalized")
     print(f"💰 reported sum: ฿{total_cost_thb:.4f}")
     print(f"💰 balance delta: ฿{spent:.4f}  (≈${spent*0.028:.4f})")
     print(f"📊 after: ฿{bal1.data.balance_thb if bal1.data else 0:.4f}")

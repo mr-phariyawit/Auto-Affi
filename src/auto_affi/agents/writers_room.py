@@ -357,6 +357,11 @@ def create_default_storyboard(brief: CampaignBrief) -> Storyboard:
     reads as Hardware/Tools (keyword detection on angle + persona). Falls
     back to the Beauty default otherwise. Used as fallback when LLM
     generation fails or for testing.
+
+    Per-product storyboard overrides come from the registry (storyboards
+    tab), not this function — see ``auto_affi.registry`` and the
+    ``Registry.get_storyboard_overrides`` protocol. This function exists
+    only as a last-resort fallback when neither LLM nor registry has data.
     """
     if _detect_hardware(brief):
         return _hardware_storyboard(brief)
