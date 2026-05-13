@@ -85,6 +85,16 @@
 - **Blocks**: phase-1-live-test
 - **Raised**: 2026-05-13T09:35:51Z
 - **Resolved**: _(pending)_
+
+### [2026-05-13] EXTERNAL — Create GCP project + GCS bucket gs://auto-affi-media-dev + service account / สร้าง GCP project + bucket gs://auto-affi-media-dev + service account
+
+- **EN**: Per ADR-006. Steps: 1) Pick/create GCP project. 2) Create bucket 'auto-affi-media-dev' (region: asia-southeast1 = Singapore, lowest latency from Phaya TH origin). 3) Service account 'auto-affi-media' with roles/storage.objectAdmin scoped to that bucket only. 4) Download JSON key, place at ~/.config/auto-affi/sa.json (chmod 600), set GOOGLE_APPLICATION_CREDENTIALS in .env. 5) Reply with project ID + bucket name confirmed.
+- **TH**: ตาม ADR-006 — สร้าง GCP project, bucket asia-southeast1, service account จำกัด roles/storage.objectAdmin บน bucket นี้เท่านั้น แล้วใส่ key ลง .env
+- **Category**: External access
+- **Raised by**: claude-orchestrator
+- **Blocks**: production-asset-pipeline + ADR-006
+- **Raised**: 2026-05-13T09:51:07Z
+- **Resolved**: _(pending)_
 <!-- PENDING_END -->
 
 ## Resolved

@@ -139,7 +139,7 @@ async def test_embed_parses_data_embedding_4096_dim_shape() -> None:
 
 
 @pytest.mark.unit
-async def test_create_sora2_uses_n_frames_and_aspect_ratio_9_16() -> None:
+async def test_create_sora2_uses_n_frames_string_enum_and_portrait_aspect() -> None:
     captured: dict[str, object] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -152,7 +152,7 @@ async def test_create_sora2_uses_n_frames_and_aspect_ratio_9_16() -> None:
 
     client = _client(handler)
     result = await client.create_sora2_video(
-        prompt="POV oily-skin Bangkok afternoon", n_frames=120
+        prompt="POV oily-skin Bangkok afternoon", n_frames="15", aspect_ratio="portrait"
     )
     assert result.ok is True
     assert result.data is not None
@@ -160,9 +160,23 @@ async def test_create_sora2_uses_n_frames_and_aspect_ratio_9_16() -> None:
     assert result.data.state is JobState.QUEUED
     assert "/api/v1/sora2-text-to-video/create" in str(captured["url"])
     body = str(captured["body"])
-    assert '"n_frames":120' in body
-    assert '"aspect_ratio":"9:16"' in body
+    assert '"n_frames":"15"' in body  # string enum, not int!
+    assert '"aspect_ratio":"portrait"' in body
     assert '"remove_watermark":true' in body
+
+
+@pytest.mark.unit
+async def test_create_sora2_rejects_invalid_aspect_ratio() -> None:
+    client = _client(lambda r: httpx.Response(200, json={}))
+    with pytest.raises(AdapterError, match="aspect_ratio must be"):
+        await client.create_sora2_video(prompt="x", aspect_ratio="9:16")
+
+
+@pytest.mark.unit
+async def test_create_sora2_rejects_invalid_n_frames() -> None:
+    client = _client(lambda r: httpx.Response(200, json={}))
+    with pytest.raises(AdapterError, match="n_frames must be"):
+        await client.create_sora2_video(prompt="x", n_frames="120")
 
 
 @pytest.mark.unit

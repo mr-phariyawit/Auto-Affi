@@ -230,7 +230,7 @@ class PhayaClient:
                 model=str(payload.get("model", model)),
                 usage_in_tokens=int(usage.get("prompt_tokens", 0)),
                 usage_out_tokens=int(usage.get("completion_tokens", 0)),
-                cost_thb=float(payload.get("credits_used", 0.0)),
+                cost_thb=float(payload.get("credits_used") or 0.0),
             )
 
         return await call_with_result(_go, cost_fn=lambda r: r.cost_usd)
@@ -256,7 +256,7 @@ class PhayaClient:
                 vectors=vectors,
                 model=str(payload.get("model", "Phaya Text Embedding")),
                 usage_tokens=int(usage.get("total_tokens", 0)),
-                cost_thb=float(payload.get("credits_used", 0.0)),
+                cost_thb=float(payload.get("credits_used") or 0.0),
             )
 
         return await call_with_result(_go, cost_fn=lambda r: r.cost_usd)
@@ -267,11 +267,26 @@ class PhayaClient:
         self,
         prompt: str,
         *,
-        aspect_ratio: str = "9:16",
-        n_frames: int = 120,
+        aspect_ratio: str = "portrait",
+        n_frames: str = "15",
         remove_watermark: bool = True,
     ) -> ToolResult[JobHandle]:
-        """Submit a Sora 2 T2V job. Poll via :meth:`wait_for_sora2`."""
+        """Submit a Sora 2 T2V job. Poll via :meth:`wait_for_sora2`.
+
+        Phaya constraints (from openapi.json, May 2026):
+        - ``aspect_ratio``: ``"landscape"`` (16:9) or ``"portrait"`` (9:16). Default ``portrait`` for Auto-Affi's Reels format.
+        - ``n_frames``: literal string ``"10"`` or ``"15"`` (only 2 valid values).
+          Clips are short by design — stitch multiple for longer scenes.
+        - ``prompt``: 1-2000 chars.
+        """
+        if aspect_ratio not in ("landscape", "portrait"):
+            raise AdapterError(
+                f"Phaya Sora 2: aspect_ratio must be 'landscape' or 'portrait', got {aspect_ratio!r}"
+            )
+        if n_frames not in ("10", "15"):
+            raise AdapterError(
+                f"Phaya Sora 2: n_frames must be '10' or '15', got {n_frames!r}"
+            )
 
         async def _go() -> JobHandle:
             payload = await self._http.post(
@@ -287,7 +302,7 @@ class PhayaClient:
             return JobHandle(
                 job_id=str(payload.get("job_id") or payload.get("id", "")),
                 state=_coerce_state(str(payload.get("state", "queued"))),
-                cost_thb=float(payload.get("credits_used", 0.0)),
+                cost_thb=float(payload.get("credits_used") or 0.0),
             )
 
         return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
@@ -352,7 +367,7 @@ class PhayaClient:
             return JobHandle(
                 job_id=str(payload.get("job_id") or payload.get("id", "")),
                 state=_coerce_state(str(payload.get("state", "queued"))),
-                cost_thb=float(payload.get("credits_used", 0.0)),
+                cost_thb=float(payload.get("credits_used") or 0.0),
             )
 
         return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
@@ -365,6 +380,13 @@ class PhayaClient:
     # ---- Internal: status GET + polling helpers ----------------------- #
 
     async def _get_status(self, path: str, *, job_id: str) -> ToolResult[JobHandle]:
+        """Per-capability status poller. Phaya field names vary by endpoint:
+        - Sora 2 T2V uses ``status`` + ``video_url``
+        - TTS uses ``status`` + ``audio_url``
+        - Some others use ``state`` + ``result_url`` / ``output_url``
+        We accept all four URL field names and both status keys.
+        """
+
         async def _go() -> JobHandle:
             client = self._http.client or httpx.AsyncClient(timeout=self._http.timeout_s)
             owns = self._http.client is None
@@ -376,12 +398,23 @@ class PhayaClient:
             if r.status_code >= 400:
                 raise AdapterError(f"Phaya status HTTP {r.status_code}: {r.text[:200]}")
             payload = r.json()
+            raw_state = (
+                payload.get("status")
+                or payload.get("state")
+                or "processing"
+            )
+            url = (
+                payload.get("video_url")
+                or payload.get("audio_url")
+                or payload.get("result_url")
+                or payload.get("output_url")
+            )
             return JobHandle(
                 job_id=job_id,
-                state=_coerce_state(str(payload.get("state", "processing"))),
-                result_url=payload.get("result_url") or payload.get("output_url"),
-                error=payload.get("error"),
-                cost_thb=float(payload.get("credits_used", 0.0)),
+                state=_coerce_state(str(raw_state)),
+                result_url=url,
+                error=payload.get("error") or payload.get("message"),
+                cost_thb=float(payload.get("credits_used") or 0.0),
             )
 
         return await call_with_result(_go)
@@ -424,10 +457,10 @@ class PhayaVideoGenAdapter:
     async def generate_scene(
         self, scene: Scene, *, output_dir: Path
     ) -> ToolResult[GeneratedAsset]:
-        # n_frames at 24 fps ≈ scene.duration_s; round up to nearest integer
-        n_frames = max(24, int(scene.duration_s * 24))
+        # Phaya Sora 2 only accepts n_frames="10" or "15". Pick "15" (longer).
+        # Multi-clip stitching for scenes > clip length is the Producer's job.
         create = await self.client.create_sora2_video(
-            prompt=scene.visual_prompt, n_frames=n_frames
+            prompt=scene.visual_prompt, n_frames="15", aspect_ratio="portrait"
         )
         if not create.ok or create.data is None:
             return ToolResult(
