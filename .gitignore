@@ -41,7 +41,12 @@ Thumbs.db
 *~
 
 # Project data (large / volatile)
-data/
+# data/* ignores contents but keeps the directory traversable so the
+# negation rule below can match (a bare `data/` blocks descent entirely).
+data/*
+# Fixtures are first-class data (committed, used by tests + runtime).
+!data/fixtures/
+!data/fixtures/**
 assets/
 .cache/
 *.mp4

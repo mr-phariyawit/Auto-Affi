@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "source": "manual-curation",
+    "source_url": "https://shopee.co.th/i.992256187.44154734826",
+    "reason": "Shopee Affiliate API pending approval (human-queue item). Page is SPA + bot-detected — automated scrape returns empty placeholder + triggers CAPTCHA redirect. Manually curated from URL slug + Shopee TH hardware-tool market norms. Replace with live Affiliate API fetch once approved.",
+    "captured_at": "2026-05-13",
+    "captured_by": "claude-orchestrator",
+    "confidence": {
+      "name": "exact (decoded from URL slug)",
+      "item_id": "exact",
+      "shop_id": "exact",
+      "price_range": "estimated (฿80-300 typical for Thai hardware socket-bit sets)",
+      "commission_rate": "estimated (5-7% typical for Shopee TH hardware niche)",
+      "rating_star": "estimated (4.5-4.8 typical for popular tool listings)",
+      "sales": "estimated (medium-volume listing)",
+      "image_url": "unknown (placeholder None)"
+    }
+  },
+  "product": {
+    "item_id": 44154734826,
+    "shop_id": 992256187,
+    "name": "8-14มม. ยาวไฟฟ้าเจาะ SOCKET HEAD Bolt NUT DRIVER Bit Impact เจาะ Bits อะแดปเตอร์ซ็อกเก็ตประแจ EXTENSION Bar 150มม.",
+    "price_min": 129.0,
+    "price_max": 249.0,
+    "commission_rate": 0.06,
+    "rating_star": 4.7,
+    "sales": 1200,
+    "image_url": null
+  },
+  "niche_hints": {
+    "niche": "Electronics",
+    "sub_niche": "hardware-tools",
+    "target_persona": "DIY home-renovator / motorcycle mechanic / contractor / handyman",
+    "use_case_keywords": ["socket head", "bolt", "nut driver", "bit impact", "extension bar"],
+    "language": "th-TH",
+    "format": "9:16 vertical (TikTok / Reels / Shorts)"
+  }
+}
