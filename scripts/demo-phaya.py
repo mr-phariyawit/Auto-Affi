@@ -38,7 +38,13 @@ except ImportError:  # google-cloud-storage not installed in some envs
     StoredAsset = None  # type: ignore[assignment]
 
 
-async def _download(url: str, dest: Path) -> None:
+async def _download(url: str, dest: Path, *, gcs: "GcsStorage | None" = None) -> None:
+    """Download URL → local file. Handles gs:// (via GcsStorage) + https://."""
+    if url.startswith("gs://"):
+        if gcs is None:
+            raise RuntimeError("gs:// URI received but GcsStorage not provided")
+        await asyncio.to_thread(gcs.download_to_file, url, dest)
+        return
     async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as c:
         r = await c.get(url)
         r.raise_for_status()
@@ -116,8 +122,13 @@ def _concat(clips: list[Path], workdir: Path, out: Path) -> None:
 
 
 async def _process_scene(
-    client: PhayaClient, scene_idx: int, scene, workdir: Path
-) -> tuple[Path, float] | None:
+    client: PhayaClient,
+    scene_idx: int,
+    scene,
+    workdir: Path,
+    *,
+    gcs: "GcsStorage | None" = None,
+) -> tuple[Path, float, Path, Path] | None:
     """Submit video + tts, wait, download, mux. Returns (clip_path, cost_thb)."""
     print(f"\n── scene {scene_idx}: {scene.purpose} ({scene.duration_s}s)")
     print(f"   visual:   {scene.visual_prompt[:80]}")
@@ -169,8 +180,8 @@ async def _process_scene(
     video_path = workdir / f"s{scene_idx}-video.mp4"
     audio_path = workdir / f"s{scene_idx}-audio.mp3"
     await asyncio.gather(
-        _download(video_done.data.result_url, video_path),
-        _download(tts_done.data.result_url, audio_path),
+        _download(video_done.data.result_url, video_path, gcs=gcs),
+        _download(tts_done.data.result_url, audio_path, gcs=gcs),
     )
     print(f"   ⤓ video {video_path.stat().st_size//1024} KB  audio {audio_path.stat().st_size//1024} KB")
 
@@ -202,7 +213,20 @@ async def main() -> int:
     workdir.mkdir(parents=True, exist_ok=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
-    client = PhayaClient(api_key=SecretStr(key))
+    # GCS init first so we can pass it into the Phaya client (adapter
+    # auto-republishes supabase URLs to gs:// per ADR-006).
+    gcs: GcsStorage | None = None
+    bucket_name = os.environ.get("AUTO_AFFI__GCS_BUCKET")
+    if GcsStorage is not None and bucket_name:
+        try:
+            gcs = GcsStorage(bucket_name=bucket_name)
+            print(f"🪣 GCS: gs://{gcs.bucket_name}/ (adapter auto-republishes)")
+        except Exception as e:
+            print(f"⚠️  GCS init failed ({e}); legacy passthrough mode")
+    else:
+        print("ℹ️  GCS not configured; legacy passthrough mode")
+
+    client = PhayaClient(api_key=SecretStr(key), gcs=gcs)
     bal0 = await client.get_credits()
     if not bal0.ok or bal0.data is None:
         print(f"ERROR: get_credits failed: {bal0.error}")
@@ -210,17 +234,7 @@ async def main() -> int:
     print(f"📊 balance before: ฿{bal0.data.balance_thb:.4f} (≈${bal0.data.balance_usd:.4f})")
     print(f"🎬 scenes: {indices} · {len(indices)} of {len(sb.scenes)} · workdir={workdir}")
 
-    # GCS staging per ADR-006 — initialize lazily, fall back if not configured
-    gcs: GcsStorage | None = None
-    bucket_name = os.environ.get("AUTO_AFFI__GCS_BUCKET")
-    if GcsStorage is not None and bucket_name:
-        try:
-            gcs = GcsStorage(bucket_name=bucket_name)
-            print(f"🪣 GCS: gs://{gcs.bucket_name}/ (per ADR-006)")
-        except Exception as e:
-            print(f"⚠️  GCS init failed ({e}); falling back to local-only")
-    else:
-        print("ℹ️  GCS not configured; local-only output (supabase URLs transient)")
+    # GCS was constructed above and passed to the PhayaClient — reuse it.
 
     clips: list[Path] = []
     total_cost_thb = 0.0
@@ -231,32 +245,17 @@ async def main() -> int:
         if idx >= len(sb.scenes):
             print(f"   skip: scene {idx} out of range")
             continue
-        result = await _process_scene(client, idx, sb.scenes[idx], workdir)
+        result = await _process_scene(client, idx, sb.scenes[idx], workdir, gcs=gcs)
         if result is None:
             print(f"⚠️  scene {idx} failed; continuing with remaining scenes")
             continue
-        clip, cost, video_path, audio_path = result
+        clip, cost, _video_path, _audio_path = result
         clips.append(clip)
         total_cost_thb += cost
 
-        # Republish raw assets to GCS per ADR-006 (supabase URLs never persisted)
-        if gcs is not None:
-            try:
-                video_asset = gcs.upload_file(
-                    video_path,
-                    key=f"sora2/{run_date}/scene{idx}.mp4",
-                    content_type="video/mp4",
-                )
-                audio_asset = gcs.upload_file(
-                    audio_path,
-                    key=f"tts/{run_date}/scene{idx}.wav",
-                    content_type="audio/wav",
-                )
-                print(f"   ☁️  {video_asset.gs_uri}")
-                print(f"   ☁️  {audio_asset.gs_uri}")
-                gcs_uris.extend([video_asset.gs_uri, audio_asset.gs_uri])
-            except Exception as e:
-                print(f"   ⚠️  GCS republish failed: {e}")
+        # Raw Sora 2 + TTS assets are already on GCS — the adapter
+        # auto-republished them under gs://<bucket>/phaya/<kind>/<job_id>.<ext>.
+        # No per-scene re-upload needed; ADR-006 boundary is the adapter.
 
     if not clips:
         print("\n❌ no scenes succeeded")

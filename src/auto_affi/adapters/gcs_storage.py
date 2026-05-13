@@ -137,6 +137,27 @@ class GcsStorage:
             md5_hex=blob.md5_hash,
         )
 
+    def download_to_file(self, gs_uri: str, dest: Path) -> Path:
+        """Download a ``gs://<bucket>/<key>`` URI to a local file.
+
+        Raises :class:`AdapterError` if the URI is malformed or the
+        bucket doesn't match this client.
+        """
+        if not gs_uri.startswith("gs://"):
+            raise AdapterError(f"GCS: not a gs:// URI: {gs_uri!r}")
+        without_scheme = gs_uri[len("gs://"):]
+        bucket_name, _, key = without_scheme.partition("/")
+        if not key:
+            raise AdapterError(f"GCS: missing object key in {gs_uri!r}")
+        if bucket_name != self._bucket.name:
+            # Allow cross-bucket reads via the same client
+            blob = self._client.bucket(bucket_name).blob(key)
+        else:
+            blob = self._bucket.blob(key)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        blob.download_to_filename(str(dest))
+        return dest
+
     def signed_url(self, key: str, *, ttl: timedelta = timedelta(hours=1)) -> str:
         """Mint a V4 signed URL for time-bounded public access (publishing step)."""
         blob = self._bucket.blob(key)

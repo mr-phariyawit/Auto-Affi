@@ -104,3 +104,27 @@ def test_delete_calls_blob_delete() -> None:
     gcs = GcsStorage(bucket_name="b", client=client)
     gcs.delete("k")
     blob.delete.assert_called_once()
+
+
+@pytest.mark.unit
+def test_download_to_file_parses_gs_uri(tmp_path) -> None:
+    client, _bucket, blob = _mock_client("auto-affi-media-dev")
+    gcs = GcsStorage(bucket_name="auto-affi-media-dev", client=client)
+    dest = tmp_path / "downloaded" / "x.mp4"
+    result = gcs.download_to_file("gs://auto-affi-media-dev/path/to/x.mp4", dest)
+    assert result == dest
+    _bucket.blob.assert_called_with("path/to/x.mp4")
+    blob.download_to_filename.assert_called_once_with(str(dest))
+    # parent dir auto-created
+    assert dest.parent.exists()
+
+
+@pytest.mark.unit
+def test_download_rejects_non_gs_uri(tmp_path) -> None:
+    client, _, _ = _mock_client("b")
+    gcs = GcsStorage(bucket_name="b", client=client)
+    from auto_affi.exceptions import AdapterError
+    with pytest.raises(AdapterError, match="not a gs:// URI"):
+        gcs.download_to_file("https://example.com/x", tmp_path / "x")
+    with pytest.raises(AdapterError, match="missing object key"):
+        gcs.download_to_file("gs://just-bucket", tmp_path / "x")

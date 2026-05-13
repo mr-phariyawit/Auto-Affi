@@ -43,8 +43,38 @@ from auto_affi.exceptions import AdapterError
 from auto_affi.schemas.storyboard import Scene
 from auto_affi.schemas.tool_result import ToolResult
 
+try:
+    from auto_affi.adapters.gcs_storage import GcsStorage
+except ImportError:  # google-cloud-storage not installed in some envs
+    GcsStorage = None  # type: ignore[assignment, misc]
+
 _BASE_URL: Final[str] = "https://api.phaya.io"
 _USD_PER_THB: Final[float] = 0.028  # ฿1 ≈ $0.028 (May 2026)
+
+# Domains we MUST never expose downstream per ADR-006. Phaya stages results
+# on Supabase; we strip these URLs at adapter return time.
+_TRANSIENT_HOSTS: Final[tuple[str, ...]] = ("supabase.co",)
+
+
+def _is_transient_url(url: str | None) -> bool:
+    return bool(url) and any(h in url for h in _TRANSIENT_HOSTS)
+
+
+def _redact(url: str | None) -> str:
+    """Mask a transient (supabase) URL for log-safe display.
+
+    Returns ``"<phaya-transient:abcd…wxyz>"`` instead of the raw URL so
+    ADR-006 'never logged' is upheld even if a caller accidentally prints
+    the adapter's internal state.
+    """
+    if not url:
+        return "<none>"
+    if not _is_transient_url(url):
+        return url  # gs:// URIs and our own CDN URLs are safe to log
+    # Last 4 chars of path give enough uniqueness to correlate in logs
+    # without leaking the public-bucket path.
+    suffix = url.rstrip("/").split("/")[-1][:8]
+    return f"<phaya-transient:{suffix}>"
 
 
 def _thb_to_usd(thb: float) -> float:
@@ -155,7 +185,17 @@ class PhayaClient:
         timeout_s: float = 30.0,
         max_retries: int = 3,
         base_url: str = _BASE_URL,
+        gcs: "GcsStorage | None" = None,
+        gcs_key_prefix: str = "phaya",
     ) -> None:
+        """Construct a Phaya REST client.
+
+        When ``gcs`` is provided, completed-job result URLs are
+        auto-republished to GCS per ADR-006 — callers receive ``gs://``
+        URIs and the transient Supabase URLs never leave this client.
+        When ``gcs`` is ``None``, the legacy passthrough behavior is
+        preserved (callers get the supabase URL — use only for testing).
+        """
         if not api_key.get_secret_value().strip():
             raise AdapterError("Phaya: api_key is empty")
         if not api_key.get_secret_value().startswith(("phaya_", "pk_", "sk_")):
@@ -167,6 +207,8 @@ class PhayaClient:
         self._http = HttpExecutor(
             vendor="Phaya", timeout_s=timeout_s, max_retries=max_retries, client=client
         )
+        self._gcs = gcs
+        self._gcs_key_prefix = gcs_key_prefix.strip("/")
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -309,7 +351,9 @@ class PhayaClient:
 
     async def get_sora2_status(self, job_id: str) -> ToolResult[JobHandle]:
         return await self._get_status(
-            f"/api/v1/sora2-text-to-video/status/{job_id}", job_id=job_id
+            f"/api/v1/sora2-text-to-video/status/{job_id}",
+            job_id=job_id,
+            kind="sora2",
         )
 
     async def wait_for_sora2(
@@ -350,7 +394,9 @@ class PhayaClient:
 
     async def get_tts_status(self, job_id: str) -> ToolResult[JobHandle]:
         return await self._get_status(
-            f"/api/v1/text-to-speech/status/{job_id}", job_id=job_id
+            f"/api/v1/text-to-speech/status/{job_id}",
+            job_id=job_id,
+            kind="tts",
         )
 
     # ---- Image generation: Nano Banana 2 (async job) ------------------ #
@@ -407,7 +453,9 @@ class PhayaClient:
 
     async def get_nano_banana_status(self, job_id: str) -> ToolResult[JobHandle]:
         return await self._get_status(
-            f"/api/v1/nano-banana/status/{job_id}", job_id=job_id
+            f"/api/v1/nano-banana/status/{job_id}",
+            job_id=job_id,
+            kind="nano-banana",
         )
 
     async def wait_for_nano_banana(
@@ -463,7 +511,9 @@ class PhayaClient:
 
     async def get_image_to_video_status(self, job_id: str) -> ToolResult[JobHandle]:
         return await self._get_status(
-            f"/api/v1/image-to-video/status/{job_id}", job_id=job_id
+            f"/api/v1/image-to-video/status/{job_id}",
+            job_id=job_id,
+            kind="i2v",
         )
 
     async def wait_for_image_to_video(
@@ -497,17 +547,64 @@ class PhayaClient:
 
     async def get_music_status(self, job_id: str) -> ToolResult[JobHandle]:
         return await self._get_status(
-            f"/api/v1/text-to-music/status/{job_id}", job_id=job_id
+            f"/api/v1/text-to-music/status/{job_id}",
+            job_id=job_id,
+            kind="music",
         )
 
     # ---- Internal: status GET + polling helpers ----------------------- #
 
-    async def _get_status(self, path: str, *, job_id: str) -> ToolResult[JobHandle]:
+    async def _republish_to_gcs(
+        self, supabase_url: str, *, job_id: str, kind: str
+    ) -> str:
+        """Download a transient Supabase URL → upload to GCS → return gs:// URI.
+
+        ADR-006 enforcement boundary. The supabase URL is held only as a
+        transient local variable inside this method; the caller never sees it.
+        """
+        if self._gcs is None:
+            raise AdapterError("Phaya: GCS not configured but republish requested")
+        # Pick a content-type + extension based on the kind tag.
+        ext_ct = {
+            "sora2": ("mp4", "video/mp4"),
+            "i2v": ("mp4", "video/mp4"),
+            "tts": ("wav", "audio/wav"),
+            "nano-banana": ("jpg", "image/jpeg"),
+            "music": ("mp3", "audio/mpeg"),
+        }
+        ext, content_type = ext_ct.get(kind, ("bin", "application/octet-stream"))
+        # Download bytes (transient — never returned). Reuse the injected
+        # test transport when present so MockTransport-based tests can stub
+        # the download. In production we open a fresh follow-redirects client.
+        if self._http.client is not None:
+            r = await self._http.client.get(supabase_url)
+            r.raise_for_status()
+            data = r.content
+        else:
+            async with httpx.AsyncClient(timeout=180.0, follow_redirects=True) as c:
+                r = await c.get(supabase_url)
+                r.raise_for_status()
+                data = r.content
+        key = f"{self._gcs_key_prefix}/{kind}/{job_id}.{ext}"
+        # GCS SDK is sync — run in default thread executor
+        stored = await asyncio.to_thread(
+            self._gcs.upload_bytes, data, key=key, content_type=content_type
+        )
+        return stored.gs_uri
+
+    async def _get_status(
+        self, path: str, *, job_id: str, kind: str | None = None
+    ) -> ToolResult[JobHandle]:
         """Per-capability status poller. Phaya field names vary by endpoint:
         - Sora 2 T2V uses ``status`` + ``video_url``
         - TTS uses ``status`` + ``audio_url``
         - Some others use ``state`` + ``result_url`` / ``output_url``
         We accept all four URL field names and both status keys.
+
+        When ``self._gcs`` is set AND the job is COMPLETED with a transient
+        URL, the URL is downloaded + republished to GCS atomically; the
+        returned ``result_url`` is the ``gs://`` URI. Supabase URLs never
+        leave this method (ADR-006).
         """
 
         async def _go() -> JobHandle:
@@ -526,17 +623,29 @@ class PhayaClient:
                 or payload.get("state")
                 or "processing"
             )
-            url = (
+            raw_url = (
                 payload.get("video_url")
                 or payload.get("audio_url")
                 or payload.get("image_url")
                 or payload.get("result_url")
                 or payload.get("output_url")
             )
+            state = _coerce_state(str(raw_state))
+            # Republish per ADR-006 if completed + GCS configured + URL is transient
+            final_url = raw_url
+            if (
+                state is JobState.COMPLETED
+                and self._gcs is not None
+                and _is_transient_url(raw_url)
+                and kind is not None
+            ):
+                final_url = await self._republish_to_gcs(
+                    raw_url, job_id=job_id, kind=kind
+                )
             return JobHandle(
                 job_id=job_id,
-                state=_coerce_state(str(raw_state)),
-                result_url=url,
+                state=state,
+                result_url=final_url,
                 error=payload.get("error") or payload.get("message"),
                 cost_thb=float(payload.get("credits_used") or 0.0),
             )

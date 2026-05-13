@@ -108,7 +108,18 @@ def _tts_clean(text: str) -> str:
     return cleaned
 
 
-async def _download(url: str, dest: Path) -> None:
+async def _download(url: str, dest: Path, *, gcs: "GcsStorage | None" = None) -> None:
+    """Download by URL — supports gs:// (via GcsStorage) and https://.
+
+    Phaya supabase URLs are gone from the adapter return path (ADR-006);
+    callers should only see gs:// URIs from this client. The https://
+    branch remains for legacy callers and signed-URL flows.
+    """
+    if url.startswith("gs://"):
+        if gcs is None:
+            raise RuntimeError("gs:// URI received but GcsStorage not provided")
+        await asyncio.to_thread(gcs.download_to_file, url, dest)
+        return
     async with httpx.AsyncClient(timeout=180.0, follow_redirects=True) as c:
         r = await c.get(url)
         r.raise_for_status()
@@ -140,6 +151,7 @@ async def _process_scene(
     workdir: Path,
     *,
     use_scene_prompt: bool = False,
+    gcs: "GcsStorage | None" = None,
 ) -> tuple[Path, float, Path, Path, Path] | None:
     """Per-scene perfect pipeline. Returns (clip, cost_thb, image, video, audio).
 
@@ -212,9 +224,9 @@ async def _process_scene(
     video_path = workdir / f"s{idx}-video.mp4"
     audio_path = workdir / f"s{idx}-audio.wav"
     await asyncio.gather(
-        _download(image_url, image_path),
-        _download(i2v_wait.data.result_url, video_path),
-        _download(tts_wait.data.result_url, audio_path),
+        _download(image_url, image_path, gcs=gcs),
+        _download(i2v_wait.data.result_url, video_path, gcs=gcs),
+        _download(tts_wait.data.result_url, audio_path, gcs=gcs),
     )
     clip_path = workdir / f"s{idx}-clip.mp4"
     _mux(video_path, audio_path, clip_path)
@@ -274,21 +286,24 @@ async def main() -> int:
     args.workdir.mkdir(parents=True, exist_ok=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
-    client = PhayaClient(api_key=SecretStr(key), timeout_s=60.0)
+    # GCS staging: per ADR-006, pass GcsStorage into the client so Phaya
+    # supabase URLs auto-republish to gs:// before any caller sees them.
+    gcs: GcsStorage | None = None
+    bucket = os.environ.get("AUTO_AFFI__GCS_BUCKET")
+    if GcsStorage is not None and bucket:
+        try:
+            gcs = GcsStorage(bucket_name=bucket)
+            print(f"🪣 GCS: gs://{gcs.bucket_name}/  (adapter auto-republishes)")
+        except Exception as e:
+            print(f"⚠️  GCS init failed: {e}")
+    client = PhayaClient(api_key=SecretStr(key), timeout_s=60.0, gcs=gcs)
     bal0 = await client.get_credits()
     if not bal0.ok or bal0.data is None:
         print(f"ERROR: get_credits failed: {bal0.error}"); return 2
     print(f"📊 balance: ฿{bal0.data.balance_thb:.4f}")
     print(f"🎬 scenes: {indices} · {len(indices)}/{len(sb.scenes)}")
 
-    gcs: GcsStorage | None = None
-    bucket = os.environ.get("AUTO_AFFI__GCS_BUCKET")
-    if GcsStorage is not None and bucket:
-        try:
-            gcs = GcsStorage(bucket_name=bucket)
-            print(f"🪣 GCS: gs://{gcs.bucket_name}/")
-        except Exception as e:
-            print(f"⚠️  GCS init failed: {e}")
+    # GCS was constructed above and passed to the PhayaClient — reuse it.
 
     clips: list[Path] = []
     total_cost_thb = 0.0
@@ -300,21 +315,18 @@ async def main() -> int:
         result = await _process_scene(
             client, idx, sb.scenes[idx], args.workdir,
             use_scene_prompt=use_scene_prompt,
+            gcs=gcs,
         )
         if result is None:
             print(f"⚠️  scene {idx} failed; continuing")
             continue
-        clip, cost, img, vid, aud = result
+        clip, cost, _img, _vid, _aud = result
         clips.append(clip)
         total_cost_thb += cost
-        if gcs is not None:
-            try:
-                gcs.upload_file(img, key=f"images/{run_date}/scene{idx}.jpg", content_type="image/jpeg")
-                gcs.upload_file(vid, key=f"i2v/{run_date}/scene{idx}.mp4", content_type="video/mp4")
-                gcs.upload_file(aud, key=f"tts/{run_date}/scene{idx}.wav", content_type="audio/wav")
-                print(f"   ☁️  uploaded 3 assets (image, i2v, audio)")
-            except Exception as e:
-                print(f"   ⚠️  GCS upload failed: {e}")
+        # Raw assets are already on GCS — the adapter republishes them under
+        # gs://<bucket>/phaya/{sora2,i2v,nano-banana,tts}/<job_id>.<ext>.
+        # No per-scene re-upload needed in this script (ADR-006 boundary
+        # is the adapter, not the script).
 
     if not clips:
         print("\n❌ no scenes succeeded"); return 3

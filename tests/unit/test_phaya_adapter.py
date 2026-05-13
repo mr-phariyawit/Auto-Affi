@@ -311,6 +311,86 @@ async def test_create_image_to_video_sends_image_url_and_duration() -> None:
 
 
 @pytest.mark.unit
+async def test_redact_helper_masks_supabase_urls() -> None:
+    from auto_affi.adapters.phaya import _redact, _is_transient_url
+    supabase = "https://bvlkdbigeaecqdmkzrvc.supabase.co/storage/v1/object/public/foo/abcd1234.mp4"
+    gs = "gs://auto-affi-media-dev/phaya/sora2/job-123.mp4"
+    assert _is_transient_url(supabase) is True
+    assert _is_transient_url(gs) is False
+    redacted = _redact(supabase)
+    assert "supabase" not in redacted
+    assert redacted.startswith("<phaya-transient:")
+    assert _redact(gs) == gs  # gs:// is safe, returned as-is
+    assert _redact(None) == "<none>"
+
+
+@pytest.mark.unit
+async def test_status_republishes_to_gcs_when_configured() -> None:
+    """When PhayaClient gets a GcsStorage, completed jobs' result_url
+    is replaced with a gs:// URI — supabase URLs never leak to callers."""
+    from unittest.mock import MagicMock
+
+    SUPABASE = "https://bvlkdbigeaecqdmkzrvc.supabase.co/storage/v1/object/public/sora2/abc.mp4"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if "/status/" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "status": "completed",
+                    "video_url": SUPABASE,
+                    "credits_used": 12.5,
+                },
+            )
+        if "supabase.co" in url:  # download step
+            return httpx.Response(200, content=b"\x00\x01\x02 fake mp4 bytes")
+        return httpx.Response(404)
+
+    # Mock GcsStorage so upload_bytes returns a known gs:// URI
+    gcs_mock = MagicMock()
+    stored_asset = MagicMock()
+    stored_asset.gs_uri = "gs://test-bucket/phaya/sora2/job-xyz.mp4"
+    gcs_mock.upload_bytes.return_value = stored_asset
+
+    transport = httpx.MockTransport(handler)
+    http = httpx.AsyncClient(transport=transport)
+    client = PhayaClient(api_key=_FAKE_KEY, client=http, max_retries=1, gcs=gcs_mock)
+    result = await client.get_sora2_status("job-xyz")
+
+    assert result.ok is True
+    assert result.data is not None
+    assert result.data.state is JobState.COMPLETED
+    # The critical assertion: returned URL is gs://, NOT the supabase URL
+    assert result.data.result_url == "gs://test-bucket/phaya/sora2/job-xyz.mp4"
+    assert "supabase" not in (result.data.result_url or "")
+    # And GCS upload was actually called with the right shape
+    gcs_mock.upload_bytes.assert_called_once()
+    call_kwargs = gcs_mock.upload_bytes.call_args.kwargs
+    assert call_kwargs["key"] == "phaya/sora2/job-xyz.mp4"
+    assert call_kwargs["content_type"] == "video/mp4"
+
+
+@pytest.mark.unit
+async def test_status_passthrough_when_no_gcs_configured() -> None:
+    """Without a GcsStorage, behavior is unchanged (legacy/test path)."""
+    SUPABASE = "https://bvlkdbigeaecqdmkzrvc.supabase.co/storage/v1/object/public/foo.mp4"
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"status": "completed", "video_url": SUPABASE, "credits_used": 5.0},
+        )
+
+    client = _client(handler)
+    result = await client.get_sora2_status("job-legacy")
+    assert result.ok is True
+    assert result.data is not None
+    # No GCS → legacy passthrough returns the raw URL
+    assert result.data.result_url == SUPABASE
+
+
+@pytest.mark.unit
 async def test_4xx_surfaces_as_adapter_error_inside_tool_result() -> None:
     def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(401, text='{"error":"invalid_api_key"}')
