@@ -34,6 +34,7 @@ import os
 import subprocess
 import sys
 import time
+from datetime import timedelta
 from pathlib import Path
 
 import httpx
@@ -183,14 +184,26 @@ async def _process_scene(
         print("   ❌ image completed but no URL")
         return None
     image_url = img_wait.data.result_url
-    print(f"      url: {image_url[:80]}…")
+    print(f"      canonical: {image_url[:80]}…")
 
-    # 2. Image-to-video + TTS in parallel
+    # 2. Image-to-video + TTS in parallel.
+    # Phaya's /image-to-video/create requires http(s) URLs, not gs://. The
+    # adapter republishes images to GCS for downstream ownership (ADR-006),
+    # but for cross-Phaya-endpoint chaining we mint a short-lived signed
+    # URL so Phaya can GET the image from our bucket.
+    phaya_image_url = image_url
+    if image_url.startswith("gs://") and gcs is not None:
+        bucket_prefix = f"gs://{gcs.bucket_name}/"
+        if image_url.startswith(bucket_prefix):
+            key = image_url[len(bucket_prefix):]
+            phaya_image_url = await asyncio.to_thread(
+                gcs.signed_url, key, ttl=timedelta(hours=1)
+            )
     duration_s = max(5, int(round(scene.duration_s)))
     tts_text = _tts_clean(scene.dialogue.text_th)
     print(f"   2/3 image-to-video ({duration_s}s) + tts in parallel…")
     i2v_submit, tts_submit = await asyncio.gather(
-        client.create_image_to_video(image_url=image_url, duration_s=duration_s),
+        client.create_image_to_video(image_url=phaya_image_url, duration_s=duration_s),
         client.create_tts(prompt=tts_text, voice="Algenib", language="th"),
     )
     if not i2v_submit.ok or i2v_submit.data is None:
