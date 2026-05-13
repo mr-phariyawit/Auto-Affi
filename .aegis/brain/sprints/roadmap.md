@@ -2,8 +2,8 @@
 
 > Single source of truth for "how close are we to 100% done"
 
-- **Last updated**: 2026-05-13T22:00Z
-- **Total scope**: 10 Epics, ~140 story points (absorbed Phase 2 scope)
+- **Last updated**: 2026-05-13T23:30Z
+- **Total scope**: 13 Epics, ~150 story points (Phase 1+2 complete, MANUAL mode prep in progress)
 
 ---
 
@@ -45,12 +45,16 @@
 
 ## Sprint History
 
-| Sprint | Points | Velocity | Tests |
-|--------|--------|----------|-------|
-| sprint-1 | 26 | 26 | 121 |
-| sprint-2 | 28 | 28 | 214 |
-| sprint-3 | 27 | 27 | 322 |
-| sprint-4 | 27 | 27 | 377 |
-| sprint-5 | 27 | 27 | 451 |
-| sprint-6 | 28 | 28 | 481 |
-| **Total** | **163** | **27 avg** | **481** |
+| Sprint | Points | Velocity | Tests | Notes |
+|--------|--------|----------|-------|-------|
+| sprint-1 | 26 | 26 | 121 | Scout + Strategy foundation |
+| sprint-2 | 28 | 28 | 214 | Writers' Room + Video Production |
+| sprint-3 | 27 | 27 | 322 | Publishing + Analytics |
+| sprint-4 | 27 | 27 | 377 | Wiki/Feedback + Safety + Orchestration |
+| sprint-5 | 27 | 27 | 451 | Phase 1 close-out + Phase 2 foundation |
+| sprint-6 | 28 | 28 | 481 | Ops Console + Multi-platform + Deploy |
+| sprint-7 | 16 | 16 | 509 | ADR-007 stages 1-3 (creative direction) |
+| sprint-8 | 14 | 14 | 543 | ADR-007 stages 4-7 (asset production) |
+| sprint-9 | 10 | 10 | 557 | ADR-007 stages 8-10 (post-prod + publish) |
+| **sprint-10** | **10** | **--** | **565** | **ACTIVE: MANUAL mode launch prep** |
+| **Total** | **213** | **22 avg** | **565** | |

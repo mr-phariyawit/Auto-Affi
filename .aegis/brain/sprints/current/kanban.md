@@ -1,24 +1,36 @@
-# Kanban Board -- Sprint 6
+# Kanban Board -- Sprint 10
 
-- **Sprint**: sprint-6
-- **Status**: CLOSED (28/28 pts, 100%)
+- **Sprint**: sprint-10
+- **Status**: ACTIVE (1/10 pts)
+- **Goal**: MANUAL mode launch-ready code
+
+## TODO
+
+| Task | Title | Points | Assignee |
+|------|-------|--------|----------|
+| AFFI-T-055 | Writers' Room: LLM-driven perfect storyboard | 3 | spider-man |
+| AFFI-T-056 | Deploy: laptop cron + posting-window scheduler | 2 | thor |
+| AFFI-T-057 | Monitoring lite: JSONL metrics exporter | 2 | spider-man |
+| AFFI-T-059 | ISO docs refresh (PM.01 + SI.02) | 1 | coulson |
+
+## IN_PROGRESS
+
+| Task | Title | Points | Assignee |
+|------|-------|--------|----------|
+| AFFI-T-058 | Stale kanban + roadmap refresh | 1 | coulson |
+
+## IN_REVIEW
+
+_(none)_
+
+## QA
+
+_(none)_
 
 ## DONE
 
 | Task | Title | Points | Notes |
 |------|-------|--------|-------|
-| AFFI-T-045 | Ops Console FastAPI routes | 3 | DashboardService + kill switch API + HTMX frontend |
-| AFFI-T-046 | Ops Console HTMX frontend | 3 | Dark theme, auto-refresh, KPI cards, tables |
-| AFFI-T-047 | Deploy pipeline | 5 | scripts/deploy.sh + GHA CI + runbook-tokens.md |
-| AFFI-T-048 | FB Reels production path | 3 | Meta Graph API video_reels + dry-run fallback |
-| AFFI-T-049 | YT Shorts production path | 3 | YouTube Data API v3 contract + dry-run |
-| AFFI-T-050 | Multi-niche expansion | 5 | 3 niches (Beauty/Electronics/Fashion) + config |
-| AFFI-T-051 | Loki live-publishing audit | 3 | 8 ACCEPT, 2 REVISE, 7-item Phase 2 must-fix list |
-| AFFI-T-052 | dev-setup.sh hardening | 1 | gcloud + API key + bucket checks |
-| AFFI-T-053 | Token-cost dashboard fragment | 2 | MetricsOverview.cost_today_usd |
+| AFFI-T-054 | Kill-switch: wire requires_human_approval on Publisher | 1 | HumanApprovalGatePublisher + 12 tests |
 
-## Verdict
-
-- **Points**: 28/28 (100%)
-- **Tests**: 481 (476 unit + 5 E2E), 0 failed
-- **Coverage**: 84%
+## WIP Limit: 3
