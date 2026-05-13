@@ -74,8 +74,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --group dev
 
-      - name: Run pytest
-        run: uv run pytest -m "unit or integration"
+      - name: Run unit + integration tests
+        run: uv run pytest -m "unit or integration" --tb=short
+
+      - name: Run E2E tests
+        run: uv run pytest tests/e2e/ --tb=short -q
+
+      - name: Smoke test (run_once pipeline)
+        run: uv run python -m auto_affi.ops.run_once --product-id 12345
 
       - name: Upload coverage
         if: always()

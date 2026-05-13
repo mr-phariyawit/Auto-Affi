@@ -139,5 +139,51 @@ info "Running unit tests..."
 }
 
 echo ""
-info "Dev environment ready. Run demos with:"
-info "  .venv/bin/python -m auto_affi.ops.make_demo"
+
+# ------------------------------------------------------------------ #
+# 6. Optional: external service checks                                #
+# ------------------------------------------------------------------ #
+
+info "Checking external service configuration..."
+
+check_env_var() {
+    local var_name="$1"
+    local label="$2"
+    if [[ -n "${!var_name:-}" ]]; then
+        info "  $label: configured"
+    else
+        warn "  $label: NOT SET ($var_name) — dry-run mode only"
+    fi
+}
+
+check_env_var "AUTO_AFFI__PHAYA_API_KEY" "Phaya API key"
+check_env_var "AUTO_AFFI__ANTHROPIC_API_KEY" "Anthropic API key"
+check_env_var "AUTO_AFFI__SHOPEE_APP_ID" "Shopee App ID"
+check_env_var "AUTO_AFFI__ELEVENLABS_API_KEY" "ElevenLabs API key"
+
+# gcloud auth check (optional)
+if command -v gcloud &>/dev/null; then
+    GCS_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>/dev/null || echo "")
+    if [[ -n "$GCS_ACCOUNT" ]]; then
+        info "  GCS auth: $GCS_ACCOUNT"
+    else
+        warn "  GCS auth: no active account (gcloud auth login)"
+    fi
+else
+    warn "  gcloud CLI: not installed (optional — for GCS media staging)"
+fi
+
+# GCS bucket reachability (optional)
+if command -v gsutil &>/dev/null && [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+    if gsutil ls gs://auto-affi-media-dev/ &>/dev/null 2>&1; then
+        info "  GCS bucket: gs://auto-affi-media-dev reachable"
+    else
+        warn "  GCS bucket: gs://auto-affi-media-dev not reachable"
+    fi
+fi
+
+echo ""
+info "Dev environment ready. Commands:"
+info "  .venv/bin/python -m auto_affi.ops.make_demo       # render demo video"
+info "  .venv/bin/python -m auto_affi.ops.run_once         # full pipeline dry-run"
+info "  ./scripts/deploy.sh --dry-run                      # deploy validation"

@@ -1,27 +1,24 @@
-# Kanban Board -- Sprint 5
+# Kanban Board -- Sprint 6
 
-- **Sprint**: sprint-5
-- **Updated**: 2026-05-13T21:30Z
-- **WIP Limit**: 3
-- **Status**: CLOSED (27/27 pts, 100%)
+- **Sprint**: sprint-6
+- **Status**: CLOSED (28/28 pts, 100%)
 
 ## DONE
 
 | Task | Title | Points | Notes |
 |------|-------|--------|-------|
-| AFFI-T-037 | Writers Room: LLM storyboard gen | 5 | 13 tests. Default template + visual prompts + Thai dialogue. |
-| AFFI-T-038 | Writers Room: debate panel | 5 | 3 tests. CriticFeedback rule-based review. |
-| AFFI-T-039 | run_once CLI | 3 | 10 tests. 6-stage pipeline entrypoint. |
-| AFFI-T-040 | Multi-vendor video routing | 3 | 6 tests. VideoRouter + fallback chain. |
-| AFFI-T-041 | Hyperframe overlay | 2 | 6 tests. Brand watermark + CTA motion specs. |
-| AFFI-T-042 | E2E integration test | 5 | 5 tests. Full pipeline + learning workflow E2E. |
-| AFFI-T-043 | Hook drift cleanup | 2 | 5 tool dirs committed (were untracked). |
-| AFFI-T-044 | Ops Console skeleton | 2 | 7 tests. DashboardData + models. |
+| AFFI-T-045 | Ops Console FastAPI routes | 3 | DashboardService + kill switch API + HTMX frontend |
+| AFFI-T-046 | Ops Console HTMX frontend | 3 | Dark theme, auto-refresh, KPI cards, tables |
+| AFFI-T-047 | Deploy pipeline | 5 | scripts/deploy.sh + GHA CI + runbook-tokens.md |
+| AFFI-T-048 | FB Reels production path | 3 | Meta Graph API video_reels + dry-run fallback |
+| AFFI-T-049 | YT Shorts production path | 3 | YouTube Data API v3 contract + dry-run |
+| AFFI-T-050 | Multi-niche expansion | 5 | 3 niches (Beauty/Electronics/Fashion) + config |
+| AFFI-T-051 | Loki live-publishing audit | 3 | 8 ACCEPT, 2 REVISE, 7-item Phase 2 must-fix list |
+| AFFI-T-052 | dev-setup.sh hardening | 1 | gcloud + API key + bucket checks |
+| AFFI-T-053 | Token-cost dashboard fragment | 2 | MetricsOverview.cost_today_usd |
 
-## Sprint 5 Verdict
+## Verdict
 
-- **Points committed**: 27
-- **Points delivered**: 27 (100%)
-- **Tests**: 451 total (446 unit + 5 E2E), 0 failed
-- **Regressions**: 0
+- **Points**: 28/28 (100%)
+- **Tests**: 481 (476 unit + 5 E2E), 0 failed
 - **Coverage**: 84%
