@@ -18,7 +18,6 @@ flagged as "saturated" and should be deprioritized or skipped.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Final

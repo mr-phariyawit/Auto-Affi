@@ -21,12 +21,12 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Protocol
 
 from auto_affi.pipeline.editor_budget import EditorBudgetTracker, PassMode
-from auto_affi.schemas.storyboard import EditorPass, REQUIRED_EDITOR_PASSES
+from auto_affi.schemas.storyboard import REQUIRED_EDITOR_PASSES, EditorPass
 
 
 class EditorPassError(RuntimeError):

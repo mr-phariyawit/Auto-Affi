@@ -18,11 +18,10 @@ Phase 2 additions:
 from __future__ import annotations
 
 import subprocess
-import tempfile
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import Final, Protocol
 
 import httpx
 from pydantic import BaseModel, Field, SecretStr

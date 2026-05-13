@@ -17,12 +17,12 @@ revenue + 2-week recovery).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from auto_affi.agents.claim_auditor import ClaimViolation, audit, is_blocked
+from auto_affi.agents.claim_auditor import audit
 
 
 class SafetyCheckName(StrEnum):
