@@ -39,12 +39,17 @@ def _director() -> ProductionDirector:
     return ProductionDirector(repo_root=Path("."))
 
 
+# ADR-007: stages 9 (Compliance) and 10 (Publish) cannot be auto-approved.
+# "Stage 9 is automated and cannot be skipped via --auto-approve; legal-grade backstop"
+UNSKIPPABLE_STAGES: frozenset[int] = frozenset({9, 10})
+
+
 def cmd_start(args: argparse.Namespace) -> int:
     """Start a new production run."""
     director = _director()
     run = director.start_run(args.shopee_url)
 
-    # Auto-approve specified stages
+    # Auto-approve specified stages (except UNSKIPPABLE per ADR-007)
     if args.auto_approve:
         stage_names = [s.strip() for s in args.auto_approve.split(",")]
         name_to_id = {
@@ -56,12 +61,11 @@ def cmd_start(args: argparse.Namespace) -> int:
             "voice_over": 6, "vo": 6,
             "music": 7, "music_and_sfx": 7,
             "final_cut": 8,
-            "compliance": 9,
-            "publish": 10,
+            # compliance and publish intentionally excluded
         }
         for name in stage_names:
             sid = name_to_id.get(name)
-            if sid:
+            if sid and sid not in UNSKIPPABLE_STAGES:
                 stage = run.get_stage(sid)
                 if stage and stage.status == ProductionStageStatus.IN_REVIEW:
                     with contextlib.suppress(InvalidTransitionError):

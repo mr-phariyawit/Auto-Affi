@@ -144,11 +144,10 @@ class TestProductionDirector:
         assert run.stages[1].status == ProductionStageStatus.APPROVED
         assert run.stages[2].status == ProductionStageStatus.IN_REVIEW
 
-        # Stage 3: approve
+        # Stage 3: approve -> stage 4 fires (visual references)
         run = director.decide(rid, 3, "approve")
         assert run.stages[2].status == ProductionStageStatus.APPROVED
-        # Stage 4 should remain DRAFT (not implemented in Sprint 7)
-        assert run.stages[3].status == ProductionStageStatus.DRAFT
+        assert run.stages[3].status == ProductionStageStatus.IN_REVIEW
 
     @pytest.mark.unit
     def test_persistence_across_get(self, tmp_path: Path) -> None:

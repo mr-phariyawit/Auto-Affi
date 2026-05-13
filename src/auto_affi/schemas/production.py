@@ -190,10 +190,16 @@ def _production_dir(repo_root: Path | None = None) -> Path:
 
 
 def to_json_path(run: ProductionRun, *, repo_root: Path | None = None) -> Path:
-    """Persist a ProductionRun to JSON. Returns the file path."""
+    """Persist a ProductionRun to JSON. Returns the file path.
+
+    Uses atomic write (write to temp + rename) to prevent corruption
+    on crash mid-write (Loki review REVISE #4).
+    """
     d = _production_dir(repo_root)
     path = d / f"{run.run_id}.json"
-    path.write_text(run.model_dump_json(indent=2), encoding="utf-8")
+    tmp_path = d / f".{run.run_id}.json.tmp"
+    tmp_path.write_text(run.model_dump_json(indent=2), encoding="utf-8")
+    tmp_path.rename(path)
     return path
 
 

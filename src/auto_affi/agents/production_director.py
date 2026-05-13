@@ -248,10 +248,153 @@ def _run_stage_3_storyboard(
     }
 
 
+def _run_stage_4_visual_references(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 4: Art Director produces Nano Banana 2 stills per scene.
+
+    Phase 1 (dry-run): returns fixture URIs.
+    Phase 2: calls PhayaClient.create_nano_banana_image().
+    """
+    stage3 = run.get_stage(3)
+    scenes = []
+    if stage3 and stage3.current_revision and stage3.current_revision.artifact:
+        scenes = stage3.current_revision.artifact.get("scenes", [])
+
+    scene_images = []
+    for scene in scenes:
+        idx = scene.get("idx", 0)
+        scene_images.append({
+            "scene_idx": idx,
+            "gs_uri": f"gs://auto-affi-media-dev/production/{run.run_id}/stage4/scene_{idx}.jpg",
+            "prompt": scene.get("visual_prompt", ""),
+            "status": "generated",
+        })
+
+    return {
+        "scene_images": scene_images,
+        "total_cost_thb": len(scene_images) * 0.05,
+        "revision_notes": revision_notes,
+    }
+
+
+def _run_stage_5_animatics(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 5: Editor creates image-to-video clips per scene.
+
+    Supports "freeze-to-still" mode per scene to save cost
+    (฿0.05 Ken Burns vs ฿2.50 i2v).
+    """
+    stage4 = run.get_stage(4)
+    scene_images = []
+    if stage4 and stage4.current_revision and stage4.current_revision.artifact:
+        scene_images = stage4.current_revision.artifact.get("scene_images", [])
+
+    scene_clips = []
+    for img in scene_images:
+        idx = img.get("scene_idx", 0)
+        # Default to i2v; freeze-to-still is triggered by revision notes
+        mode = "i2v"
+        if revision_notes and f"--freeze scene {idx}" in revision_notes:
+            mode = "freeze"
+
+        cost = 0.05 if mode == "freeze" else 2.50
+        scene_clips.append({
+            "scene_idx": idx,
+            "gs_uri": f"gs://auto-affi-media-dev/production/{run.run_id}/stage5/scene_{idx}.mp4",
+            "image_gs_uri": img.get("gs_uri", ""),
+            "mode": mode,
+            "duration_s": 5,
+            "cost_thb": cost,
+        })
+
+    return {
+        "scene_clips": scene_clips,
+        "total_cost_thb": sum(c["cost_thb"] for c in scene_clips),
+        "revision_notes": revision_notes,
+    }
+
+
+def _run_stage_6_voiceover(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 6: Sound Designer produces Thai TTS per scene with 2 voice options.
+
+    Board picks one voice for the whole run.
+    """
+    stage2 = run.get_stage(2)
+    scenes = []
+    if stage2 and stage2.current_revision and stage2.current_revision.artifact:
+        scenes = stage2.current_revision.artifact.get("scenes", [])
+
+    voices = ["Algenib", "Zephyr"]
+    scene_takes = []
+    for scene in scenes:
+        idx = scene.get("idx", 0)
+        dialogue = scene.get("dialogue_th", "")
+        if not dialogue:
+            continue
+        takes = []
+        for voice in voices:
+            takes.append({
+                "voice": voice,
+                "gs_uri": f"gs://auto-affi-media-dev/production/{run.run_id}/stage6/scene_{idx}_{voice.lower()}.mp3",
+                "text_th": dialogue,
+            })
+        scene_takes.append({
+            "scene_idx": idx,
+            "takes": takes,
+        })
+
+    return {
+        "scene_takes": scene_takes,
+        "voices_available": voices,
+        "total_cost_thb": len(scene_takes) * len(voices) * 0.001,
+        "revision_notes": revision_notes,
+    }
+
+
+def _run_stage_7_music(
+    run: ProductionRun,
+    revision_notes: str | None = None,
+) -> dict[str, Any]:
+    """Stage 7: Sound Designer produces music bed + SFX cue list."""
+    stage3 = run.get_stage(3)
+    music_brief = {}
+    total_duration = 10.0
+    if stage3 and stage3.current_revision and stage3.current_revision.artifact:
+        music_brief = stage3.current_revision.artifact.get("music_brief", {})
+        scenes = stage3.current_revision.artifact.get("scenes", [])
+        total_duration = sum(s.get("duration_s", 2.0) for s in scenes)
+
+    genre = music_brief.get("genre", "ambient")
+    return {
+        "music_track": {
+            "gs_uri": f"gs://auto-affi-media-dev/production/{run.run_id}/stage7/music.mp3",
+            "mood": genre,
+            "duration_s": total_duration,
+            "cost_thb": 0.05,
+        },
+        "sfx_cues": [
+            {"scene_idx": 0, "sfx": "whoosh-01", "at_s": 0.0},
+        ],
+        "total_cost_thb": 0.05,
+        "revision_notes": revision_notes,
+    }
+
+
 _STAGE_RUNNERS = {
     1: _run_stage_1_brief_and_concept,
     2: _run_stage_2_script,
     3: _run_stage_3_storyboard,
+    4: _run_stage_4_visual_references,
+    5: _run_stage_5_animatics,
+    6: _run_stage_6_voiceover,
+    7: _run_stage_7_music,
 }
 
 
@@ -413,9 +556,10 @@ class ProductionDirector:
 
         artifact = runner(run, revision_notes)
 
+        cost = artifact.get("total_cost_thb", 0.001) if isinstance(artifact, dict) else 0.001
         revision = Revision(
             revision_idx=stage.revision_count,
-            cost_thb=0.001,  # Phaya GPT estimate
+            cost_thb=cost,
             artifact=artifact,
         )
         stage.revisions.append(revision)
