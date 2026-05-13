@@ -1,48 +1,23 @@
-# Sprint 4 Plan -- Auto-Affi
+# Sprint 5 Plan -- Auto-Affi
 
-- **Sprint**: sprint-4
-- **Goal**: Close every Phase 1 epic tail -- kill switches, auto-kill, workflow chains, budget circuit-breaker, multi-platform publisher stubs, wiki promotion path, offline replay, and mega-sale calendar. After this sprint, all Phase 1 subsystems are wired end-to-end.
-- **Duration**: 5 days (2026-05-13 to 2026-05-18)
+- **Sprint**: sprint-5
+- **Goal**: LLM-driven storyboard generation, multi-vendor video routing, end-to-end CLI, E2E integration tests, hook drift cleanup, and Ops Console foundation. Complete E-003 + E-004 tails and start E-010.
+- **Duration**: 5 days
 - **Capacity**: 27 story points
-- **Phase**: Phase 1 -- Single Closed Loop
-- **Predecessor**: Sprint 3 (27/27 pts, 100% delivered)
-
----
+- **Phase**: Phase 1 close-out + Phase 2 foundation
+- **Predecessor**: Sprint 4 (27/27 pts, 100% delivered)
 
 ## Sprint Backlog
 
-| Task ID | Title | Epic | Points | Assignee | Priority |
-|---------|-------|------|--------|----------|----------|
-| AFFI-T-031 | Kill switch registry (product/campaign/platform/global) | E-008 | 3 | spider-man | P1 |
-| AFFI-T-032 | Auto-kill trigger (3 violations in 24h -> freeze) | E-008 | 3 | spider-man | P1 |
-| AFFI-T-035 | Metrics + Learning workflow chains | E-009 | 5 | spider-man | P1 |
-| AFFI-T-036 | Budget circuit-breaker for workflows | E-009 | 3 | spider-man | P1 |
-| AFFI-T-033 | NSFW safety check placeholder with contract | E-008 | 2 | spider-man | P2 |
-| AFFI-T-018 | Posting schedule from Wiki optimal-time | E-005 | 2 | spider-man | P2 |
-| AFFI-T-021 | FB Reels + YT Shorts publisher stubs | E-005 | 2 | spider-man | P2 |
-| AFFI-T-027 | Wiki promotion path (Safety -> canonical store) | E-007 | 3 | spider-man | P2 |
-| AFFI-T-028 | Offline replay for wiki validation | E-007 | 2 | spider-man | P3 |
-| AFFI-T-007 | Mega-sale calendar boost in Strategist | E-002 | 2 | spider-man | P3 |
+| Task ID | Title | Epic | Points | Priority |
+|---------|-------|------|--------|----------|
+| AFFI-T-037 | Writers' Room: LLM storyboard generation | E-003 | 5 | P1 |
+| AFFI-T-038 | Writers' Room: debate panel (Director/Critic) | E-003 | 5 | P1 |
+| AFFI-T-039 | End-to-end run_once CLI | NEW | 3 | P1 |
+| AFFI-T-040 | Multi-vendor video gen routing | E-004 | 3 | P1 |
+| AFFI-T-041 | Hyperframe overlay: watermark + CTA | E-004 | 2 | P2 |
+| AFFI-T-042 | E2E integration test | NEW | 5 | P2 |
+| AFFI-T-043 | Hook drift cleanup | NEW | 2 | P3 |
+| AFFI-T-044 | Ops Console: data models + API skeleton | E-010 | 2 | P3 |
 
-**Total**: 27 points across 10 tasks
-
----
-
-## Sprint Rationale
-
-Sprint 4 closes every remaining Phase 1 epic tail:
-
-1. **Safety tail (E-008, 8pt)**: Kill switches + auto-kill + NSFW contract.
-2. **Orchestration tail (E-009, 8pt)**: Metrics+Learning workflow chains + budget circuit-breaker.
-3. **Publishing tail (E-005, 4pt)**: Posting schedule from Wiki + FB/YT stubs.
-4. **Wiki tail (E-007, 5pt)**: Promotion path + offline replay.
-5. **Strategy tail (E-002, 2pt)**: Mega-sale calendar boost.
-
----
-
-## Definition of Done (per task)
-
-1. Implementation passes lint via `.venv/bin/python -m ruff check`
-2. Unit tests pass via `.venv/bin/python -m pytest -m unit`
-3. Black Panther code review APPROVED
-4. No P0/P1 issues open
+**Total**: 27 points across 8 tasks
