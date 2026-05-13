@@ -1,0 +1,33 @@
+{
+  "id": "AFFI-T-025",
+  "type": "task",
+  "epic": "AFFI-E-007",
+  "title": "Feedback Curator skeleton + pattern extraction",
+  "description": "Create the Feedback Curator agent that runs nightly batch: compares win cohort (top 20%) vs fail cohort (bottom 20%) from outcome labels, extracts structured patterns, and writes WikiEntry objects to the review queue. Implements bilateral wiki sync write path (agents write to review queue only, never to canonical).",
+  "requirements": [
+    "FR-FB-01",
+    "FR-FB-03"
+  ],
+  "points": 5,
+  "status": "DONE",
+  "sprint": "sprint-3",
+  "assignee": "spider-man",
+  "block0_mode": "full",
+  "tags": [
+    "feature"
+  ],
+  "sub_tasks": [
+    "Create FeedbackCurator class with curate(outcomes) method",
+    "Implement win/fail cohort splitting (top/bottom 20%)",
+    "Implement pattern extraction logic (feature diff between cohorts)",
+    "Create ReviewQueue class for bilateral sync (write-only, no direct canonical)",
+    "Wire WikiEntry creation from extracted patterns",
+    "Unit tests for cohort splitting, pattern extraction, review queue isolation"
+  ],
+  "files": [
+    "src/auto_affi/agents/feedback_curator.py",
+    "src/auto_affi/wiki/review_queue.py",
+    "tests/unit/test_feedback_curator.py"
+  ],
+  "created": "2026-05-13"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "AFFI-T-030",
+  "type": "task",
+  "epic": "AFFI-E-008",
+  "title": "Music license validation gate",
+  "description": "Implement music license validation in the Safety pipeline. Every storyboard scene's music_brief must reference a track from the licensed library. Unlicensed or unknown tracks are hard-blocked. Integrates into the pre-publish safety gate (AFFI-T-029).",
+  "requirements": [
+    "FR-SF-02"
+  ],
+  "points": 3,
+  "status": "DONE",
+  "sprint": "sprint-3",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": [
+    "feature",
+    "security"
+  ],
+  "sub_tasks": [
+    "Define LicensedTrack schema (track_id, title, license_type, source)",
+    "Create MusicLicenseRegistry with a seed set of licensed tracks",
+    "Implement validate_music_license(storyboard) -> ValidationResult",
+    "Wire into SafetyGate.pre_publish_check() as additional gate",
+    "Unit tests for licensed/unlicensed/unknown track scenarios"
+  ],
+  "files": [
+    "src/auto_affi/agents/music_license.py",
+    "src/auto_affi/agents/safety_gate.py",
+    "tests/unit/test_music_license.py"
+  ],
+  "created": "2026-05-13"
+}

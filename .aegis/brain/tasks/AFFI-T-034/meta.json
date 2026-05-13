@@ -1,0 +1,33 @@
+{
+  "id": "AFFI-T-034",
+  "type": "task",
+  "epic": "AFFI-E-009",
+  "title": "Workflow definitions: Discovery + Campaign DAGs",
+  "description": "Define the two core Temporal-style workflow DAGs as Python dataclasses with typed activity steps. DiscoveryWorkflow: TrendAnalyst -> Scout -> persist candidates (cron 4x/day). CampaignWorkflow: Strategist -> WritersRoom -> SafetyPreCheck -> Producer -> SafetyPostCheck -> Publisher -> schedule MetricsPoll. Each activity is typed, idempotent, with configurable retry policy. Phase 1 uses in-process executor (no Temporal server required).",
+  "requirements": [
+    "FR-OR-01",
+    "FR-OR-02"
+  ],
+  "points": 5,
+  "status": "DONE",
+  "sprint": "sprint-3",
+  "assignee": "spider-man",
+  "block0_mode": "full",
+  "tags": [
+    "feature"
+  ],
+  "sub_tasks": [
+    "Define WorkflowStep and WorkflowDAG base classes with typed I/O",
+    "Define ActivityConfig (retry_policy, timeout, idempotency_key)",
+    "Implement DiscoveryWorkflow DAG (Scout -> persist)",
+    "Implement CampaignWorkflow DAG (Strategy -> Writers -> Safety -> Produce -> Publish -> Metrics)",
+    "Create InProcessExecutor that runs DAG steps sequentially with retry",
+    "Unit tests for DAG construction, step ordering, retry policy, idempotency"
+  ],
+  "files": [
+    "src/auto_affi/workflows/definitions.py",
+    "src/auto_affi/workflows/executor.py",
+    "tests/unit/test_workflow_definitions.py"
+  ],
+  "created": "2026-05-13"
+}

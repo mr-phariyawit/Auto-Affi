@@ -1,0 +1,31 @@
+{
+  "id": "AFFI-T-022",
+  "type": "task",
+  "epic": "AFFI-E-006",
+  "title": "Metrics schema + Analytics collector skeleton",
+  "description": "Define MetricsSnapshot Pydantic schema matching SPEC 6.1 metrics_timeseries columns. Create AnalyticsCollector agent skeleton that polls metrics at configurable intervals (1h/6h/24h/7d/30d) and writes MetricsSnapshot records. Support dry-run mode for development without live API credentials.",
+  "requirements": [
+    "FR-AN-01"
+  ],
+  "points": 3,
+  "status": "DONE",
+  "sprint": "sprint-3",
+  "assignee": "spider-man",
+  "block0_mode": "standard",
+  "tags": [
+    "feature"
+  ],
+  "sub_tasks": [
+    "Define MetricsSnapshot schema (views, likes, shares, saves, comments, avg_watch_pct, ctr, conversions, gmv_thb)",
+    "Define PollSchedule enum (1h, 6h, 24h, 7d, 30d)",
+    "Create AnalyticsCollector class with collect(publish_record_id, schedule) method",
+    "Wire dry-run transport that returns fixture metrics",
+    "Unit tests for schema validation + collector lifecycle"
+  ],
+  "files": [
+    "src/auto_affi/agents/analytics_collector.py",
+    "src/auto_affi/schemas/metrics.py",
+    "tests/unit/test_analytics_collector.py"
+  ],
+  "created": "2026-05-13"
+}
