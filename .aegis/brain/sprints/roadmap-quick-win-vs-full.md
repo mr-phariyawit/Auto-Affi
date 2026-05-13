@@ -1,8 +1,23 @@
-# Roadmap — Quick-Win Path vs Full Platform Path
+# Roadmap — Operational modes (MANUAL vs AUTONOMOUS)
 
-> Two parallel tracks. Quick-win = first $1 of real GMV in 2-3 weeks.
-> Full platform = SPEC.md Phase 1→3 over ~24 weeks.
-> They DO NOT conflict — run both.
+> **2026-05-13 rename**: per ADR-008, the "Quick-Win Path" is now the
+> **MANUAL** operational mode (every gate board-approved). The "Full
+> Platform Path" — once Wiki has accumulated patterns — graduates to
+> the **AUTONOMOUS** operational mode (AutonomousDecider auto-approves
+> via Wiki + safety matrix). The 10-stage workflow from ADR-007 is the
+> same in both modes; only the decider changes. See
+> `_aegis-output/iso-docs/SI-04-ADRs/ADR-008-manual-vs-autonomous-modes.md`
+> for full design + thresholds + migration gradient.
+>
+> Original framing preserved below for history.
+
+---
+
+## Original framing (pre-ADR-008)
+
+> Two parallel tracks. Quick-win (now: MANUAL) = first $1 of real GMV
+> in 2-3 weeks. Full platform (now: AUTONOMOUS, Phase 2/3) = SPEC.md
+> Phase 1→3 over ~24 weeks. They DO NOT conflict — run both.
 
 - **Created**: 2026-05-13
 - **Owner**: mr.phariyawit@gmail.com
@@ -31,7 +46,7 @@
 
 ---
 
-## TRACK A — Quick-Win Path · "First $1 of real GMV"
+## TRACK A — MANUAL mode · "First $1 of real GMV" (was: Quick-Win Path)
 
 **Goal**: prove the loop end-to-end with REAL money. 1 product. 1 video/day. 1 platform (IG Reels). Human approval gate on every post.
 
@@ -89,7 +104,7 @@
 
 ---
 
-## TRACK B — Full Platform Path · SPEC.md Phase 1 → 3
+## TRACK B — AUTONOMOUS mode · SPEC.md Phase 1 → 3 (was: Full Platform Path)
 
 **Goal**: hit SPEC Phase 3 KPIs — 100+ videos/day, ≥4 % CTR, $50k+ GMV/month, ≤5 % human intervention.
 
