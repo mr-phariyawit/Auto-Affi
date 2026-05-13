@@ -353,6 +353,129 @@ class PhayaClient:
             f"/api/v1/text-to-speech/status/{job_id}", job_id=job_id
         )
 
+    # ---- Image generation: Nano Banana 2 (async job) ------------------ #
+
+    async def create_nano_banana_image(
+        self,
+        prompt: str,
+        *,
+        aspect_ratio: str = "9:16",
+        resolution: str = "1K",
+        output_format: str = "jpg",
+        image_input: list[str] | None = None,
+    ) -> ToolResult[JobHandle]:
+        """Submit a Nano Banana 2 image generation job.
+
+        Aspect ratios (verified from openapi): 1:1, 1:4, 1:8, 2:3, 3:2,
+        3:4, 4:1, 4:3, 4:5, 5:4, 8:1, 9:16, 16:9, 21:9, auto.
+        Resolutions: 1K, 2K, 4K. Defaults pick 9:16 + 1K for Reels-grade
+        reference images (~2 credits ≈ ฿0.03).
+        """
+        if aspect_ratio not in {
+            "1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3",
+            "4:5", "5:4", "8:1", "9:16", "16:9", "21:9", "auto",
+        }:
+            raise AdapterError(
+                f"Phaya nano-banana: aspect_ratio {aspect_ratio!r} not in supported enum"
+            )
+        if resolution not in ("1K", "2K", "4K"):
+            raise AdapterError(
+                f"Phaya nano-banana: resolution must be 1K/2K/4K, got {resolution!r}"
+            )
+
+        async def _go() -> JobHandle:
+            body: dict[str, Any] = {
+                "prompt": prompt,
+                "aspect_ratio": aspect_ratio,
+                "resolution": resolution,
+                "output_format": output_format,
+            }
+            if image_input:
+                body["image_input"] = image_input
+            payload = await self._http.post(
+                url=f"{self._base_url}/api/v1/nano-banana/create",
+                body=body,
+                headers=self._headers(),
+            )
+            return JobHandle(
+                job_id=str(payload.get("job_id") or payload.get("id", "")),
+                state=_coerce_state(str(payload.get("status") or payload.get("state", "queued"))),
+                cost_thb=float(payload.get("credits_used") or 0.0),
+            )
+
+        return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
+
+    async def get_nano_banana_status(self, job_id: str) -> ToolResult[JobHandle]:
+        return await self._get_status(
+            f"/api/v1/nano-banana/status/{job_id}", job_id=job_id
+        )
+
+    async def wait_for_nano_banana(
+        self, job_id: str, *, poll_interval_s: float = 3.0, timeout_s: float = 180.0
+    ) -> ToolResult[JobHandle]:
+        return await self._wait(
+            poller=self.get_nano_banana_status,
+            job_id=job_id,
+            interval=poll_interval_s,
+            timeout=timeout_s,
+        )
+
+    # ---- Image-to-Video (async job) ----------------------------------- #
+
+    async def create_image_to_video(
+        self,
+        image_url: str,
+        *,
+        duration_s: int = 5,
+        image_format: str = "auto",
+        music_url: str | None = None,
+    ) -> ToolResult[JobHandle]:
+        """Submit an image-to-video job. Animates a still image.
+
+        Duration in whole seconds (default 5). Music optional; if omitted,
+        the i2v output is silent and we layer Phaya TTS on top later.
+        """
+        if image_format not in ("auto", "jpeg", "png", "gif", "webp"):
+            raise AdapterError(
+                f"Phaya i2v: image_format {image_format!r} not in supported enum"
+            )
+
+        async def _go() -> JobHandle:
+            body: dict[str, Any] = {
+                "image_url": image_url,
+                "duration": duration_s,
+                "image_format": image_format,
+            }
+            if music_url:
+                body["music_url"] = music_url
+            payload = await self._http.post(
+                url=f"{self._base_url}/api/v1/image-to-video/create",
+                body=body,
+                headers=self._headers(),
+            )
+            return JobHandle(
+                job_id=str(payload.get("job_id") or payload.get("id", "")),
+                state=_coerce_state(str(payload.get("status") or payload.get("state", "queued"))),
+                cost_thb=float(payload.get("credits_used") or 0.0),
+            )
+
+        return await call_with_result(_go, cost_fn=lambda h: h.cost_usd)
+
+    async def get_image_to_video_status(self, job_id: str) -> ToolResult[JobHandle]:
+        return await self._get_status(
+            f"/api/v1/image-to-video/status/{job_id}", job_id=job_id
+        )
+
+    async def wait_for_image_to_video(
+        self, job_id: str, *, poll_interval_s: float = 5.0, timeout_s: float = 420.0
+    ) -> ToolResult[JobHandle]:
+        return await self._wait(
+            poller=self.get_image_to_video_status,
+            job_id=job_id,
+            interval=poll_interval_s,
+            timeout=timeout_s,
+        )
+
     # ---- Music (async job) -------------------------------------------- #
 
     async def create_music(
@@ -406,6 +529,7 @@ class PhayaClient:
             url = (
                 payload.get("video_url")
                 or payload.get("audio_url")
+                or payload.get("image_url")
                 or payload.get("result_url")
                 or payload.get("output_url")
             )

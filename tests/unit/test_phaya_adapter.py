@@ -249,6 +249,68 @@ async def test_tts_submits_with_thai_voice_and_language() -> None:
 
 
 @pytest.mark.unit
+async def test_create_nano_banana_image_defaults_to_9_16_1K() -> None:
+    captured: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["body"] = request.content.decode("utf-8")
+        return httpx.Response(
+            200, json={"job_id": "nb-1", "status": "queued", "credits_used": None}
+        )
+
+    client = _client(handler)
+    result = await client.create_nano_banana_image(
+        prompt="serene Thai bathroom mirror POV"
+    )
+    assert result.ok is True
+    assert result.data is not None
+    assert result.data.job_id == "nb-1"
+    assert "/api/v1/nano-banana/create" in str(captured["url"])
+    body = str(captured["body"])
+    assert '"aspect_ratio":"9:16"' in body
+    assert '"resolution":"1K"' in body
+    assert '"output_format":"jpg"' in body
+
+
+@pytest.mark.unit
+async def test_create_nano_banana_rejects_invalid_aspect_ratio() -> None:
+    client = _client(lambda r: httpx.Response(200, json={}))
+    with pytest.raises(AdapterError, match="aspect_ratio"):
+        await client.create_nano_banana_image(prompt="x", aspect_ratio="weird:ratio")
+
+
+@pytest.mark.unit
+async def test_create_nano_banana_rejects_invalid_resolution() -> None:
+    client = _client(lambda r: httpx.Response(200, json={}))
+    with pytest.raises(AdapterError, match="resolution"):
+        await client.create_nano_banana_image(prompt="x", resolution="8K")
+
+
+@pytest.mark.unit
+async def test_create_image_to_video_sends_image_url_and_duration() -> None:
+    captured: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.content.decode("utf-8")
+        return httpx.Response(
+            200, json={"job_id": "i2v-1", "status": "queued"}
+        )
+
+    client = _client(handler)
+    result = await client.create_image_to_video(
+        "https://cdn/img.jpg", duration_s=5
+    )
+    assert result.ok is True
+    assert result.data is not None
+    assert result.data.job_id == "i2v-1"
+    body = str(captured["body"])
+    assert '"image_url":"https://cdn/img.jpg"' in body
+    assert '"duration":5' in body
+    assert '"image_format":"auto"' in body
+
+
+@pytest.mark.unit
 async def test_4xx_surfaces_as_adapter_error_inside_tool_result() -> None:
     def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(401, text='{"error":"invalid_api_key"}')

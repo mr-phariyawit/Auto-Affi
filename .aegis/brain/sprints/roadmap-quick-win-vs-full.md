@@ -35,13 +35,15 @@
 
 **Goal**: prove the loop end-to-end with REAL money. 1 product. 1 video/day. 1 platform (IG Reels). Human approval gate on every post.
 
-**Timeline**: 2-3 weeks elapsed. ~5 pt of code + heavy vendor-onboarding work.
+**Timeline**: 2-3 weeks elapsed. ~8-10 pt of code (revised after perfect-storyboard scope add) + heavy vendor-onboarding work.
 
 **Success criteria**:
 - ≥ 1 real post live on a real Shopee-tagged IG Reel
 - ≥ 1 real click recorded with real subId attribution
 - ≥ 1 real Shopee commission recorded (any amount, even ฿1)
 - Kill switch validated by deliberately triggering once
+- **Storyboard quality bar**: per-scene detailed prompts (lighting + framing + color + mood) — not the thin demo fixture
+- **Asset pipeline bar**: each scene goes image → image-to-video (not direct T2V) for visual control + consistency
 
 ### Quick-win work plan
 
@@ -55,6 +57,8 @@
 | QW-6 | Manual: pick 5-10 candidate Beauty products from Shopee TH (use the seed list) | curation | human | 1 hr | Scout seed |
 | QW-7 | Code: wire `kill_switch` requires_human_approval=true on Publisher | 1 pt | spider-man | 2 hr | safety gate |
 | QW-8 | Code: CLI wrapper `python -m auto_affi.ops.run_once --product <id>` (end-to-end manual ticker) | 2 pt | spider-man | 4 hr | repeatability |
+| QW-8a | Code: **LLM-driven perfect storyboard** — Writers' Room produces detailed per-scene prompts (lighting/framing/color/mood) from CampaignBrief, not the static fixture. Uses Phaya GPT (Gemini Flash) for cheap iteration. | 3 pt | spider-man | 1 day | viral-grade visuals |
+| QW-8b | Code: **per-scene image-to-video pipeline** — Phaya Nano Banana 2 (9:16, 1K) → Phaya image-to-video → Phaya TTS → mux. Replaces direct Sora 2 T2V. ✅ DONE (scripts/demo-phaya-perfect.py) | 2 pt | spider-man | 0.5 day | DONE |
 | QW-9 | Deploy: pick the simplest viable runtime — your laptop's `cron` to run `run_once` once/day at the optimal Thai posting window | 1 pt + 1 day | thor | 1 day | 24/7 ops |
 | QW-10 | Monitoring lite: a single Notion / Google Sheet dashboard pulling daily from `metrics_collector` JSONL output | 1 pt | spider-man | 3 hr | visibility |
 | QW-11 | Run the first 3 posts MANUALLY-approved end-to-end | live ops | board + nick | 3 days | proof |
@@ -77,10 +81,11 @@
 ### What quick-win INTENTIONALLY skips
 - Self-improvement loop ticking automatically (we'll review by hand for first 2 weeks)
 - Multi-platform breadth (IG-only — FB + YT come Phase 2)
-- Writers' Room debate panel (single Writer is fine for daily cadence)
+- Writers' Room **full debate panel** (single Writer is fine — but the Writer DOES need to produce detailed per-scene prompts, not the static fixture; that's QW-8a)
 - Ops Console (Notion sheet replaces it)
 - Hyperframe overlay (basic 9:16 + caption + endcard is publish-quality enough)
-- Multi-vendor video gen failover (kie.ai only; local fallback only if kie.ai is down)
+- Multi-vendor video gen failover (Phaya only — kie.ai redundant since Phaya bundles Sora 2)
+- Direct Sora 2 T2V (replaced by image-then-i2v for visual control — QW-8b ✅ DONE)
 
 ---
 
