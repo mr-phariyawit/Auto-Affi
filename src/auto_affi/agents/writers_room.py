@@ -161,11 +161,184 @@ def critic_review(storyboard: Storyboard, brief: CampaignBrief) -> CriticFeedbac
 # Default storyboard factory (deterministic, no LLM)                  #
 # ------------------------------------------------------------------ #
 
+_HARDWARE_NICHE_HINTS: frozenset[str] = frozenset({
+    "socket", "bolt", "nut driver", "bit", "ประแจ", "ไฟฟ้า", "สว่าน",
+    "DIY", "home mechanic", "contractor", "handyman",
+})
+
+
+def _detect_hardware(brief: CampaignBrief) -> bool:
+    """Heuristic niche detector — true if the brief reads as hardware/tools."""
+    haystack = " ".join([
+        brief.angle,
+        brief.persona.label,
+        brief.persona.daily_context,
+        " ".join(brief.persona.pain_points),
+    ]).lower()
+    return any(hint.lower() in haystack for hint in _HARDWARE_NICHE_HINTS)
+
+
+def _hardware_storyboard(brief: CampaignBrief) -> Storyboard:
+    """Hardware/tools niche storyboard — garage workbench aesthetic, male VO."""
+    scenes = [
+        Scene(
+            idx=0,
+            duration_s=1.5,
+            purpose=ScenePurpose.HOOK,
+            shot_type="extreme-closeup",
+            movement="snap-zoom-in",
+            visual_prompt=(
+                "Cinematic extreme closeup of a calloused Thai mechanic's hand "
+                "gripping a worn wrench that slips off a rusted bolt head, "
+                "harsh fluorescent workshop light, oily metal surfaces, "
+                "frustrated motion, 9:16 vertical, hyper-realistic gritty texture"
+            ),
+            generator="sora2",
+            dialogue=Dialogue(
+                speaker="narrator",
+                text_th="ประแจหลุดอีกแล้ว เสียเวลา…",
+                emphasis_words=["หลุด", "เสียเวลา"],
+            ),
+            on_screen_text=OnScreenText(
+                th="หยุดเสียเวลากับประแจห่วยๆ",
+                style="bold-pop",
+                position="center-upper",
+            ),
+            sfx=["metal-clang"],
+            transition_out="match-cut",
+        ),
+        Scene(
+            idx=1,
+            duration_s=2.5,
+            purpose=ScenePurpose.DEMONSTRATE,
+            shot_type="medium-shot",
+            movement="slow-dolly-right",
+            visual_prompt=(
+                "Medium shot of Thai handyman attaching a chrome socket bit "
+                "to an electric impact drill, then snapping it onto an 8mm bolt "
+                "with a precise click. Concrete workshop floor, golden hour "
+                "side light through window, motion blur on drill trigger pull, "
+                "9:16 vertical, satisfying DIY aesthetic"
+            ),
+            generator="sora2",
+            dialogue=Dialogue(
+                speaker="narrator",
+                text_th="ใส่สว่านได้เลย ครบทุกเบอร์ 8 ถึง 14",
+                emphasis_words=["ใส่สว่านได้เลย", "ครบทุกเบอร์"],
+            ),
+            transition_out="cut",
+        ),
+        Scene(
+            idx=2,
+            duration_s=2.0,
+            purpose=ScenePurpose.AGITATE,
+            shot_type="closeup",
+            movement="static",
+            visual_prompt=(
+                "Split-frame comparison: left side old worn slip-prone "
+                "ratchet on a recessed bolt, right side the new socket-head "
+                "set with 150mm extension bar reaching deep into the engine "
+                "bay. Cool industrial blue light, oil-stained engine block, "
+                "9:16 vertical, satisfying tool-precision shot"
+            ),
+            generator="sora2",
+            dialogue=Dialogue(
+                speaker="narrator",
+                text_th="ลึก แคบ ก็ถึง ด้วยแกนต่อ 150 มม.",
+                emphasis_words=["ลึก", "150 มม."],
+            ),
+            transition_out="cut",
+        ),
+        Scene(
+            idx=3,
+            duration_s=2.0,
+            purpose=ScenePurpose.SOCIAL_PROOF,
+            shot_type="medium-shot",
+            movement="static",
+            visual_prompt=(
+                "Mockup of 5-star Shopee reviews on dark slate gradient "
+                "background, Thai DIY reviewer text snippets visible "
+                "('ใช้กับมอเตอร์ไซค์ดีมาก', 'คุ้มราคา'), small product image "
+                "in corner showing the full bit set + extension bar, "
+                "industrial typography"
+            ),
+            generator="flux",
+            dialogue=Dialogue(
+                speaker="narrator",
+                text_th="ช่างจริง รีวิวจริง 5 ดาว เพียบ",
+                emphasis_words=["5 ดาว"],
+            ),
+            transition_out="cut",
+        ),
+        Scene(
+            idx=4,
+            duration_s=2.0,
+            purpose=ScenePurpose.CTA,
+            shot_type="medium-shot",
+            movement="zoom-in-slow",
+            visual_prompt=(
+                "Hero shot of complete socket-head bit set with 150mm "
+                "extension bar laid out on weathered wood workbench, "
+                "warm shop-light from above, Shopee logo badge in corner, "
+                "price tag '฿129-249' floating beside set, gritty industrial vibe"
+            ),
+            generator="flux",
+            dialogue=Dialogue(
+                speaker="narrator",
+                text_th="ครบทุกขนาด ลิงก์ใต้คลิป",
+                emphasis_words=["ครบทุกขนาด"],
+            ),
+            on_screen_text=OnScreenText(
+                th="แตะลิงก์ใต้คลิป",
+                style="cta-pulse",
+                position="center-lower",
+            ),
+            transition_out="fade-out",
+        ),
+    ]
+    return Storyboard(
+        brief_id=brief.brief_id,
+        voice_profile=VoiceProfile(
+            lang="th",
+            gender="m",
+            tone="confident-handy",
+            tts_engine="elevenlabs",
+            voice_id="auto",
+        ),
+        music_brief=MusicBrief(
+            genre="industrial-hip-hop",
+            bpm_range=(95, 115),
+            license="epidemic-sound",
+        ),
+        scenes=scenes,
+        cta_scene_idx=4,
+        affiliate_link_placement="pinned_comment + on_screen_qr",
+        hyperframe_overlays=[
+            HyperframeOverlay(
+                scene_idx=0,
+                template="snap_title_v2",
+                props={"text_th": "หยุดเสียเวลา", "duration_s": 1.2},
+            ),
+            HyperframeOverlay(
+                scene_idx=4,
+                template="cta_pulse",
+                props={"cta_text": "แตะลิงก์ใต้คลิป"},
+            ),
+        ],
+    )
+
+
 def create_default_storyboard(brief: CampaignBrief) -> Storyboard:
     """Create a template storyboard from a brief without LLM.
 
-    Used as fallback when LLM generation fails or for testing.
+    Niche-aware: dispatches to a Hardware-themed scene set if the brief
+    reads as Hardware/Tools (keyword detection on angle + persona). Falls
+    back to the Beauty default otherwise. Used as fallback when LLM
+    generation fails or for testing.
     """
+    if _detect_hardware(brief):
+        return _hardware_storyboard(brief)
+
     scenes = [
         Scene(
             idx=0,

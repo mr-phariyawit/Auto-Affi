@@ -14,11 +14,18 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from auto_affi.adapters.publisher import DryRunPublisher
 from auto_affi.adapters.shopee import ShopeeProduct
+from auto_affi.adapters.shopee_public import (
+    fetch_or_fixture,
+    find_fixture_by_item_id,
+    parse_url_to_ids,
+)
 from auto_affi.agents.analytics_collector import (
     AnalyticsCollector,
     DryRunMetricsTransport,
@@ -69,7 +76,7 @@ def _stub_product(product_id: int) -> ShopeeProduct:
 
 
 def _stub_brief(product: ShopeeProduct) -> CampaignBrief:
-    """Create a stub campaign brief."""
+    """Create a stub campaign brief (Beauty niche default)."""
     return CampaignBrief(
         product_id=product.item_id,
         shop_id=product.shop_id,
@@ -89,16 +96,135 @@ def _stub_brief(product: ShopeeProduct) -> CampaignBrief:
     )
 
 
-async def run_once(product_id: int) -> RunOnceResult:
-    """Execute the full pipeline once with stub/dry-run transports."""
-    result = RunOnceResult(product_id=product_id)
+_NICHE_BRIEFS: dict[str, dict[str, object]] = {
+    "Electronics/hardware-tools": {
+        "persona": {
+            "label": "Thai DIY enthusiasts + home mechanics",
+            "age_range": "25-50",
+            "pain_points": [
+                "wrenches slip off bolt heads",
+                "wrong-size sockets for tight spaces",
+                "no extension bar for recessed nuts",
+            ],
+            "daily_context": "weekend home repairs, motorcycle maintenance, scrolls TikTok DIY hacks",
+        },
+        "angle": "8-14มม. ครบในชุดเดียว ใช้กับสว่านไฟฟ้าได้เลย ไม่ต้องเปลี่ยนหัว",
+        "hook_template_slug": "problem_solution",
+        "cta_text": "ครบทุกขนาด ลิงก์ใต้คลิป",
+        "hypothesis": "DIY tool kits with size completeness + drill-compat hook drive contractors CTR",
+        "expected_ctr": 0.028,
+    },
+    "Beauty/skincare": {
+        "persona": {
+            "label": "Thai women 18-30",
+            "age_range": "18-30",
+            "pain_points": ["dull skin", "acne scars"],
+            "daily_context": "scrolls IG Reels and Shopee daily",
+        },
+        "angle": "ผิวกระจ่างใสใน 7 วัน ด้วยวิตามินซีเข้มข้น",
+        "hook_template_slug": "curiosity_gap",
+        "cta_text": "แตะลิงก์ใต้คลิปเลย!",
+        "hypothesis": "Curiosity gap + before/after for skincare drives Thai CTR",
+        "expected_ctr": 0.035,
+    },
+}
 
-    # Step 1: Scout (stub)
-    product = _stub_product(product_id)
+
+def _niche_aware_brief(
+    product: ShopeeProduct, niche_hints: dict[str, object] | None
+) -> CampaignBrief:
+    """Build a CampaignBrief whose persona+angle+CTA fit the product's niche.
+
+    Reads ``niche_hints`` block from the fixture file if present; otherwise
+    falls back to keyword detection on the product name, then to the
+    Beauty/skincare default.
+    """
+    niche_key = "Beauty/skincare"
+    if niche_hints:
+        niche = str(niche_hints.get("niche") or "").strip()
+        sub = str(niche_hints.get("sub_niche") or "").strip()
+        if niche and sub:
+            niche_key = f"{niche}/{sub}"
+        elif niche:
+            niche_key = niche
+    else:
+        # Fallback keyword detection on product name
+        name_lower = product.name.lower()
+        if any(k in name_lower for k in ("socket", "bolt", "nut driver", "bit", "ประแจ")):
+            niche_key = "Electronics/hardware-tools"
+
+    spec = _NICHE_BRIEFS.get(niche_key) or _NICHE_BRIEFS["Beauty/skincare"]
+    persona_dict: dict[str, object] = dict(spec["persona"])  # type: ignore[arg-type]
+    return CampaignBrief(
+        product_id=product.item_id,
+        shop_id=product.shop_id,
+        persona=Persona(**persona_dict),  # type: ignore[arg-type]
+        angle=str(spec["angle"]),
+        hook_template_slug=str(spec["hook_template_slug"]),
+        cta=CTA(text_th=str(spec["cta_text"]), placement="pinned_comment"),
+        hypothesis=str(spec["hypothesis"]),
+        expected_ctr=float(spec["expected_ctr"]),  # type: ignore[arg-type]
+        confidence=0.7,
+        status=BriefStatus.APPROVED,
+    )
+
+
+def _resolve_product(
+    *,
+    product_id: int | None,
+    shopee_url: str | None,
+    fixture_path: Path | None,
+) -> tuple[ShopeeProduct, dict[str, object] | None]:
+    """Resolve a product + niche_hints from CLI args.
+
+    Priority:
+      1. ``--fixture <path>`` — load that fixture (niche_hints from JSON)
+      2. ``--shopee-url <url>`` — parse, try fixture by item_id, niche_hints if found
+      3. ``--product-id`` — synthesize the legacy beauty stub (no niche_hints)
+    """
+    if fixture_path is not None:
+        raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+        product = ShopeeProduct(**raw["product"])
+        return product, raw.get("niche_hints")
+    if shopee_url is not None:
+        product = fetch_or_fixture(url=shopee_url)
+        shop_id, item_id = parse_url_to_ids(shopee_url)
+        fx = find_fixture_by_item_id(item_id)
+        niche_hints: dict[str, object] | None = None
+        if fx is not None:
+            try:
+                niche_hints = json.loads(fx.read_text(encoding="utf-8")).get("niche_hints")
+            except Exception:
+                pass
+        return product, niche_hints
+    if product_id is None:
+        product_id = 12345
+    return _stub_product(product_id), None
+
+
+async def run_once(
+    product_id: int | None = None,
+    *,
+    shopee_url: str | None = None,
+    fixture_path: Path | None = None,
+) -> RunOnceResult:
+    """Execute the full pipeline once with stub/dry-run transports.
+
+    Source-of-truth for the product is, in priority order:
+      1. ``fixture_path`` — explicit JSON fixture file
+      2. ``shopee_url`` — Shopee URL, parsed for shop/item ids, fixture-resolved
+      3. ``product_id`` — legacy stub path (synthesizes a beauty product)
+    """
+    product, niche_hints = _resolve_product(
+        product_id=product_id, shopee_url=shopee_url, fixture_path=fixture_path
+    )
+    result = RunOnceResult(product_id=product.item_id)
+
+    # Step 1: Scout (real product if URL/fixture; stub otherwise)
     result.steps_completed.append("scout")
 
-    # Step 2: Strategist (stub brief)
-    brief = _stub_brief(product)
+    # Step 2: Strategist — niche-aware brief
+    brief = _niche_aware_brief(product, niche_hints)
     result.brief_id = brief.brief_id
     result.steps_completed.append("strategist")
 
@@ -158,15 +284,31 @@ async def run_once(product_id: int) -> RunOnceResult:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Auto-Affi pipeline once")
-    parser.add_argument(
+    src = parser.add_mutually_exclusive_group()
+    src.add_argument(
         "--product-id",
         type=int,
-        default=12345,
-        help="Shopee product ID (stub in Phase 1)",
+        help="Synthesize a Beauty stub product with this id (legacy path)",
+    )
+    src.add_argument(
+        "--shopee-url",
+        type=str,
+        help="Real Shopee TH URL (i.<shop>.<item>); resolves via fixture",
+    )
+    src.add_argument(
+        "--fixture",
+        type=Path,
+        help="Explicit ShopeeProduct fixture JSON (with optional niche_hints)",
     )
     args = parser.parse_args()
 
-    result = asyncio.run(run_once(args.product_id))
+    result = asyncio.run(
+        run_once(
+            product_id=args.product_id,
+            shopee_url=args.shopee_url,
+            fixture_path=args.fixture,
+        )
+    )
 
     print(f"\n{'='*60}")
     print("Auto-Affi run_once complete")
