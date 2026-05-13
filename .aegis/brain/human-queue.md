@@ -75,6 +75,16 @@
 - **Blocks**: first-cycle
 - **Raised**: 2026-05-13T09:17:08Z
 - **Resolved**: _(pending)_
+
+### [2026-05-13] EXTERNAL — Provide PHAYA_API_KEY (phaya_live_xxx) / ส่ง PHAYA_API_KEY (phaya_live_xxx) ให้ระบบ
+
+- **EN**: Phaya.io = Thai AI gateway (Bangkok). Sora 2 video, Thai TTS, Music, Embeddings, Image gen, Thai Subtitle — one vendor consolidates kie.ai + ElevenLabs + Flux + Suno (Phase 1 video stack). Adapter skeleton + tests landing this commit; only needs the live key to flip from dry-run to production. Set in .env as PHAYA_API_KEY. Never log, never commit.
+- **TH**: Phaya.io = AI gateway สัญชาติไทย (กรุงเทพ). Sora 2 + เสียงไทย + Music + Embeddings + Thai Subtitle รวมในเจ้าเดียว แทน kie.ai + ElevenLabs ได้. ใส่ใน .env เป็น PHAYA_API_KEY.
+- **Category**: External access
+- **Raised by**: claude-orchestrator
+- **Blocks**: phaya-live-integration
+- **Raised**: 2026-05-13T09:21:10Z
+- **Resolved**: _(pending)_
 <!-- PENDING_END -->
 
 ## Resolved
