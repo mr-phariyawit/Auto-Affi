@@ -40,6 +40,8 @@ import httpx
 from pydantic import SecretStr
 
 from auto_affi.adapters.phaya import JobState, PhayaClient
+from auto_affi.agents.writers_room import WritersRoom
+from auto_affi.ops.run_once import _niche_aware_brief, _resolve_product
 from auto_affi.pipeline.demo_storyboard import build_demo_storyboard
 
 try:
@@ -132,10 +134,23 @@ def _concat(clips: list[Path], workdir: Path, out: Path) -> None:
 
 
 async def _process_scene(
-    client: PhayaClient, idx: int, scene, workdir: Path
+    client: PhayaClient,
+    idx: int,
+    scene,
+    workdir: Path,
+    *,
+    use_scene_prompt: bool = False,
 ) -> tuple[Path, float, Path, Path, Path] | None:
-    """Per-scene perfect pipeline. Returns (clip, cost_thb, image, video, audio)."""
-    detailed_prompt = PERFECT_PROMPTS.get(idx, scene.visual_prompt)
+    """Per-scene perfect pipeline. Returns (clip, cost_thb, image, video, audio).
+
+    When ``use_scene_prompt`` is True, trust ``scene.visual_prompt`` as-is
+    (Writers' Room already produced niche-appropriate detail). Otherwise
+    use the Beauty-tuned ``PERFECT_PROMPTS`` override.
+    """
+    if use_scene_prompt:
+        detailed_prompt = scene.visual_prompt
+    else:
+        detailed_prompt = PERFECT_PROMPTS.get(idx, scene.visual_prompt)
     print(f"\n── scene {idx}: {scene.purpose} ({scene.duration_s}s)")
     print(f"   prompt: {detailed_prompt[:100]}…")
     print(f"   dialogue: {scene.dialogue.text_th}")
@@ -224,13 +239,37 @@ async def main() -> int:
         "--output", type=Path, default=Path("out/demo-phaya-perfect.mp4")
     )
     parser.add_argument("--workdir", type=Path, default=Path("out/phaya-perfect-workdir"))
+    parser.add_argument(
+        "--shopee-url",
+        type=str,
+        default=None,
+        help="Real Shopee URL — drives Writers' Room storyboard instead of the Beauty fixture",
+    )
     args = parser.parse_args()
 
     key = os.environ.get("PHAYA_API_KEY")
     if not key:
         print("ERROR: PHAYA_API_KEY missing"); return 1
 
-    sb = build_demo_storyboard()
+    use_scene_prompt = args.shopee_url is not None
+    if args.shopee_url:
+        product, niche_hints = _resolve_product(
+            product_id=None, shopee_url=args.shopee_url, fixture_path=None
+        )
+        brief = _niche_aware_brief(product, niche_hints)
+        room = WritersRoom()
+        sb_result = await room.generate_storyboard(brief)
+        if not sb_result.ok or sb_result.data is None:
+            print(f"ERROR: Writers' Room failed: {sb_result.error}")
+            return 4
+        sb = sb_result.data
+        print(f"🛒 product:   {product.name[:70]}…")
+        print(f"📋 niche:     {(niche_hints or {}).get('niche', '?')}/{(niche_hints or {}).get('sub_niche', '?')}")
+        print(f"📝 brief:     {brief.persona.label} · angle={brief.angle[:60]}…")
+        print(f"🎬 storyboard from Writers' Room (using scene.visual_prompt as-is)")
+    else:
+        sb = build_demo_storyboard()
+        print("🎬 demo storyboard fixture (Beauty) with PERFECT_PROMPTS override")
     indices = _parse_scenes(args.scenes, len(sb.scenes))
     args.workdir.mkdir(parents=True, exist_ok=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -258,7 +297,10 @@ async def main() -> int:
     for idx in indices:
         if idx >= len(sb.scenes):
             continue
-        result = await _process_scene(client, idx, sb.scenes[idx], args.workdir)
+        result = await _process_scene(
+            client, idx, sb.scenes[idx], args.workdir,
+            use_scene_prompt=use_scene_prompt,
+        )
         if result is None:
             print(f"⚠️  scene {idx} failed; continuing")
             continue
