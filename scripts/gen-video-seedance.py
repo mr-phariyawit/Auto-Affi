@@ -312,6 +312,82 @@ def _parse_scenes(arg: str, total: int) -> list[int]:
     return [int(x.strip()) for x in arg.split(",") if x.strip()]
 
 
+def _score_variant(clip_path: Path) -> float:
+    """Rank a candidate clip by HSO×VCS Method criteria.
+
+    Returns a single float — higher = better. Currently uses motion-energy
+    (per-second pixel-diff via Pillow tobytes from qa.video_review) plus a
+    duration-stability term so degenerate 1-frame clips can't win.
+
+    Pure-local function; no network calls — safe to score every variant.
+    """
+    from auto_affi.qa.video_review import analyze_motion
+    try:
+        motion = analyze_motion(clip_path)
+        # Avoid divide-by-zero on tiny clips
+        duration_term = min(1.0, motion.duration_s / 3.0)
+        return motion.motion_score * duration_term
+    except Exception as exc:
+        print(f"  ⚠️  scoring failed for {clip_path.name}: {exc}")
+        return 0.0
+
+
+async def process_clip_with_variants(
+    *, n_variants: int, **kwargs,
+) -> dict | None:
+    """Run ``process_clip`` ``n_variants`` times in parallel, score each
+    candidate, keep the highest-scoring one as the canonical clip output.
+
+    Per VISTA framework (arXiv 2510.15831), parallel-variant + selection
+    beats serial refinement 70% of the time for AI video generation. We
+    use that finding here to lift expected clip quality without lifting
+    human-review overhead.
+
+    For ``n_variants == 1`` this is a pass-through to ``process_clip``
+    (current behavior, no extra Phaya cost).
+    """
+    if n_variants <= 1:
+        return await process_clip(**kwargs)
+
+    clip_idx = kwargs["clip_idx"]
+    workdir: Path = kwargs["workdir"]
+    canonical = workdir / f"clip{clip_idx}-seedance-final.mp4"
+
+    print(f"   🎲 generating {n_variants} variants in parallel for clip {clip_idx}")
+
+    async def _run_one(variant_i: int) -> tuple[int, dict | None]:
+        result = await process_clip(**kwargs)
+        if result is None:
+            return variant_i, None
+        # Rename the canonical output to a variant-specific name
+        variant_path = workdir / f"clip{clip_idx}-seedance-variant-{variant_i}.mp4"
+        result["clip_path"].replace(variant_path)
+        result["clip_path"] = variant_path
+        result["variant_idx"] = variant_i
+        return variant_i, result
+
+    results = await asyncio.gather(*[_run_one(i) for i in range(n_variants)])
+    candidates = [(i, r) for i, r in results if r is not None]
+    if not candidates:
+        print(f"   ❌ all {n_variants} variants failed for clip {clip_idx}")
+        return None
+
+    scored = [(i, r, _score_variant(r["clip_path"])) for i, r in candidates]
+    scored.sort(key=lambda x: x[2], reverse=True)
+    winner_i, winner, winner_score = scored[0]
+    print(f"   🏆 variant winner: clip{clip_idx}-variant-{winner_i} "
+          f"(score={winner_score:.4f}) of {len(scored)} candidates")
+    for i, _, s in scored[1:]:
+        print(f"      • variant-{i}: score={s:.4f}")
+
+    # Promote winner to canonical name (preserve variant file too for audit)
+    subprocess.run(["cp", str(winner["clip_path"]), str(canonical)], check=True)
+    winner["clip_path"] = canonical
+    winner["n_variants"] = n_variants
+    winner["selected_variant"] = winner_i
+    return winner
+
+
 async def process_clip(
     *,
     client: PhayaClient,
@@ -482,6 +558,16 @@ async def main() -> int:
         help="Enable Seedance's diegetic audio generation per clip.",
     )
     p.add_argument(
+        "--variants",
+        type=int,
+        default=1,
+        help="Number of parallel variant generations per clip. "
+             "N>=2 runs N Seedance jobs in parallel and keeps the highest-"
+             "scoring per qa.video_review motion analysis. Per VISTA paper, "
+             "parallel + selection beats serial refinement 70%% of the time. "
+             "WARNING: multiplies Phaya credit burn by N.",
+    )
+    p.add_argument(
         "--with-hyperframes-overlays",
         action="store_true",
         help="Render Storyboard.hyperframe_overlays via HyperFrames and "
@@ -581,7 +667,8 @@ async def main() -> int:
         rich_prompt = rich.get("prompt") if rich else None
         rich_duration_str = rich.get("seedance_duration_str") if rich else None
         target_dur = float(rich.get("target_duration_s", cp["target_duration_s"])) if rich else cp["target_duration_s"]
-        result = await process_clip(
+        result = await process_clip_with_variants(
+            n_variants=args.variants,
             client=client, gcs=gcs,
             clip_idx=cp["clip_idx"],
             start_scene_idx=cp["start_scene_idx"],
