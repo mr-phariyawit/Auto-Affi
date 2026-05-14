@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- DETERMINISTIC RENDER: GSAP + fonts are vendored locally (no CDN).
+         Don't put CDN URLs here — HyperFrames advertises deterministic
+         output and CDN dependencies break that contract. See
+         hyperframes/concept-2-overlays/vendor/ for the bundled assets. -->
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Mitr';
+        font-style: normal;
+        font-weight: 500;
+        font-display: block;
+        src: url('vendor/fonts/woff2/mitr-500-thai.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Mitr';
+        font-style: normal;
+        font-weight: 700;
+        font-display: block;
+        src: url('vendor/fonts/woff2/mitr-700-thai.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Sarabun';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('vendor/fonts/woff2/sarabun-400-thai.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Sarabun';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('vendor/fonts/woff2/sarabun-600-thai.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Sarabun';
+        font-style: normal;
+        font-weight: 700;
+        font-display: block;
+        src: url('vendor/fonts/woff2/sarabun-700-thai.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 720px;
+        height: 1280px;
+        overflow: hidden;
+        background: transparent;
+        font-family: 'Sarabun', sans-serif;
+      }
+      #stage { position: relative; width: 720px; height: 1280px; }
+
+      .tag {
+        position: absolute;
+        left: 50%;
+        top: 38%;
+        transform: translate(-50%, -50%);
+        padding: 24px 48px;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 14px;
+        color: #ffffff;
+        font-family: 'Mitr', 'Sarabun', sans-serif;
+        font-weight: 700;
+        font-size: 56px;
+        letter-spacing: 0.5px;
+        text-align: center;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      .card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 16px 36px;
+        background: rgba(0, 0, 0, 0.50);
+        border: 1px solid rgba(255, 220, 180, 0.40);
+        border-radius: 10px;
+        color: #ffe0b8;
+        font-family: 'Sarabun', sans-serif;
+        font-weight: 600;
+        font-size: 32px;
+        letter-spacing: 0.3px;
+        text-align: center;
+        white-space: nowrap;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="stage"
+      data-composition-id="closing-tag"
+      data-start="0"
+      data-duration="4.5"
+      data-width="720"
+      data-height="1280"
+    >
+      <div id="tag" class="tag" data-start="0" data-duration="4.5" data-track-index="1">
+        ระยะทางไม่ลบเสียงพ่อ
+      </div>
+      <div id="card" class="card" data-start="1.0" data-duration="3.5" data-track-index="2">
+        Maono PD300X &nbsp;·&nbsp; จาก ฿2,590
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#tag",  { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0);
+      tl.to("#tag",     { opacity: 0, duration: 0.5, ease: "power2.in"  }, 4.0);
+      tl.fromTo("#card", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 1.0);
+      tl.to("#card",    { opacity: 0, duration: 0.5, ease: "power2.in"  }, 4.0);
+      window.__timelines["closing-tag"] = tl;
+    </script>
+  </body>
+</html>

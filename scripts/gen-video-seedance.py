@@ -210,14 +210,88 @@ def _mux_with_audio(video: Path, audio: Path | None, out: Path) -> None:
         )
 
 
-def _concat(clips: list[Path], workdir: Path, out: Path) -> None:
-    listfile = workdir / "concat-seedance.txt"
-    listfile.write_text("\n".join(f"file '{p.resolve()}'" for p in clips))
+def _normalize_clip_audio(clip_in: Path, clip_out: Path) -> None:
+    """Re-encode a clip's audio to the uniform AAC params.
+
+    Required when sources have different sample-rates / profiles (e.g. Veo
+    output is 48 kHz, Seedance is 44.1 kHz). Without this, ``-f concat -c
+    copy`` produces broken AAC bytestream at clip boundaries.
+    """
     subprocess.run(
-        ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
-         "-i", str(listfile), "-c", "copy", str(out)],
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(clip_in),
+         "-c:v", "copy", *_aac_flags(), str(clip_out)],
         check=True,
     )
+
+
+def _concat(
+    clips: list[Path],
+    workdir: Path,
+    out: Path,
+    *,
+    crossfade_s: float = 0.0,
+) -> None:
+    """Concat clips. ``crossfade_s > 0`` smooths boundaries via ``acrossfade``
+    (audio) + ``xfade`` (video) — required when joining heterogeneous sources
+    (Veo + Seedance) so per-clip ambient mismatches don't produce audible
+    jumps and per-clip room-tone discontinuities are crossfaded out.
+
+    NOTE: With crossfade, the total duration is reduced by
+    ``crossfade_s × (n_clips - 1)`` compared to plain concat.
+    """
+    if crossfade_s <= 0:
+        # Fast path — clips already have matching codec params (use
+        # _normalize_clip_audio() upstream when mixing engines).
+        listfile = workdir / "concat-seedance.txt"
+        listfile.write_text("\n".join(f"file '{p.resolve()}'" for p in clips))
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
+             "-i", str(listfile), "-c", "copy", str(out)],
+            check=True,
+        )
+        return
+
+    # Cross-fade path — per-pair pyramid of xfade/acrossfade filters.
+    # Build inputs + filtergraph for arbitrary clip count.
+    n = len(clips)
+    if n == 1:
+        clips[0].replace(out)
+        return
+    args = ["ffmpeg", "-y", "-loglevel", "error"]
+    for c in clips:
+        args.extend(["-i", str(c)])
+    # Track per-clip durations to set xfade offsets correctly
+    durations = [
+        float(subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(c)],
+            check=True, capture_output=True, text=True).stdout.strip())
+        for c in clips
+    ]
+    fc_parts: list[str] = []
+    cur_v, cur_a = "[0:v]", "[0:a]"
+    cum_dur = durations[0]
+    for i in range(1, n):
+        offset = max(0.0, cum_dur - crossfade_s)
+        out_v = f"[v{i}]"
+        out_a = f"[a{i}]"
+        fc_parts.append(
+            f"{cur_v}[{i}:v]xfade=transition=fade:duration={crossfade_s}:offset={offset}{out_v}"
+        )
+        fc_parts.append(
+            f"{cur_a}[{i}:a]acrossfade=d={crossfade_s}{out_a}"
+        )
+        cur_v, cur_a = out_v, out_a
+        cum_dur += durations[i] - crossfade_s
+    fc = ";".join(fc_parts)
+    args += [
+        "-filter_complex", fc,
+        "-map", cur_v, "-map", cur_a,
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+        *_aac_flags(),
+        str(out),
+    ]
+    subprocess.run(args, check=True)
 
 
 def _mix_music_under(video: Path, music: Path, out: Path, *, gain_db: float = -12.0) -> None:
@@ -407,6 +481,19 @@ async def main() -> int:
         action="store_true",
         help="Enable Seedance's diegetic audio generation per clip.",
     )
+    p.add_argument(
+        "--with-hyperframes-overlays",
+        action="store_true",
+        help="Render Storyboard.hyperframe_overlays via HyperFrames and "
+             "composite onto the final video before GCS upload.",
+    )
+    p.add_argument(
+        "--hyperframes-projects-dir",
+        type=Path,
+        default=Path("hyperframes"),
+        help="Directory containing HyperFrames project subdirs "
+             "(default: ./hyperframes/).",
+    )
     args = p.parse_args()
 
     key = os.environ.get("PHAYA_API_KEY", "").strip()
@@ -565,6 +652,32 @@ async def main() -> int:
         _mix_music_under(intermediate, music_path, args.output, gain_db=args.music_mix_db)
     else:
         intermediate.replace(args.output)
+
+    # Optional HyperFrames overlays — render Storyboard.hyperframe_overlays
+    # to ProRes-with-alpha MOVs, then composite onto the final mp4.
+    sb_overlays_raw = sb.get("hyperframe_overlays", []) or []
+    if args.with_hyperframes_overlays and sb_overlays_raw:
+        from auto_affi.post import OverlayRender, render_storyboard_overlays
+        from auto_affi.post.hyperframes_renderer import composite_overlays_with_ffmpeg
+        from auto_affi.schemas.storyboard import HyperframeOverlay
+
+        overlays = [HyperframeOverlay(**o) for o in sb_overlays_raw]
+        print(f"\n🎨 HyperFrames: rendering {len(overlays)} overlay(s)…")
+        rendered: list[OverlayRender] = render_storyboard_overlays(
+            overlays=overlays,
+            projects_dir=args.hyperframes_projects_dir,
+            output_dir=args.workdir / "overlays",
+        )
+        if rendered:
+            composited = args.workdir / "final-with-overlays.mp4"
+            print(f"🎨 HyperFrames: compositing {len(rendered)} overlay(s) onto final…")
+            composite_overlays_with_ffmpeg(
+                base_video=args.output, overlays=rendered, output=composited,
+            )
+            composited.replace(args.output)
+            print(f"   ✅ overlays applied")
+        else:
+            print(f"   ⚠️  no overlays rendered (template missing?); skipping composite")
 
     # Upload final to GCS
     final_gs = ""
