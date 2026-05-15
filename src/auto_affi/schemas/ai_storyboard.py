@@ -46,9 +46,10 @@ class Generator(StrEnum):
     """Which model owns rendering of this shot."""
 
     HEYGEN_AVATAR_IV = "heygen_avatar_iv"
+    HIGGSFIELD_CLI = "higgsfield_cli"  # routes through `higgsfield generate create <model>`
     SEEDANCE_2KF = "seedance_2kf"  # two-keyframe i2v — Seedance 1.5 Pro via Phaya
-    SEEDANCE_2_FAST = "seedance_2_fast"  # Seedance 2.0 Fast via PiAPI ($0.08/s)
-    SEEDANCE_2_PRO = "seedance_2_pro"  # Seedance 2.0 full quality via PiAPI ($0.10/s)
+    SEEDANCE_2_FAST = "seedance_2_fast"  # Seedance 2.0 Fast via PiAPI ($0.08/s) — fallback path
+    SEEDANCE_2_PRO = "seedance_2_pro"  # Seedance 2.0 full quality via PiAPI ($0.10/s) — fallback path
     SEEDANCE_T2V = "seedance_t2v"  # text-to-video (no start frame)
     VEO = "veo"  # Gemini Veo 3.1 (premium)
     HOLD = "hold"  # static image held for the shot duration
@@ -112,6 +113,10 @@ class AiShot(BaseModel):
     motion_prompt: str | None = None  # HeyGen Avatar IV body/head motion
     expressiveness: Literal["low", "medium", "high"] | None = None  # HeyGen
     aspect_ratio: Literal["9:16", "16:9"] = "9:16"
+    # Higgsfield CLI knobs — only meaningful when generator=HIGGSFIELD_CLI
+    higgsfield_model: str | None = None  # e.g. "seedance_2_0", "cinematic_studio_3_0", "veo3_1"
+    higgsfield_mode: str | None = None  # e.g. "fast" / "std" for Seedance, "pro" / "std" for Kling
+    higgsfield_resolution: Literal["480p", "720p", "1080p"] | None = None
 
     @field_validator("shot_id")
     @classmethod
@@ -149,6 +154,15 @@ class AiShot(BaseModel):
             raise ValueError(
                 f"shot {self.shot_id}: {self.generator.value} requires keyframes block"
             )
+
+        # Higgsfield CLI shots must name which underlying model to dispatch
+        if self.generator is Generator.HIGGSFIELD_CLI:
+            if not self.higgsfield_model:
+                raise ValueError(
+                    f"shot {self.shot_id}: higgsfield_cli requires "
+                    f"higgsfield_model (e.g. 'seedance_2_0', "
+                    f"'cinematic_studio_3_0', 'veo3_1')"
+                )
 
         # phaya_tts requires dialogue_th
         if self.audio_source is AudioSource.PHAYA_TTS and not self.dialogue_th:

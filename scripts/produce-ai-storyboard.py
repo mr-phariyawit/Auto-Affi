@@ -49,6 +49,7 @@ from auto_affi.adapters.gemini_image import GEMINI_NANO_BANANA_PRO, GeminiImageC
 from auto_affi.adapters.heygen import HeyGenClient, HeyGenError
 from auto_affi.adapters.phaya import PhayaClient, JobState
 from auto_affi.adapters.seedance2 import Seedance2Client, Seedance2Error
+from auto_affi.adapters.higgsfield_cli import HiggsfieldCli, HiggsfieldCliError
 from auto_affi.post.hyperframes_renderer import (
     OverlayRender, composite_overlays_with_ffmpeg, render_storyboard_overlays,
 )
@@ -333,6 +334,63 @@ async def _run_seedance_2kf(
     _normalize_mp4(raw, dest, target_duration_s=shot.duration_s)
 
 
+async def _run_higgsfield_cli(
+    *, hf: HiggsfieldCli, shot: AiShot, still: Path, workdir: Path, dest: Path,
+) -> None:
+    """Dispatch a shot through the Higgsfield CLI (`higgsfield generate
+    create <model> ...`). The model is taken from ``shot.higgsfield_model``;
+    optional ``higgsfield_mode`` and ``higgsfield_resolution`` override the
+    defaults (Fast / 720p — cheapest tier).
+
+    For two-keyframe shots (``shot.keyframes`` set), the start_ref and
+    end_ref local stills are passed as ``--start-image`` and
+    ``--end-image``; the CLI auto-uploads them.
+
+    For single-image shots (no keyframes), the per-shot scene still is
+    passed as ``--image``.
+
+    The CLI emits a CloudFront URL on its final stdout line — we curl
+    it down + normalize to canonical AAC so concat is clean.
+    """
+    model = shot.higgsfield_model or ""
+    mode = shot.higgsfield_mode
+    resolution = shot.higgsfield_resolution or "720p"
+
+    print(f"   ↳ Higgsfield CLI · model={model} · mode={mode or 'default'} · {resolution}")
+
+    if shot.keyframes is not None:
+        start_local = workdir / shot.keyframes.start_ref
+        end_local = workdir / shot.keyframes.end_ref
+        for p in (start_local, end_local):
+            if not p.exists():
+                raise RuntimeError(f"{shot.shot_id}: keyframe missing: {p}")
+        images = {
+            "start-image": str(start_local.resolve()),
+            "end-image": str(end_local.resolve()),
+        }
+        prompt = shot.keyframes.motion_label
+    else:
+        images = {"image": str(still.resolve())}
+        prompt = shot.image_prompt
+
+    duration_int = max(4, min(15, round(shot.duration_s)))
+
+    try:
+        result = await hf.generate_video(
+            model=model, prompt=prompt,
+            aspect_ratio=shot.aspect_ratio,
+            duration=duration_int,
+            mode=mode, resolution=resolution,
+            images=images,
+        )
+    except HiggsfieldCliError as e:
+        raise RuntimeError(f"{shot.shot_id}: higgsfield_cli failed: {e}") from e
+
+    raw = workdir / f"{shot.shot_id}_higgsfield_raw.mp4"
+    await hf.download(result.video_url, raw)
+    _normalize_mp4(raw, dest, target_duration_s=shot.duration_s)
+
+
 async def _run_seedance_2_2kf(
     *, seedance2: Seedance2Client, gcs: GcsStorage, key_prefix: str,
     shot: AiShot, workdir: Path, dest: Path, variant: str,
@@ -477,6 +535,18 @@ async def main() -> int:
         seedance2 = Seedance2Client(
             api_key=SecretStr(os.environ["PIAPI_API_KEY"]), timeout_s=120.0,
         )
+    # Higgsfield CLI is constructed lazily — only when the storyboard
+    # actually uses a higgsfield_cli shot AND the binary is present.
+    higgsfield_cli: HiggsfieldCli | None = None
+    needs_higgsfield = any(
+        s.generator is Generator.HIGGSFIELD_CLI for s in sb.shots
+    )
+    if needs_higgsfield:
+        try:
+            higgsfield_cli = HiggsfieldCli()
+        except HiggsfieldCliError as e:
+            print(f"ERROR: storyboard uses higgsfield_cli but: {e}")
+            return 1
 
     # PHASE 1 — Stills (Gemini per-shot)
     print("\n── PHASE 1 · Stills (Gemini Nano Banana Pro)")
@@ -533,6 +603,14 @@ async def main() -> int:
             await _run_seedance_2kf(
                 phaya=phaya, gcs=gcs, key_prefix=args.key_prefix,
                 shot=shot, workdir=args.workdir, dest=clip,
+            )
+        elif shot.generator is Generator.HIGGSFIELD_CLI:
+            if higgsfield_cli is None:  # pragma: no cover — guarded above
+                print(f"    ❌ higgsfield_cli unavailable for {shot.shot_id}")
+                return 5
+            await _run_higgsfield_cli(
+                hf=higgsfield_cli, shot=shot, still=still,
+                workdir=args.workdir, dest=clip,
             )
         elif shot.generator in (Generator.SEEDANCE_2_FAST, Generator.SEEDANCE_2_PRO):
             if seedance2 is None:
