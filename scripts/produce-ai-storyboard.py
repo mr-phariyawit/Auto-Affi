@@ -106,13 +106,30 @@ async def _gemini_still(
     write_image_to_path(r.data, dest)
 
 
-def _hold_to_mp4(still: Path, dest: Path, duration_s: float, *, fps: int = 24) -> None:
-    """Loop a still into an mp4 of the requested duration with silent audio."""
+def _hold_to_mp4(
+    still: Path, dest: Path, duration_s: float,
+    *, fps: int = 24, voiceover_wav: Path | None = None,
+) -> None:
+    """Loop a still into an mp4 of the requested duration.
+
+    If ``voiceover_wav`` is provided, that WAV becomes the audio track —
+    padded with silence (apad) up to ``duration_s`` so the clip's video
+    length always wins. Otherwise the audio is anullsrc silence.
+    """
+    if voiceover_wav is not None and voiceover_wav.exists():
+        audio_input = ["-i", str(voiceover_wav)]
+        # Pad VO to clip duration so video length governs concat
+        audio_filter = ["-af", f"apad=whole_dur={duration_s:.3f}"]
+    else:
+        audio_input = ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
+        audio_filter = []
+
     subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error",
          "-loop", "1", "-i", str(still),
-         "-f", "lavfi", "-i", f"anullsrc=channel_layout=stereo:sample_rate=44100",
+         *audio_input,
          "-t", f"{duration_s:.3f}", "-r", str(fps),
+         *audio_filter,
          "-c:v", "libx264", "-preset", "medium", "-crf", "20",
          "-pix_fmt", "yuv420p",
          *_aac_flags(), "-shortest",
@@ -161,7 +178,13 @@ async def _phaya_tts_wav(*, client: PhayaClient, gcs: GcsStorage, text: str, des
         interval=3.0, timeout=240.0,
     )
     if not (wait.ok and wait.data and wait.data.state is JobState.COMPLETED and wait.data.result_url):
-        raise RuntimeError(f"phaya TTS render failed: {wait.error if wait else 'unknown'}")
+        state = wait.data.state.value if (wait.ok and wait.data) else "?"
+        detail = wait.data.detail if (wait.ok and wait.data and hasattr(wait.data, "detail")) else None
+        raise RuntimeError(
+            f"phaya TTS render failed · state={state} · "
+            f"wait.error={wait.error!r} · detail={detail!r} · "
+            f"job_id={submit.data.job_id}"
+        )
     url = wait.data.result_url
     if url.startswith(f"gs://{gcs.bucket_name}/"):
         key = url[len(f"gs://{gcs.bucket_name}/"):]
@@ -173,17 +196,65 @@ async def _phaya_tts_wav(*, client: PhayaClient, gcs: GcsStorage, text: str, des
     return dest
 
 
+async def _edge_tts_wav(*, text: str, dest: Path, voice: str = "th-TH-NiwatNeural") -> Path:
+    """Free Microsoft Edge TTS — Thai male voice (Niwat) by default.
+
+    Used as the primary Thai TTS path. Phaya Algenib is a fallback only
+    when explicitly forced — research (2026-05-15) showed Phaya Algenib
+    reads as AI-obvious to Thai audiences at >฿1,500 product price bands,
+    hurting affiliate trust. Edge TTS Niwat is closer to a natural Thai
+    male voice. Writes mp3, transcodes to wav at the canonical rate so
+    downstream apad / pad-to-duration flows behave identically.
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    mp3 = dest.with_suffix(".mp3")
+    # subprocess (sync) is fine — edge-tts is fast (~1s for ≤30 char text)
+    subprocess.run(
+        [sys.executable, "-m", "edge_tts",
+         "--voice", voice, "--text", text,
+         "--write-media", str(mp3)],
+        check=True, capture_output=True, text=True,
+    )
+    # mp3 → wav 44.1kHz mono so apad downstream is byte-clean
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(mp3),
+         "-c:a", "pcm_s16le", "-ar", "44100", "-ac", "1", str(dest)],
+        check=True,
+    )
+    return dest
+
+
+async def _thai_tts_wav(
+    *, client: PhayaClient, gcs: GcsStorage, text: str, dest: Path,
+    source: str = "edge", voice: str | None = None,
+) -> Path:
+    """Route Thai TTS through the configured source. ``edge`` is free and
+    sounds more natural for >฿1,500 affiliate price bands."""
+    if source == "edge":
+        return await _edge_tts_wav(
+            text=text, dest=dest,
+            voice=voice or "th-TH-NiwatNeural",
+        )
+    if source == "phaya":
+        return await _phaya_tts_wav(client=client, gcs=gcs, text=text, dest=dest)
+    raise ValueError(f"unknown tts source: {source!r}")
+
+
 async def _run_heygen_avatar_iv(
     *, heygen: HeyGenClient, phaya: PhayaClient, gcs: GcsStorage,
     shot: AiShot, still: Path, dest: Path, workdir: Path,
+    tts_source: str = "edge", tts_voice: str | None = None,
 ) -> None:
-    """Phaya TTS → HeyGen Avatar IV → save."""
+    """Thai TTS → HeyGen Avatar IV → save."""
     if not shot.dialogue_th:
         raise RuntimeError(f"{shot.shot_id}: heygen requires dialogue_th")
 
     tts_wav = workdir / f"{shot.shot_id}_tts.wav"
-    print(f"   ↳ Phaya TTS: {shot.dialogue_th!r}")
-    await _phaya_tts_wav(client=phaya, gcs=gcs, text=shot.dialogue_th, dest=tts_wav)
+    print(f"   ↳ Thai TTS ({tts_source}): {shot.dialogue_th!r}")
+    await _thai_tts_wav(
+        client=phaya, gcs=gcs, text=shot.dialogue_th, dest=tts_wav,
+        source=tts_source, voice=tts_voice,
+    )
     padded = workdir / f"{shot.shot_id}_tts_padded.wav"
     _pad_audio(tts_wav, padded, shot.duration_s)
     print(f"   ↳ uploading still + audio to HeyGen")
@@ -318,6 +389,15 @@ async def main() -> int:
                    help="Don't re-render shot clips if they already exist.")
     p.add_argument("--key-prefix", type=str, default="ai-storyboard/v2-concept-2",
                    help="GCS key prefix for Seedance keyframes.")
+    p.add_argument("--tts-source", type=str, default="edge",
+                   choices=["edge", "phaya"],
+                   help="Thai TTS engine. 'edge' (default) = free Microsoft Edge "
+                        "th-TH-NiwatNeural (natural male voice). 'phaya' = Phaya "
+                        "Algenib (AI-obvious, hurts affiliate trust per 2026-05-15 "
+                        "research).")
+    p.add_argument("--tts-voice", type=str, default=None,
+                   help="Override the default TTS voice (e.g. 'th-TH-PremwadeeNeural' "
+                        "for the female Edge voice).")
     args = p.parse_args()
 
     # Env
@@ -367,13 +447,25 @@ async def main() -> int:
         if args.skip_shots and clip.exists():
             print(f"  📦 reusing {clip.name}")
             continue
-        print(f"  {shot.shot_id} [{shot.generator.value}] {shot.duration_s}s")
+        print(f"  {shot.shot_id} [{shot.generator.value}] {shot.duration_s}s · audio={shot.audio_source.value}")
         if shot.generator is Generator.HOLD:
-            _hold_to_mp4(still, clip, shot.duration_s)
+            vo_wav: Path | None = None
+            if shot.audio_source is AudioSource.PHAYA_TTS and shot.dialogue_th:
+                vo_wav = args.workdir / f"{shot.shot_id}_vo.wav"
+                if not vo_wav.exists():
+                    print(f"   ↳ Thai TTS ({args.tts_source}): {shot.dialogue_th!r}")
+                    await _thai_tts_wav(
+                        client=phaya, gcs=gcs, text=shot.dialogue_th, dest=vo_wav,
+                        source=args.tts_source, voice=args.tts_voice,
+                    )
+                else:
+                    print(f"   ↳ reusing {vo_wav.name}")
+            _hold_to_mp4(still, clip, shot.duration_s, voiceover_wav=vo_wav)
         elif shot.generator is Generator.HEYGEN_AVATAR_IV:
             await _run_heygen_avatar_iv(
                 heygen=heygen, phaya=phaya, gcs=gcs,
                 shot=shot, still=still, dest=clip, workdir=args.workdir,
+                tts_source=args.tts_source, tts_voice=args.tts_voice,
             )
         elif shot.generator is Generator.SEEDANCE_2KF:
             await _run_seedance_2kf(
