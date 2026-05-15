@@ -48,6 +48,7 @@ from auto_affi.adapters.gcs_storage import GcsStorage
 from auto_affi.adapters.gemini_image import GEMINI_NANO_BANANA_PRO, GeminiImageClient, write_image_to_path
 from auto_affi.adapters.heygen import HeyGenClient, HeyGenError
 from auto_affi.adapters.phaya import PhayaClient, JobState
+from auto_affi.adapters.seedance2 import Seedance2Client, Seedance2Error
 from auto_affi.post.hyperframes_renderer import (
     OverlayRender, composite_overlays_with_ffmpeg, render_storyboard_overlays,
 )
@@ -332,6 +333,59 @@ async def _run_seedance_2kf(
     _normalize_mp4(raw, dest, target_duration_s=shot.duration_s)
 
 
+async def _run_seedance_2_2kf(
+    *, seedance2: Seedance2Client, gcs: GcsStorage, key_prefix: str,
+    shot: AiShot, workdir: Path, dest: Path, variant: str,
+) -> None:
+    """Seedance 2.0 two-keyframe via PiAPI direct.
+
+    Mirror of _run_seedance_2kf but routes through PiAPI's
+    `first_last_frames` task type — +31.7 physics-accuracy vs 1.5 Pro
+    per Megaton benchmark. Fast tier (~$0.08/s) for cost-sensitive,
+    Pro tier (~$0.10/s) for hero shots.
+    """
+    if shot.keyframes is None:
+        raise RuntimeError(f"{shot.shot_id}: {variant} requires keyframes block")
+    start_local = workdir / shot.keyframes.start_ref
+    end_local = workdir / shot.keyframes.end_ref
+    for p in (start_local, end_local):
+        if not p.exists():
+            raise RuntimeError(f"{shot.shot_id}: keyframe missing: {p}")
+
+    print(f"   ↳ Seedance 2.0 ({variant}) · motion={shot.keyframes.motion_label!r}")
+    start_key = f"{key_prefix}/{shot.shot_id}_start.jpg"
+    end_key = f"{key_prefix}/{shot.shot_id}_end.jpg"
+
+    def _upload(local: Path, key: str) -> str:
+        gcs.upload_file(local, key=key, content_type="image/jpeg",
+                        cache_control="public, max-age=3600")
+        return gcs.signed_url(key, ttl=timedelta(hours=1))
+
+    start_url = await asyncio.to_thread(_upload, start_local, start_key)
+    end_url = await asyncio.to_thread(_upload, end_local, end_key)
+
+    model = "seedance-2-fast" if variant == "fast" else "seedance-2"
+    # PiAPI accepts integer-seconds for `duration`; cap to shot duration
+    duration_int = max(4, min(12, round(shot.duration_s)))
+
+    try:
+        job = await seedance2.create_first_last_frames(
+            first_frame_url=start_url, last_frame_url=end_url,
+            prompt=shot.keyframes.motion_label,
+            model=model, duration_s=duration_int,
+            resolution="720p", aspect_ratio=shot.aspect_ratio,
+        )
+        completed = await seedance2.wait_for_task(
+            job.task_id, interval_s=4.0, timeout_s=600.0,
+        )
+    except Seedance2Error as e:
+        raise RuntimeError(f"{shot.shot_id}: seedance2 failed: {e}") from e
+
+    raw = workdir / f"{shot.shot_id}_seedance2_raw.mp4"
+    await seedance2.download_video(completed.video_url, raw)
+    _normalize_mp4(raw, dest, target_duration_s=shot.duration_s)
+
+
 def _concat(clips: list[Path], workdir: Path, out: Path) -> None:
     listfile = workdir / "concat.txt"
     listfile.write_text("\n".join(f"file '{p.resolve()}'" for p in clips))
@@ -415,6 +469,14 @@ async def main() -> int:
     )
     phaya = PhayaClient(api_key=SecretStr(os.environ["PHAYA_API_KEY"]), timeout_s=60.0)
     heygen = HeyGenClient(api_key=SecretStr(os.environ["HEYGEN_API_KEY"]), timeout_s=120.0)
+    # Seedance 2.0 client is constructed only when actually used so the
+    # orchestrator still runs for storyboards that don't need it
+    # (PIAPI_API_KEY remains optional until a SEEDANCE_2_* shot appears).
+    seedance2: Seedance2Client | None = None
+    if os.environ.get("PIAPI_API_KEY", "").strip():
+        seedance2 = Seedance2Client(
+            api_key=SecretStr(os.environ["PIAPI_API_KEY"]), timeout_s=120.0,
+        )
 
     # PHASE 1 — Stills (Gemini per-shot)
     print("\n── PHASE 1 · Stills (Gemini Nano Banana Pro)")
@@ -471,6 +533,17 @@ async def main() -> int:
             await _run_seedance_2kf(
                 phaya=phaya, gcs=gcs, key_prefix=args.key_prefix,
                 shot=shot, workdir=args.workdir, dest=clip,
+            )
+        elif shot.generator in (Generator.SEEDANCE_2_FAST, Generator.SEEDANCE_2_PRO):
+            if seedance2 is None:
+                print(f"    ❌ {shot.shot_id}: {shot.generator.value} requires "
+                      f"PIAPI_API_KEY in .env — set it and re-run with --skip-shots "
+                      f"to resume from cached upstream shots.")
+                return 4
+            variant = "fast" if shot.generator is Generator.SEEDANCE_2_FAST else "pro"
+            await _run_seedance_2_2kf(
+                seedance2=seedance2, gcs=gcs, key_prefix=args.key_prefix,
+                shot=shot, workdir=args.workdir, dest=clip, variant=variant,
             )
         else:
             print(f"    ⚠️  generator {shot.generator.value} not wired in this orchestrator")

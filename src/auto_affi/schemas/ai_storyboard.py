@@ -46,7 +46,9 @@ class Generator(StrEnum):
     """Which model owns rendering of this shot."""
 
     HEYGEN_AVATAR_IV = "heygen_avatar_iv"
-    SEEDANCE_2KF = "seedance_2kf"  # two-keyframe i2v
+    SEEDANCE_2KF = "seedance_2kf"  # two-keyframe i2v — Seedance 1.5 Pro via Phaya
+    SEEDANCE_2_FAST = "seedance_2_fast"  # Seedance 2.0 Fast via PiAPI ($0.08/s)
+    SEEDANCE_2_PRO = "seedance_2_pro"  # Seedance 2.0 full quality via PiAPI ($0.10/s)
     SEEDANCE_T2V = "seedance_t2v"  # text-to-video (no start frame)
     VEO = "veo"  # Gemini Veo 3.1 (premium)
     HOLD = "hold"  # static image held for the shot duration
@@ -138,10 +140,14 @@ class AiShot(BaseModel):
                     f"6s for consistency; got {self.duration_s}s. Split."
                 )
 
-        # Two-keyframe Seedance must declare keyframes
-        if self.generator is Generator.SEEDANCE_2KF and self.keyframes is None:
+        # Two-keyframe Seedance must declare keyframes (1.5 Pro AND 2.0)
+        if self.generator in (
+            Generator.SEEDANCE_2KF,
+            Generator.SEEDANCE_2_FAST,
+            Generator.SEEDANCE_2_PRO,
+        ) and self.keyframes is None:
             raise ValueError(
-                f"shot {self.shot_id}: seedance_2kf requires keyframes block"
+                f"shot {self.shot_id}: {self.generator.value} requires keyframes block"
             )
 
         # phaya_tts requires dialogue_th
