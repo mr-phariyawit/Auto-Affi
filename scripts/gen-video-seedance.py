@@ -353,10 +353,40 @@ async def process_clip_with_variants(
     workdir: Path = kwargs["workdir"]
     canonical = workdir / f"clip{clip_idx}-seedance-final.mp4"
 
+    # Upload keyframes ONCE before fanning out — N parallel uploads to the
+    # same GCS key race-condition on blob.reload() (404 NotFound during
+    # eventual-consistency window). All variants share the same start+end
+    # frame, so de-duping the upload is correct AND cheaper.
+    start_scene_idx = kwargs["start_scene_idx"]
+    end_scene_idx = kwargs["end_scene_idx"]
+    gcs = kwargs["gcs"]
+    order_no = kwargs["order_no"]
+    run_no = kwargs["run_no"]
+    key_prefix = build_run_prefix(order_no, run_no)
+    start_local = workdir / f"s{start_scene_idx}-image.jpg"
+    end_local = workdir / f"s{end_scene_idx}-image.jpg"
+    if not (start_local.exists() and end_local.exists()):
+        print(f"   ❌ keyframes missing for clip {clip_idx} — bail before variant fan-out")
+        return None
     print(f"   🎲 generating {n_variants} variants in parallel for clip {clip_idx}")
+    print(f"      ↳ uploading shared keyframes once before fan-out")
+    start_key = f"{key_prefix}/stage4-visuals/clip_{clip_idx}_start_s{start_scene_idx}.jpg"
+    end_key = f"{key_prefix}/stage4-visuals/clip_{clip_idx}_end_s{end_scene_idx}.jpg"
+    start_gs, start_signed = await _upload_to_gcs(
+        gcs, local_path=start_local, key=start_key, content_type="image/jpeg",
+    )
+    end_gs, end_signed = await _upload_to_gcs(
+        gcs, local_path=end_local, key=end_key, content_type="image/jpeg",
+    )
+    shared_keyframes = {
+        "start_gs": start_gs, "end_gs": end_gs,
+        "start_signed": start_signed, "end_signed": end_signed,
+    }
 
     async def _run_one(variant_i: int) -> tuple[int, dict | None]:
-        result = await process_clip(**kwargs)
+        result = await process_clip(
+            **kwargs, pre_uploaded_keyframes=shared_keyframes,
+        )
         if result is None:
             return variant_i, None
         # Rename the canonical output to a variant-specific name
@@ -405,11 +435,17 @@ async def process_clip(
     rich_prompt: str | None = None,
     rich_duration_str: str | None = None,
     generate_audio: bool = False,
+    pre_uploaded_keyframes: dict[str, str] | None = None,
 ) -> dict | None:
     """Generate one Seedance clip between approved stills s[start]→s[end].
 
     No end-frame regeneration — uses the already-approved stills as the
     two keyframes. Seedance interpolates the motion between them.
+
+    ``pre_uploaded_keyframes`` (used by ``process_clip_with_variants``)
+    short-circuits the GCS upload step when N parallel variants would
+    otherwise race-condition on the same upload key. The dict must have
+    keys ``start_gs`` / ``end_gs`` / ``start_signed`` / ``end_signed``.
     """
     print(f"\n── clip {clip_idx}: s{start_scene_idx} → s{end_scene_idx} "
           f"({target_duration_s}s) · camera={motion_label or '—'}")
@@ -425,16 +461,23 @@ async def process_clip(
 
     key_prefix = build_run_prefix(order_no, run_no)
 
-    # 1. Upload both keyframes → signed URLs Phaya can fetch
-    print(f"   1/3 uploading start + end keyframes…")
-    start_key = f"{key_prefix}/stage4-visuals/clip_{clip_idx}_start_s{start_scene_idx}.jpg"
-    end_key = f"{key_prefix}/stage4-visuals/clip_{clip_idx}_end_s{end_scene_idx}.jpg"
-    start_gs, start_signed = await _upload_to_gcs(
-        gcs, local_path=start_local, key=start_key, content_type="image/jpeg",
-    )
-    end_gs, end_signed = await _upload_to_gcs(
-        gcs, local_path=end_local, key=end_key, content_type="image/jpeg",
-    )
+    if pre_uploaded_keyframes is not None:
+        print(f"   1/3 keyframes already uploaded — reusing signed URLs")
+        start_gs = pre_uploaded_keyframes["start_gs"]
+        end_gs = pre_uploaded_keyframes["end_gs"]
+        start_signed = pre_uploaded_keyframes["start_signed"]
+        end_signed = pre_uploaded_keyframes["end_signed"]
+    else:
+        # 1. Upload both keyframes → signed URLs Phaya can fetch
+        print(f"   1/3 uploading start + end keyframes…")
+        start_key = f"{key_prefix}/stage4-visuals/clip_{clip_idx}_start_s{start_scene_idx}.jpg"
+        end_key = f"{key_prefix}/stage4-visuals/clip_{clip_idx}_end_s{end_scene_idx}.jpg"
+        start_gs, start_signed = await _upload_to_gcs(
+            gcs, local_path=start_local, key=start_key, content_type="image/jpeg",
+        )
+        end_gs, end_signed = await _upload_to_gcs(
+            gcs, local_path=end_local, key=end_key, content_type="image/jpeg",
+        )
 
     # 2. Seedance two-keyframe i2v
     if rich_prompt is not None and rich_duration_str is not None:
@@ -729,7 +772,15 @@ async def main() -> int:
             if (music_wait.ok and music_wait.data and music_wait.data.state is JobState.COMPLETED
                     and music_wait.data.result_url):
                 music_path = args.workdir / "music-seedance.mp3"
-                await _download(music_wait.data.result_url, music_path)
+                music_url = music_wait.data.result_url
+                # Phaya often returns gs:// URLs; httpx only speaks http(s).
+                # Mint a signed HTTPS URL so _download can fetch it.
+                if music_url.startswith(f"gs://{gcs.bucket_name}/"):
+                    m_key = music_url[len(f"gs://{gcs.bucket_name}/"):]
+                    music_url = await asyncio.to_thread(
+                        gcs.signed_url, m_key, ttl=timedelta(hours=1),
+                    )
+                await _download(music_url, music_path)
                 print(f"   ✅ music ready")
             else:
                 print(f"   ⚠️  music render failed")

@@ -93,10 +93,16 @@ def test_process_clip_with_variants_runs_n_jobs_and_picks_highest_score(script_m
     """n_variants=3 → run 3 jobs in parallel, score, copy winner to canonical."""
     workdir = tmp_path
     canonical = workdir / "clip0-seedance-final.mp4"
+    # Pre-create scene stills so the de-dup upload pre-flight passes
+    (workdir / "s0-image.jpg").write_bytes(b"\x00")
+    (workdir / "s1-image.jpg").write_bytes(b"\x00")
 
     call_count = {"n": 0}
 
     async def fake_process_clip(**kwargs):
+        # Variant fan-out must pass shared keyframes through
+        assert kwargs.get("pre_uploaded_keyframes") is not None, \
+            "variants must receive pre-uploaded keyframes to avoid GCS race"
         # Each call writes the canonical clip file; process_clip_with_variants
         # then renames it to a variant-specific path.
         i = call_count["n"]
@@ -118,7 +124,11 @@ def test_process_clip_with_variants_runs_n_jobs_and_picks_highest_score(script_m
     def fake_score(path: Path) -> float:
         return scores_by_filename.get(path.name, 0.0)
 
+    async def fake_upload(*args, **kwargs):
+        return ("gs://test/key", "https://signed.example/key")
+
     with patch.object(script_mod, "process_clip", side_effect=fake_process_clip), \
+         patch.object(script_mod, "_upload_to_gcs", side_effect=fake_upload), \
          patch.object(script_mod, "_score_variant", side_effect=fake_score):
         result = asyncio.run(script_mod.process_clip_with_variants(
             n_variants=3,
@@ -142,10 +152,17 @@ def test_process_clip_with_variants_runs_n_jobs_and_picks_highest_score(script_m
 
 def test_process_clip_with_variants_handles_all_failed(script_mod, tmp_path):
     """If every variant returns None, the wrapper returns None too."""
+    (tmp_path / "s0-image.jpg").write_bytes(b"\x00")
+    (tmp_path / "s1-image.jpg").write_bytes(b"\x00")
+
     async def all_fail(**kwargs):
         return None
 
-    with patch.object(script_mod, "process_clip", side_effect=all_fail):
+    async def fake_upload(*args, **kwargs):
+        return ("gs://test/key", "https://signed.example/key")
+
+    with patch.object(script_mod, "process_clip", side_effect=all_fail), \
+         patch.object(script_mod, "_upload_to_gcs", side_effect=fake_upload):
         result = asyncio.run(script_mod.process_clip_with_variants(
             n_variants=3,
             client=None, gcs=None, clip_idx=0,
@@ -154,3 +171,33 @@ def test_process_clip_with_variants_handles_all_failed(script_mod, tmp_path):
             order_no=1, run_no=1, resolution="720p",
         ))
     assert result is None
+
+
+def test_process_clip_with_variants_bails_when_keyframes_missing(script_mod, tmp_path):
+    """If start/end scene stills don't exist, the wrapper bails before any
+    upload / Seedance call (preserving credits + no GCS-race risk)."""
+    # No s*-image.jpg files in tmp_path
+
+    upload_calls = {"n": 0}
+    process_calls = {"n": 0}
+
+    async def fake_upload(*args, **kwargs):
+        upload_calls["n"] += 1
+        return ("gs://test/key", "https://signed.example/key")
+
+    async def fake_process(**kwargs):
+        process_calls["n"] += 1
+        return {"clip_path": tmp_path / "x.mp4", "cost_thb": 1.0}
+
+    with patch.object(script_mod, "process_clip", side_effect=fake_process), \
+         patch.object(script_mod, "_upload_to_gcs", side_effect=fake_upload):
+        result = asyncio.run(script_mod.process_clip_with_variants(
+            n_variants=3,
+            client=None, gcs=None, clip_idx=0,
+            start_scene_idx=0, end_scene_idx=1, target_duration_s=4.0,
+            motion_label="", dialogue_th="", workdir=tmp_path,
+            order_no=1, run_no=1, resolution="720p",
+        ))
+    assert result is None
+    assert upload_calls["n"] == 0
+    assert process_calls["n"] == 0
