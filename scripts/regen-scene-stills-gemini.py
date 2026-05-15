@@ -58,6 +58,21 @@ def _scene_characters_map(roster: dict[str, Any]) -> dict[int, list[str]]:
     return out
 
 
+_PRODUCT_ANCHOR_PROMPT_PREFIX = (
+    "PRODUCT IDENTITY LOCK — The microphone visible in this frame MUST be "
+    "the MAONO PD300X (a broadcast-style dynamic podcast mic, NOT a "
+    "studio condenser): chunky black shock-mount cage half-encircling the "
+    "body, side-address foam capsule (speak INTO the grey foam end "
+    "horizontally — not vertical / not into the top), solid cylindrical "
+    "matte-black metal body, 'maono' wordmark in flat lowercase white "
+    "letters visible on the side, top-mounted gain knob with small green "
+    "LED indicators and a control button. The attached product reference "
+    "images show the exact product appearance — match them. Explicitly DO "
+    "NOT depict a mesh-head condenser, a thin spring shock mount, or a "
+    "vertically-addressed mic. "
+)
+
+
 async def _regenerate_scene(
     *,
     client: GeminiImageClient,
@@ -68,6 +83,8 @@ async def _regenerate_scene(
     char_ids: list[str],
     character_workdir: Path,
     output_workdir: Path,
+    product_refs: list[Path] | None = None,
+    inject_product_anchor: bool = False,
 ) -> tuple[Path, str] | None:
     """Regen one scene still; return (local_path, gcs_signed_url) or None on failure."""
     refs: list[Path] = []
@@ -77,8 +94,15 @@ async def _regenerate_scene(
             print(f"    ❌ hero portrait missing for {cid}: {hero}")
             return None
         refs.append(hero)
-    ref_label = "+".join(char_ids) if char_ids else "no-char"
-    print(f"  scene {scene_idx}: refs=[{ref_label}] · prompt {len(prompt)} chars")
+    if product_refs:
+        refs.extend(product_refs)
+
+    if inject_product_anchor:
+        prompt = _PRODUCT_ANCHOR_PROMPT_PREFIX + prompt
+
+    char_label = "+".join(char_ids) if char_ids else "no-char"
+    prod_label = f"+prod×{len(product_refs)}" if product_refs else ""
+    print(f"  scene {scene_idx}: refs=[{char_label}{prod_label}] · prompt {len(prompt)} chars")
 
     r = await client.create_image(
         prompt=prompt,
@@ -125,6 +149,21 @@ async def main() -> int:
         help="Also re-generate scenes 0 and 1 (which have no characters). "
              "Default: copy from --base-workdir.",
     )
+    p.add_argument(
+        "--product-ref", type=Path, action="append", default=[],
+        help="Path to a product reference image. Pass multiple times to "
+             "supply multiple angles. When set, these are appended to the "
+             "image_input list AFTER character heroes, and a product-anchor "
+             "block is prepended to the prompt for scenes flagged with "
+             "--product-scenes.",
+    )
+    p.add_argument(
+        "--product-scenes", type=str, default="",
+        help="Comma-separated scene indices that depict the product "
+             "(e.g. '2,3'). Only these scenes receive product refs + "
+             "anchor prompt. If empty AND --product-ref is set, ALL "
+             "regenerated scenes receive product refs.",
+    )
     args = p.parse_args()
 
     bucket = os.environ.get("AUTO_AFFI__GCS_BUCKET", "").strip()
@@ -145,6 +184,22 @@ async def main() -> int:
 
     args.output_workdir.mkdir(parents=True, exist_ok=True)
 
+    # Parse --product-scenes once
+    product_scenes: set[int] = set()
+    if args.product_scenes.strip():
+        product_scenes = {int(x.strip()) for x in args.product_scenes.split(",") if x.strip()}
+    elif args.product_ref:
+        # If product refs given without explicit scenes → apply to every regen scene
+        product_scenes = set(range(len(frames)))
+
+    # Verify all product refs exist before burning any credits
+    for prp in args.product_ref:
+        if not prp.exists():
+            print(f"ERROR: product ref not found: {prp}"); return 1
+    if args.product_ref:
+        print(f"📷 product refs: {len(args.product_ref)} ({[str(p.name) for p in args.product_ref]})")
+        print(f"📷 product scenes: {sorted(product_scenes) if product_scenes else 'none'}")
+
     # Scenes without characters — copy from base unless --regen-all
     for scene_idx, frame in enumerate(frames):
         chars = scene_chars.get(scene_idx, [])
@@ -158,6 +213,7 @@ async def main() -> int:
                 print(f"  scene {scene_idx}: no characters AND no base copy — skipping")
             continue
 
+        use_product = scene_idx in product_scenes
         result = await _regenerate_scene(
             client=client, gcs=gcs, item_id=args.item_id,
             scene_idx=scene_idx,
@@ -165,6 +221,8 @@ async def main() -> int:
             char_ids=chars,
             character_workdir=args.character_workdir,
             output_workdir=args.output_workdir,
+            product_refs=args.product_ref if use_product else None,
+            inject_product_anchor=use_product,
         )
         if result is None:
             print(f"  scene {scene_idx}: FAILED")
