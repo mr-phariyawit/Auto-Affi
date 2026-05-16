@@ -79,8 +79,8 @@ class HiggsfieldCli:
             )
         self._bin = binary
 
-    async def _run(self, args: list[str]) -> str:
-        """Invoke the CLI with the given args. Returns stdout text.
+    async def _run(self, args: list[str]) -> tuple[str, str]:
+        """Invoke the CLI with the given args. Returns (stdout, stderr).
         Raises HiggsfieldCliError on non-zero exit."""
         proc = await asyncio.create_subprocess_exec(
             self._bin, *args,
@@ -95,7 +95,7 @@ class HiggsfieldCli:
                 f"higgsfield {' '.join(args)} → exit {proc.returncode}\n"
                 f"STDOUT: {out[:500]}\nSTDERR: {err[:500]}"
             )
-        return out
+        return out, err
 
     async def generate_video(
         self,
@@ -150,7 +150,7 @@ class HiggsfieldCli:
                 args += [f"--{flag}", str(value)]
         args += list(extra_args)
 
-        out = await self._run(args)
+        out, err = await self._run(args)
 
         # The CLI prints progress + a final URL line. Take the last
         # non-empty line that looks like an http(s) URL.
@@ -161,8 +161,12 @@ class HiggsfieldCli:
                 video_url = line
                 break
         if not video_url:
+            # CLI exited 0 but emitted no URL — the job may have been
+            # rejected upstream (moderation, prompt-too-long, etc.) with
+            # the actual reason on stderr. Surface both streams.
             raise HiggsfieldCliError(
-                f"could not parse video URL from CLI output:\n{out[-600:]}"
+                f"could not parse video URL from CLI output (exit 0).\n"
+                f"STDOUT: {out[-400:]!r}\nSTDERR: {err[-400:]!r}"
             )
         return HiggsfieldVideo(video_url=video_url, raw_stdout=out)
 
@@ -188,7 +192,7 @@ class HiggsfieldCli:
             mr.phariyawit@gmail.com — ultra plan, 2982.5 credits
         We grep for `credits` and pull the float preceding it.
         """
-        out = await self._run(["account", "status"])
+        out, _ = await self._run(["account", "status"])
         for line in out.splitlines():
             line = line.strip().lower()
             if "credit" in line:
