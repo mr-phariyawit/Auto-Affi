@@ -211,3 +211,87 @@ class AiStoryboard(BaseModel):
         for s in self.shots:
             out.setdefault(s.generator, []).append(s)
         return out
+
+
+class ConceptVariantSet(BaseModel):
+    """One concept × N hook variants on a shared body+CTA base.
+
+    Spec: docs/superpowers/specs/2026-05-18-auto-affi-variant-testing-design.md
+
+    Layout convention on disk:
+        data/registry/items/<sku>/concepts/<concept_id>/
+        ├── base.json     ← AiStoryboard (body + CTA shots, no hooks)
+        ├── hooks/
+        │   ├── a.json    ← list[AiShot] (variant A hook shots, e.g. s0+s1)
+        │   ├── b.json
+        │   └── c.json
+        └── links.json    ← {variant_id: shopee_sub_id} (post-render)
+
+    Invariants enforced here:
+      * variants dict is non-empty
+      * variant IDs are lowercase a-z single letters (filesystem safety)
+      * all variants have the same number of hook shots
+      * every variant hook shot shares base.consistency_seed
+      * (sum of variant hook durations + sum of base body/CTA durations)
+        equals base.target_total_duration_s within ±0.01s
+    """
+
+    concept_id: str = Field(min_length=1)
+    item_id: int
+    base: AiStoryboard
+    variants: dict[str, list[AiShot]]
+
+    @field_validator("variants")
+    @classmethod
+    def _variant_ids_must_be_lowercase_single_letter(
+        cls, v: dict[str, list[AiShot]],
+    ) -> dict[str, list[AiShot]]:
+        if not v:
+            raise ValueError("at least one variant required")
+        for vid in v:
+            if not (len(vid) == 1 and vid.isalpha() and vid.islower()):
+                raise ValueError(
+                    f"variant id {vid!r} invalid — must be a single lowercase "
+                    f"letter a-z for filename safety"
+                )
+        return v
+
+    @model_validator(mode="after")
+    def _validate_variant_shape(self) -> "ConceptVariantSet":
+        # Concept-level consistency_seed = base.consistency_seed
+        base_seed = self.base.consistency_seed
+        # All variants must have the same shot count
+        hook_counts = {vid: len(shots) for vid, shots in self.variants.items()}
+        if len(set(hook_counts.values())) > 1:
+            raise ValueError(
+                f"variants must have the same number of hook shots; "
+                f"got {hook_counts}"
+            )
+        # Each hook shot must share base seed
+        for vid, shots in self.variants.items():
+            for shot in shots:
+                if shot.consistency_seed != base_seed:
+                    raise ValueError(
+                        f"variant {vid!r} shot {shot.shot_id} has "
+                        f"consistency_seed={shot.consistency_seed} but base "
+                        f"requires {base_seed}"
+                    )
+        # Total duration = base body+CTA + ANY variant's hook block
+        # (since all variants share the same hook count + a target duration,
+        # we just check the first variant — the validator above guarantees
+        # all variants have identical hook count, durations can still differ
+        # per variant, so check each.)
+        body_total = sum(s.duration_s for s in self.base.shots)
+        target = self.base.target_total_duration_s
+        for vid, shots in self.variants.items():
+            hook_total = sum(s.duration_s for s in shots)
+            if abs((body_total + hook_total) - target) > 0.01:
+                raise ValueError(
+                    f"variant {vid!r}: total duration "
+                    f"{body_total + hook_total:.2f}s does not equal "
+                    f"base.target_total_duration_s {target:.2f}s"
+                )
+        return self
+
+    def variant_ids(self) -> list[str]:
+        return sorted(self.variants.keys())
