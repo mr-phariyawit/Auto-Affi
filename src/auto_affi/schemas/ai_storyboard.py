@@ -8,7 +8,7 @@ HeyGen Avatar IV workflow. See:
 Key invariants this schema enforces that the v1 schema didn't:
 
 1. **Generator routing is a first-class field.** Every shot declares which
-   model owns it (heygen_avatar_iv / seedance_2kf / seedance_t2v / veo /
+   model owns it (higgsfield_cli / seedance_2kf / seedance_t2v / veo /
    hold). The orchestrator dispatches based on this, not on prose.
 
 2. **Duration buckets** match the AI consistency floor (3-6s per shot).
@@ -45,7 +45,6 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 class Generator(StrEnum):
     """Which model owns rendering of this shot."""
 
-    HEYGEN_AVATAR_IV = "heygen_avatar_iv"
     HIGGSFIELD_CLI = "higgsfield_cli"  # routes through `higgsfield generate create <model>`
     SEEDANCE_2KF = "seedance_2kf"  # two-keyframe i2v — Seedance 1.5 Pro via Phaya
     SEEDANCE_2_FAST = "seedance_2_fast"  # Seedance 2.0 Fast via PiAPI ($0.08/s) — fallback path
@@ -128,23 +127,6 @@ class AiShot(BaseModel):
 
     @model_validator(mode="after")
     def _enforce_generator_invariants(self) -> "AiShot":
-        # HeyGen Avatar IV must use phaya_tts and must declare dialogue
-        if self.generator is Generator.HEYGEN_AVATAR_IV:
-            if self.audio_source is not AudioSource.PHAYA_TTS:
-                raise ValueError(
-                    f"shot {self.shot_id}: heygen_avatar_iv requires "
-                    f"audio_source=phaya_tts (got {self.audio_source.value})"
-                )
-            if not (self.dialogue_th and self.dialogue_th.strip()):
-                raise ValueError(
-                    f"shot {self.shot_id}: heygen_avatar_iv requires dialogue_th"
-                )
-            if self.duration_s > 6.0:
-                raise ValueError(
-                    f"shot {self.shot_id}: heygen_avatar_iv max duration is "
-                    f"6s for consistency; got {self.duration_s}s. Split."
-                )
-
         # Two-keyframe Seedance must declare keyframes (1.5 Pro AND 2.0)
         if self.generator in (
             Generator.SEEDANCE_2KF,

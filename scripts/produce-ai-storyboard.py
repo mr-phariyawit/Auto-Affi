@@ -7,7 +7,6 @@ Phases:
      (with image_prompt + refs + negatives wired in)
   3. Dispatch each shot to its declared generator:
        hold             → ffmpeg loops the still for shot.duration_s
-       heygen_avatar_iv → Phaya TTS → HeyGen Avatar IV → download
        seedance_2kf     → Phaya Seedance two-keyframe
        seedance_t2v     → Phaya Seedance text-to-video
        veo              → Gemini Veo 3.1 (not wired here yet — escalates)
@@ -46,7 +45,6 @@ from pydantic import SecretStr
 
 from auto_affi.adapters.gcs_storage import GcsStorage
 from auto_affi.adapters.gemini_image import GEMINI_NANO_BANANA_PRO, GeminiImageClient, write_image_to_path
-from auto_affi.adapters.heygen import HeyGenClient, HeyGenError
 from auto_affi.adapters.phaya import PhayaClient, JobState
 from auto_affi.adapters.seedance2 import Seedance2Client, Seedance2Error
 from auto_affi.adapters.higgsfield_cli import HiggsfieldCli, HiggsfieldCliError
@@ -240,42 +238,6 @@ async def _thai_tts_wav(
     if source == "phaya":
         return await _phaya_tts_wav(client=client, gcs=gcs, text=text, dest=dest)
     raise ValueError(f"unknown tts source: {source!r}")
-
-
-async def _run_heygen_avatar_iv(
-    *, heygen: HeyGenClient, phaya: PhayaClient, gcs: GcsStorage,
-    shot: AiShot, still: Path, dest: Path, workdir: Path,
-    tts_source: str = "edge", tts_voice: str | None = None,
-) -> None:
-    """Thai TTS → HeyGen Avatar IV → save."""
-    if not shot.dialogue_th:
-        raise RuntimeError(f"{shot.shot_id}: heygen requires dialogue_th")
-
-    tts_wav = workdir / f"{shot.shot_id}_tts.wav"
-    print(f"   ↳ Thai TTS ({tts_source}): {shot.dialogue_th!r}")
-    await _thai_tts_wav(
-        client=phaya, gcs=gcs, text=shot.dialogue_th, dest=tts_wav,
-        source=tts_source, voice=tts_voice,
-    )
-    padded = workdir / f"{shot.shot_id}_tts_padded.wav"
-    _pad_audio(tts_wav, padded, shot.duration_s)
-    print(f"   ↳ uploading still + audio to HeyGen")
-    img = await heygen.upload_asset(still)
-    aud = await heygen.upload_asset(padded)
-    print(f"   ↳ HeyGen Avatar IV: render")
-    job = await heygen.create_video_from_image(
-        image_asset_id=img.asset_id,
-        audio_asset_id=aud.asset_id,
-        aspect_ratio=shot.aspect_ratio,
-        resolution="720p",
-        motion_prompt=shot.motion_prompt or "subtle natural reading expression, no head turn",
-        expressiveness=shot.expressiveness or "medium",
-    )
-    completed = await heygen.wait_for_video(job.video_id, interval_s=4.0, timeout_s=600.0)
-    raw = workdir / f"{shot.shot_id}_heygen_raw.mp4"
-    await heygen.download_video(completed.video_url, raw)
-    # Normalize to canonical AAC params + cap to declared duration
-    _normalize_mp4(raw, dest, target_duration_s=shot.duration_s)
 
 
 async def _run_seedance_2kf(
@@ -513,7 +475,7 @@ async def main() -> int:
     args = p.parse_args()
 
     # Env
-    for k in ("PHAYA_API_KEY", "HEYGEN_API_KEY", "GOOGLE_API_KEY", "AUTO_AFFI__GCS_BUCKET"):
+    for k in ("PHAYA_API_KEY", "GOOGLE_API_KEY", "AUTO_AFFI__GCS_BUCKET"):
         if not os.environ.get(k, "").strip():
             print(f"ERROR: {k} missing"); return 1
 
@@ -526,7 +488,6 @@ async def main() -> int:
         api_key=SecretStr(os.environ["GOOGLE_API_KEY"]), model=GEMINI_NANO_BANANA_PRO,
     )
     phaya = PhayaClient(api_key=SecretStr(os.environ["PHAYA_API_KEY"]), timeout_s=60.0)
-    heygen = HeyGenClient(api_key=SecretStr(os.environ["HEYGEN_API_KEY"]), timeout_s=120.0)
     # Seedance 2.0 client is constructed only when actually used so the
     # orchestrator still runs for storyboards that don't need it
     # (PIAPI_API_KEY remains optional until a SEEDANCE_2_* shot appears).
@@ -593,12 +554,6 @@ async def main() -> int:
                 else:
                     print(f"   ↳ reusing {vo_wav.name}")
             _hold_to_mp4(still, clip, shot.duration_s, voiceover_wav=vo_wav)
-        elif shot.generator is Generator.HEYGEN_AVATAR_IV:
-            await _run_heygen_avatar_iv(
-                heygen=heygen, phaya=phaya, gcs=gcs,
-                shot=shot, still=still, dest=clip, workdir=args.workdir,
-                tts_source=args.tts_source, tts_voice=args.tts_voice,
-            )
         elif shot.generator is Generator.SEEDANCE_2KF:
             await _run_seedance_2kf(
                 phaya=phaya, gcs=gcs, key_prefix=args.key_prefix,
