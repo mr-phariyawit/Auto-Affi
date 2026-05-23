@@ -2,7 +2,7 @@
   "_README": "MBP-guard patch applied 2026-04-22. Identical to current .claude/settings.json plus a PreToolUse matcher on AskUserQuestion wired to guard-ask-user.sh. Apply BETWEEN sessions: cp tools/settings-mbp-guard.json .claude/settings.json. After apply, restart Claude Code. Backup first: cp .claude/settings.json .claude/settings.json.pre-mbp-backup",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_TASK_LIST_ID": "aegis-tasks-aegis-team",
+    "CLAUDE_CODE_TASK_LIST_ID": "aegis-tasks-auto-affi",
     "AEGIS_HOOK_PROFILE": "standard"
   },
   "hooks": {
@@ -63,11 +63,15 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/linear-sync-on-kanban.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/research-probe-on-write.sh\""
           }
         ]
       },
       {
-        "matcher": ".*",
+        "matcher": "Bash|Edit|Write|MultiEdit|Task",
         "hooks": [
           {
             "type": "command",
