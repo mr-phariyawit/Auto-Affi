@@ -1,0 +1,360 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [active]:
+      - button "Skip to main content":
+        - generic: Skip to main content
+    - generic [ref=e5]:
+      - banner [ref=e6]:
+        - navigation [ref=e8]:
+          - generic [ref=e9]:
+            - link "Seller Centre" [ref=e10] [cursor=pointer]:
+              - /url: //seller.shopee.co.th
+            - link "Start Selling" [ref=e11] [cursor=pointer]:
+              - /url: /seller/signup
+            - link "Download" [ref=e13] [cursor=pointer]:
+              - /url: /web/
+            - generic [ref=e14]: Follow us on
+            - generic [ref=e15]:
+              - link "Follow us on Facebook" [ref=e16] [cursor=pointer]:
+                - /url: https://facebook.com/ShopeeTH
+              - link "Follow us on Instagram!" [ref=e17] [cursor=pointer]:
+                - /url: https://instagram.com/Shopee_TH
+              - link "Follow us on Line" [ref=e18] [cursor=pointer]:
+                - /url: https://line.me/R/ti/p/@shopeeth
+          - list [ref=e19]:
+            - listitem [ref=e20] [cursor=pointer]:
+              - button "notifications" [ref=e24]:
+                - link "notifications":
+                  - /url: /user/notifications/order
+                  - img
+                  - generic: notifications
+            - link "help" [ref=e25] [cursor=pointer]:
+              - /url: https://help.shopee.co.th/th/s
+              - img [ref=e27]
+              - generic [ref=e31]: help
+            - listitem [ref=e32] [cursor=pointer]:
+              - button "English" [ref=e34]:
+                - generic [ref=e35]:
+                  - img [ref=e37]
+                  - generic [ref=e40]: English
+                  - img [ref=e41]
+            - link "Sign Up" [ref=e43] [cursor=pointer]:
+              - /url: /buyer/signup?next=https%3A%2F%2Fshopee.co.th%2Fi.992256187.44154734826
+            - link "Login" [ref=e45] [cursor=pointer]:
+              - /url: /buyer/login?next=https%3A%2F%2Fshopee.co.th%2Fi.992256187.44154734826
+        - generic [ref=e47]:
+          - link [ref=e48] [cursor=pointer]:
+            - /url: /
+            - img [ref=e50]
+          - generic [ref=e53]:
+            - search [ref=e54]:
+              - combobox "Search for products, brands and shops" [ref=e57]
+              - button [ref=e58] [cursor=pointer]:
+                - img [ref=e59]
+            - generic [ref=e69]:
+              - link "iPhone 1 บาท" [ref=e70] [cursor=pointer]:
+                - /url: /search?keyword=iphone%201%20%E0%B8%9A%E0%B8%B2%E0%B8%97
+              - link "เสื้อผ้า 1 บาท" [ref=e71] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%AA%E0%B8%B7%E0%B9%89%E0%B8%AD%E0%B8%9C%E0%B9%89%E0%B8%B2%201%20%E0%B8%9A%E0%B8%B2%E0%B8%97
+              - link "นาฬิกา Smartwatch ของแท้" [ref=e72] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%99%E0%B8%B2%E0%B8%AC%E0%B8%B4%E0%B8%81%E0%B8%B2%20smartwatch%20%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%97%E0%B9%89
+              - link "เก้าอี้ 1 แถม 1" [ref=e73] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%81%E0%B9%89%E0%B8%B2%E0%B8%AD%E0%B8%B5%E0%B9%89%201%20%E0%B9%81%E0%B8%96%E0%B8%A1%201
+              - link "กางเกงขาสั้นสามส่วน" [ref=e74] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%81%E0%B8%B2%E0%B8%87%E0%B9%80%E0%B8%81%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%AA%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%AA%E0%B8%B2%E0%B8%A1%E0%B8%AA%E0%B9%88%E0%B8%A7%E0%B8%99
+              - link "กระเป๋าลาคอสแท้" [ref=e75] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%9B%E0%B9%8B%E0%B8%B2%E0%B8%A5%E0%B8%B2%E0%B8%84%E0%B8%AD%E0%B8%AA%E0%B9%81%E0%B8%97%E0%B9%89
+              - link "เครื่องแต่งหน้าครบเซ็ตชุดใหญ่" [ref=e76] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%95%E0%B9%88%E0%B8%87%E0%B8%AB%E0%B8%99%E0%B9%89%E0%B8%B2%E0%B8%84%E0%B8%A3%E0%B8%9A%E0%B9%80%E0%B8%8B%E0%B9%87%E0%B8%95%E0%B8%8A%E0%B8%B8%E0%B8%94%E0%B9%83%E0%B8%AB%E0%B8%8D%E0%B9%88
+              - link [ref=e77] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B8%88%E0%B8%81%E0%B9%81%E0%B8%95%E0%B9%88%E0%B8%87%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99
+                - text: กระจกแต่งตัวตั้งพื้น
+              - link [ref=e78] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%AA%E0%B8%B5%E0%B8%A2%E0%B8%87%E0%B8%9A%E0%B8%A5%E0%B8%B9%E0%B8%97%E0%B8%B9%E0%B8%98
+                - text: เครื่องเสียงบลูทูธ
+              - link [ref=e79] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%81%E0%B8%81%E0%B9%89%E0%B8%A7%E0%B9%80%E0%B8%81%E0%B9%87%E0%B8%9A%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%A2%E0%B9%87%E0%B8%99%20panda
+                - text: แก้วเก็บความเย็น Panda
+              - link [ref=e80] [cursor=pointer]:
+                - /url: /search?keyword=baggy%20pants
+                - text: Baggy Pants
+              - link [ref=e81] [cursor=pointer]:
+                - /url: /search?keyword=iphone%2017%20pro%20%E0%B8%9C%E0%B9%88%E0%B8%AD%E0%B8%99%200%25
+                - text: iPhone 17 Pro ผ่อน 0%
+              - link [ref=e82] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%8A%E0%B8%B8%E0%B8%94%E0%B8%95%E0%B8%81%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%84%E0%B8%A3%E0%B8%9A%E0%B8%8A%E0%B8%B8%E0%B8%94%E0%B8%A3%E0%B8%AD%E0%B8%81%E0%B9%80%E0%B8%9A%E0%B8%AA
+                - text: ชุดตกปลาครบชุดรอกเบส
+              - link [ref=e83] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%AB%E0%B8%A1%E0%B8%A7%E0%B8%81%E0%B9%80%E0%B8%A1%E0%B8%81%E0%B8%B2
+                - text: หมวกเมกา
+              - link [ref=e84] [cursor=pointer]:
+                - /url: /search?keyword=topper%205%20%E0%B8%9F%E0%B8%B8%E0%B8%95%20%E0%B9%81%E0%B8%81%E0%B9%89%E0%B8%9B%E0%B8%A7%E0%B8%94%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87
+                - text: Topper 5 ฟุต แก้ปวดหลัง
+              - link [ref=e85] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%A3%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%97%E0%B9%89%E0%B8%B2%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%B4%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%97%E0%B9%89
+                - text: รองเท้าอาริของแท้
+              - link [ref=e86] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%AA%E0%B8%81%E0%B8%B8%E0%B8%8A%E0%B8%8A%E0%B8%B5%E0%B9%88
+                - text: สกุชชี่
+              - link [ref=e87] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%9E%E0%B8%B2%E0%B8%A7%E0%B9%80%E0%B8%A7%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B9%81%E0%B8%9A%E0%B8%87%E0%B8%84%E0%B9%8C%2020000mah%20%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%97%E0%B9%89
+                - text: พาวเวอร์แบงค์ 20000mah ของแท้
+              - link [ref=e88] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%A1%E0%B8%B8%E0%B9%89%E0%B8%87%E0%B8%A1%E0%B8%B5%E0%B9%82%E0%B8%84%E0%B8%A3%E0%B8%87%E0%B8%9E%E0%B8%A3%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%9C%E0%B9%89%E0%B8%B2%E0%B8%A1%E0%B9%88%E0%B8%B2%E0%B8%99
+                - text: มุ้งมีโครงพร้อมผ้าม่าน
+              - link [ref=e89] [cursor=pointer]:
+                - /url: /search?keyword=pcx%20160%202025%20%E0%B8%A1%E0%B8%AD%E0%B9%80%E0%B8%95%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B9%84%E0%B8%8B%E0%B8%84%E0%B9%8C
+                - text: Pcx 160 2025 มอเตอร์ไซค์
+              - link [ref=e90] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%84%E0%B8%B8%E0%B8%8A%E0%B8%8A%E0%B8%B1%E0%B9%88%E0%B8%99%20charmiss%20%E0%B8%A3%E0%B8%B5%E0%B8%9F%E0%B8%B4%E0%B8%A5
+                - text: คุชชั่น Charmiss รีฟิล
+              - link [ref=e91] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%AA%E0%B8%B7%E0%B9%89%E0%B8%AD%E0%B8%81%E0%B8%B1%E0%B8%99%E0%B8%AB%E0%B8%99%E0%B8%B2%E0%B8%A7%E0%B8%9C%E0%B9%89%E0%B8%B2%E0%B8%A3%E0%B9%88%E0%B8%A1%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B8%8A%E0%B8%B2%E0%B8%A2
+                - text: เสื้อกันหนาวผ้าร่มผู้ชาย
+              - link [ref=e92] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%81%E0%B8%B2%E0%B8%87%E0%B9%80%E0%B8%81%E0%B8%87%E0%B8%A2%E0%B8%B7%E0%B8%99%20%E0%B9%80%E0%B8%AD%E0%B8%A7%E0%B8%AA%E0%B8%B9%E0%B8%87%20%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B8%AB%E0%B8%8D%E0%B8%B4%E0%B8%87
+                - text: กางเกงยืน เอวสูง ผู้หญิง
+              - link [ref=e93] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%9B%E0%B9%8B%E0%B8%B2%E0%B9%80%E0%B8%94%E0%B8%B4%E0%B8%99%E0%B8%97%E0%B8%B2%E0%B8%87%2020%20%E0%B8%99%E0%B8%B4%E0%B9%89%E0%B8%A7%20%E0%B8%82%E0%B8%B6%E0%B9%89%E0%B8%99%E0%B9%80%E0%B8%84%E0%B8%A3%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B9%84%E0%B8%94%E0%B9%89
+                - text: กระเป๋าเดินทาง 20 นิ้ว ขึ้นเครื่องได้
+              - link [ref=e94] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%A3%E0%B8%B5%E0%B8%94%E0%B8%9C%E0%B8%A1%E0%B8%8B%E0%B8%B8%E0%B8%9B%E0%B9%80%E0%B8%9B%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%A7%E0%B8%B5%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%97%E0%B9%89
+                - text: ที่รีดผมซุปเปอร์วีของแท้
+              - link [ref=e95] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%AB%E0%B8%B9%E0%B8%9F%E0%B8%B1%E0%B8%87%20apple%20airpods
+                - text: หูฟัง Apple Airpods
+              - link [ref=e96] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%A7%E0%B8%87%E0%B8%88%E0%B8%A3%E0%B8%9B%E0%B8%B4%E0%B8%94%E0%B9%84%E0%B8%A3%E0%B9%89%E0%B8%AA%E0%B8%B2%E0%B8%A2%20yoosee
+                - text: กล้องวงจรปิดไร้สาย Yoosee
+              - link [ref=e97] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%8A%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B9%83%E0%B8%AA%E0%B9%88%E0%B9%80%E0%B8%AA%E0%B8%B7%E0%B9%89%E0%B8%AD%E0%B8%9C%E0%B9%89%E0%B8%B2%E0%B8%82%E0%B8%99%E0%B8%B2%E0%B8%94%E0%B9%83%E0%B8%AB%E0%B8%8D%E0%B9%88
+                - text: ชั้นใส่เสื้อผ้าขนาดใหญ่
+              - link [ref=e98] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%80%E0%B8%88%E0%B8%81%E0%B9%80%E0%B8%95%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%94%E0%B8%B9%E0%B8%AB%E0%B8%99%E0%B8%B1%E0%B8%87
+                - text: โปรเจกเตอร์ดูหนัง
+              - link [ref=e99] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B8%9B%E0%B8%A5%E0%B9%88%E0%B8%AD%E0%B8%A2%E0%B8%AA%E0%B8%B1%E0%B8%8D%E0%B8%8D%E0%B8%B2%E0%B8%93%20wifi%20%E0%B9%83%E0%B8%AA%E0%B9%88%E0%B8%8B%E0%B8%B4%E0%B8%A1%205g
+                - text: ตัวปล่อยสัญญาณ WiFi ใส่ซิม 5g
+              - link [ref=e100] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%AD%E0%B8%A2%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%B7%E0%B8%AD%20pandora%20%E0%B9%81%E0%B8%97%E0%B9%89
+                - text: สร้อยข้อมือ Pandora แท้
+              - link [ref=e101] [cursor=pointer]:
+                - /url: /search?keyword=uniqlo%20%E0%B9%80%E0%B8%AA%E0%B8%B7%E0%B9%89%E0%B8%AD%E0%B8%81%E0%B8%B1%E0%B8%99%20uv%20%E0%B9%81%E0%B8%97%E0%B9%89
+                - text: Uniqlo เสื้อกัน UV แท้
+              - link [ref=e102] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B8%97%E0%B9%88%E0%B8%AD%E0%B8%A3%E0%B8%96
+                - text: ท่อรถ
+              - link [ref=e103] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%AA%E0%B8%B7%E0%B9%89%E0%B8%AD%E0%B9%81%E0%B8%82%E0%B8%99%E0%B8%A2%E0%B8%B2%E0%B8%A7%E0%B9%81%E0%B8%A1%E0%B9%87%E0%B8%81%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%97%E0%B9%89mc
+                - text: เสื้อแขนยาวแม็กของแท้mc
+              - link [ref=e104] [cursor=pointer]:
+                - /url: /search?keyword=%E0%B9%80%E0%B8%95%E0%B8%B5%E0%B8%A2%E0%B8%87%E0%B9%80%E0%B8%9B%E0%B9%88%E0%B8%B2%E0%B8%A5%E0%B8%A1%E0%B8%AD%E0%B8%B1%E0%B8%95%E0%B9%82%E0%B8%99%E0%B8%A1%E0%B8%B1%E0%B8%95%E0%B8%B4
+                - text: เตียงเป่าลมอัตโนมัติ
+          - button "Shopping Cart Icon Shopping Cart Please log in to view cart / add items to cart" [ref=e107]:
+            - link "Shopping Cart Icon Shopping Cart Please log in to view cart / add items to cart" [ref=e109] [cursor=pointer]:
+              - /url: /buyer/login?from_source=mini_cart_btn&next=https%3A%2F%2Fshopee.co.th%2Fi.992256187.44154734826
+              - img "Shopping Cart Icon" [ref=e110]
+              - generic [ref=e114]: Shopping Cart Please log in to view cart / add items to cart
+      - generic [ref=e122]: This shop failed to load. Please tap back and try again.
+      - contentinfo [ref=e123]:
+        - generic [ref=e126]:
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - generic [ref=e129]: CUSTOMER SERVICE
+              - list [ref=e130]:
+                - listitem [ref=e131]:
+                  - link "Help Centre" [ref=e132] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/th/s
+                    - generic [ref=e133]: Help Centre
+                - listitem [ref=e134]:
+                  - link "How To Buy" [ref=e135] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/th/s/article/%E0%B8%89%E0%B8%B1%E0%B8%99%E0%B8%88%E0%B8%B0%E0%B9%80%E0%B8%A3%E0%B8%B4%E0%B9%88%E0%B8%A1%E0%B8%8B%E0%B8%B7%E0%B9%89%E0%B8%AD%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B9%83%E0%B8%99-Shopee-%E0%B8%95%E0%B9%89%E0%B8%AD%E0%B8%87%E0%B8%97%E0%B8%B3%E0%B8%AD%E0%B8%A2%E0%B9%88%E0%B8%B2%E0%B8%87%E0%B9%84%E0%B8%A3
+                    - generic [ref=e136]: How To Buy
+                - listitem [ref=e137]:
+                  - link "How To Sell" [ref=e138] [cursor=pointer]:
+                    - /url: https://seller.shopee.co.th/edu/category?sub_cat_id=212
+                    - generic [ref=e139]: How To Sell
+                - listitem [ref=e140]:
+                  - link "Payment Methods" [ref=e141] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/th/s/article/%E0%B8%8A%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%97%E0%B8%B2%E0%B8%87%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%8A%E0%B8%B3%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99%E0%B9%83%E0%B8%99-Shopee-%E0%B8%A1%E0%B8%B5%E0%B8%81%E0%B8%B5%E0%B9%88%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%A0%E0%B8%97-1542966285804
+                    - generic [ref=e142]: Payment Methods
+                - listitem [ref=e143]:
+                  - link "Shopee Coins" [ref=e144] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/th/s/topic/0TO6F000000Qz7XWAS/shopee-coins
+                    - generic [ref=e145]: Shopee Coins
+                - listitem [ref=e146]:
+                  - link "Shipping & Delivery" [ref=e147] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/portal/category/46-%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%88%E0%B8%B1%E0%B8%94%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%B3%E0%B8%AA%E0%B8%B1%E0%B9%88%E0%B8%87%E0%B8%8B%E0%B8%B7%E0%B9%89%E0%B8%AD-%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%88%E0%B8%B1%E0%B8%94%E0%B8%AA%E0%B9%88%E0%B8%87/782-%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%88%E0%B8%B1%E0%B8%94%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%B3%E0%B8%AA%E0%B8%B1%E0%B9%88%E0%B8%87%E0%B8%8B%E0%B8%B7%E0%B9%89%E0%B8%AD?page=1
+                    - generic [ref=e148]: Shipping & Delivery
+                - listitem [ref=e149]:
+                  - link "Return & Refund" [ref=e150] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/portal/category/47-%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%B7%E0%B8%99%E0%B8%AA%E0%B8%B4%E0%B8%99%E0%B8%84%E0%B9%89%E0%B8%B2-%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%B7%E0%B8%99%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99/780-%E0%B8%82%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%95%E0%B8%AD%E0%B8%99%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%B7%E0%B8%99%E0%B8%AA%E0%B8%B4%E0%B8%99%E0%B8%84%E0%B9%89%E0%B8%B2%2F-%E0%B8%84%E0%B8%B7%E0%B8%99%E0%B9%80%E0%B8%87%E0%B8%B4%E0%B8%99?page=1
+                    - generic [ref=e151]: Return & Refund
+                - listitem [ref=e152]:
+                  - link "Shopee Gurantee" [ref=e153] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/th/s/article/%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%B1%E0%B8%99%E0%B8%95%E0%B8%B5%E0%B9%82%E0%B8%94%E0%B8%A2-Shopee-%E0%B8%84%E0%B8%B7%E0%B8%AD%E0%B8%AD%E0%B8%B0%E0%B9%84%E0%B8%A3-1542966291292
+                    - generic [ref=e154]: Shopee Gurantee
+                - listitem [ref=e155]:
+                  - link "Contact Us" [ref=e156] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/portal/article/85193-%E0%B8%89%E0%B8%B1%E0%B8%99%E0%B8%88%E0%B8%B0%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD-Shopee-%E0%B9%84%E0%B8%94%E0%B9%89%E0%B8%AD%E0%B8%A2%E0%B9%88%E0%B8%B2%E0%B8%87%E0%B9%84%E0%B8%A3?previousPage=search%20recommendation%20bar
+                    - generic [ref=e157]: Contact Us
+            - generic [ref=e158]:
+              - generic [ref=e159]: ABOUT SHOPEE
+              - list [ref=e160]:
+                - listitem [ref=e161]:
+                  - link "About Us" [ref=e162] [cursor=pointer]:
+                    - /url: https://careers.shopee.com/about
+                    - generic [ref=e163]: About Us
+                - listitem [ref=e164]:
+                  - link "Affiliate Program" [ref=e165] [cursor=pointer]:
+                    - /url: https://shopee.co.th/m/affiliate-program
+                    - generic [ref=e166]: Affiliate Program
+                - listitem [ref=e167]:
+                  - link "Shopee Careers" [ref=e168] [cursor=pointer]:
+                    - /url: https://careers.shopee.com/jobs
+                    - generic [ref=e169]: Shopee Careers
+                - listitem [ref=e170]:
+                  - link "Policies" [ref=e171] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/portal/4/category/17578-%2525E0%2525B8%252599%2525E0%2525B9%252582%2525E0%2525B8%2525A2%2525E0%2525B8%25259A%2525E0%2525B8%2525B2%2525E0%2525B8%2525A2/17579-%2525E0%2525B8%252599%2525E0%2525B9%252582%2525E0%2525B8%2525A2%2525E0%2525B8%25259A%2525E0%2525B8%2525B2%2525E0%2525B8%2525A2%2525E0%2525B8%252582%2525E0%2525B8%2525AD%2525E0%2525B8%252587-Shopee?page=1
+                    - generic [ref=e172]: Policies
+                - listitem [ref=e173]:
+                  - link "Shopee Privacy Policy" [ref=e174] [cursor=pointer]:
+                    - /url: https://help.shopee.co.th/portal/4/article/77248-%E0%B8%99%E0%B9%82%E0%B8%A2%E0%B8%9A%E0%B8%B2%E0%B8%A2%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%9B%E0%B9%87%E0%B8%99%E0%B8%AA%E0%B9%88%E0%B8%A7%E0%B8%99%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B8%82%E0%B8%AD%E0%B8%87-Shopee?previousPage=secondary%20category
+                    - generic [ref=e175]: Shopee Privacy Policy
+                - listitem [ref=e176]:
+                  - link "Shopee Blog" [ref=e177] [cursor=pointer]:
+                    - /url: https://shopee.co.th/blog
+                    - generic [ref=e178]: Shopee Blog
+                - listitem [ref=e179]:
+                  - link "Shopee Mall" [ref=e180] [cursor=pointer]:
+                    - /url: https://shopee.co.th/mall/
+                    - generic [ref=e181]: Shopee Mall
+                - listitem [ref=e182]:
+                  - link "Seller Centre" [ref=e183] [cursor=pointer]:
+                    - /url: https://seller.shopee.co.th/
+                    - generic [ref=e184]: Seller Centre
+                - listitem [ref=e185]:
+                  - link "Flash Deals" [ref=e186] [cursor=pointer]:
+                    - /url: https://shopee.co.th/flash_sale/
+                    - generic [ref=e187]: Flash Deals
+                - listitem [ref=e188]:
+                  - link "Media Contact" [ref=e189] [cursor=pointer]:
+                    - /url: mailto:media.th@shopee.com
+                    - generic [ref=e190]: Media Contact
+            - generic [ref=e191]:
+              - generic [ref=e192]: PAYMENT
+              - list [ref=e193]:
+                - listitem [ref=e194]:
+                  - img "logo" [ref=e196]
+                - listitem [ref=e197]:
+                  - img "logo" [ref=e199]
+                - listitem [ref=e200]:
+                  - img "logo" [ref=e202]
+                - listitem [ref=e203]:
+                  - img "logo" [ref=e205]
+                - listitem [ref=e206]:
+                  - img "logo" [ref=e208]
+                - listitem [ref=e209]:
+                  - img "logo" [ref=e211]
+                - listitem [ref=e212]:
+                  - img "logo" [ref=e214]
+                - listitem [ref=e215]:
+                  - img "logo" [ref=e217]
+                - listitem [ref=e218]:
+                  - img "logo" [ref=e220]
+                - listitem [ref=e221]:
+                  - img "logo" [ref=e223]
+                - listitem [ref=e224]:
+                  - img "logo" [ref=e226]
+                - listitem [ref=e227]:
+                  - img "logo" [ref=e229]
+                - listitem [ref=e230]:
+                  - img "logo" [ref=e232]
+                - listitem [ref=e233]:
+                  - img "logo" [ref=e235]
+                - listitem [ref=e236]:
+                  - img "logo" [ref=e238]
+              - generic [ref=e239]: LOGISTICS
+              - list [ref=e240]:
+                - listitem [ref=e241]:
+                  - link "logo" [ref=e242] [cursor=pointer]:
+                    - /url: https://spx.co.th/th
+                    - img "logo" [ref=e243]
+                - listitem [ref=e244]:
+                  - img "logo" [ref=e246]
+                - listitem [ref=e247]:
+                  - img "logo" [ref=e249]
+                - listitem [ref=e250]:
+                  - img "logo" [ref=e252]
+                - listitem [ref=e253]:
+                  - img "logo" [ref=e255]
+                - listitem [ref=e256]:
+                  - img "logo" [ref=e258]
+                - listitem [ref=e259]:
+                  - img "logo" [ref=e261]
+            - generic [ref=e262]:
+              - generic [ref=e263]: FOLLOW US
+              - list [ref=e264]:
+                - listitem [ref=e265]:
+                  - link "Facebook" [ref=e266] [cursor=pointer]:
+                    - /url: https://facebook.com/ShopeeTH
+                    - img [ref=e267]
+                    - generic [ref=e268]: Facebook
+                - listitem [ref=e269]:
+                  - link "Instagram" [ref=e270] [cursor=pointer]:
+                    - /url: https://instagram.com/Shopee_TH
+                    - img [ref=e271]
+                    - generic [ref=e272]: Instagram
+                - listitem [ref=e273]:
+                  - link "Line" [ref=e274] [cursor=pointer]:
+                    - /url: https://line.me/R/ti/p/@shopeeth
+                    - img [ref=e275]
+                    - generic [ref=e276]: Line
+                - listitem [ref=e277]:
+                  - link "LinkedIn" [ref=e278] [cursor=pointer]:
+                    - /url: https://linkedin.com/company/shopee
+                    - img [ref=e279]
+                    - generic [ref=e280]: LinkedIn
+            - generic [ref=e281]:
+              - generic [ref=e282]: SHOPEE APP DOWNLOAD
+              - generic [ref=e283]:
+                - link "download_qr_code" [ref=e284] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/shopee
+                  - img "download_qr_code" [ref=e285]
+                - generic [ref=e286]:
+                  - link "app" [ref=e287] [cursor=pointer]:
+                    - /url: https://linkedin.com/company/shopee
+                    - img "app" [ref=e288]
+                  - link "app" [ref=e289] [cursor=pointer]:
+                    - /url: https://linkedin.com/company/shopee
+                    - img "app" [ref=e290]
+                  - link "app" [ref=e291] [cursor=pointer]:
+                    - /url: https://linkedin.com/company/shopee
+                    - img "app" [ref=e292]
+          - generic [ref=e293]:
+            - generic [ref=e294]: © 2026 Shopee. All Rights Reserved .
+            - generic [ref=e295]:
+              - generic [ref=e296]: "Country & Region:"
+              - link "Argentina" [ref=e298] [cursor=pointer]:
+                - /url: https://shopee.com.ar
+              - link "Singapore" [ref=e300] [cursor=pointer]:
+                - /url: https://shopee.sg
+              - link "Indonesia" [ref=e302] [cursor=pointer]:
+                - /url: https://shopee.co.id
+              - link "Thailand" [ref=e304] [cursor=pointer]:
+                - /url: https://shopee.co.th
+              - link "Malaysia" [ref=e306] [cursor=pointer]:
+                - /url: https://shopee.com.my
+              - link "Vietnam" [ref=e308] [cursor=pointer]:
+                - /url: https://shopee.vn
+              - link "Philippines" [ref=e310] [cursor=pointer]:
+                - /url: https://shopee.ph
+              - link "Brazil" [ref=e312] [cursor=pointer]:
+                - /url: https://shopee.com.br
+              - link "México" [ref=e314] [cursor=pointer]:
+                - /url: https://shopee.com.mx
+              - link "Taiwan" [ref=e316] [cursor=pointer]:
+                - /url: https://shopee.tw
+  - generic:
+    - img
+  - textbox [ref=e318]: 12345678 901234567890
