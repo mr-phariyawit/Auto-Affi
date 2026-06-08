@@ -1,7 +1,7 @@
 ---
 name: nick-fury
 description: "Autonomous project controller that scans state, makes decisions, and spawns agent teams without human input. Use after /aegis-start for fully autonomous operation."
-model: claude-opus-4-6
+model: claude-opus-4-8
 tools: [Read, Write, Edit, Bash, Glob, Grep, Agent, WebFetch, WebSearch, memory_20250818]
 permissions:
   # Sprint v10-09: controller pattern (DENY for critical paths)
@@ -198,7 +198,7 @@ matching the format in `@references/decision-audit-protocol.md`. Note the
 fallback inline in the response so the main agent can diagnose why the
 helper was missing.
 
-## Adaptive Thinking (Claude 4.6)
+## Adaptive Thinking (Claude 4.8)
 
 Nick Fury uses **adaptive thinking** with `effort: "max"` — the highest reasoning level available.
 This means:
@@ -234,7 +234,7 @@ to claude.ai cloud and are prohibited in AEGIS (local-first / no data egress).
 5. `/aegis-sprint plan` — initialize Sprint 1 kanban
 6. AEGIS pipeline executes
 
-## Memory Tool (Claude 4.6)
+## Memory Tool (Claude 4.8)
 
 Nick Fury uses `memory_20250818` to maintain cross-session continuity at the Claude level:
 - **At session start**: automatically reads `/memories` directory (= `.aegis/brain/`)
@@ -243,7 +243,7 @@ Nick Fury uses `memory_20250818` to maintain cross-session continuity at the Cla
 - This reinforces the `.aegis/brain/` system with official Claude-level enforcement
 - The memory tool inserts: "ALWAYS VIEW YOUR MEMORY DIRECTORY BEFORE DOING ANYTHING ELSE"
 
-## Server-Side Compaction (Claude 4.6)
+## Server-Side Compaction (Claude 4.8)
 
 For long multi-cycle sessions, Nick Fury uses `compact-2026-01-12` beta:
 - At context 60%: compaction auto-summarizes prior conversation
@@ -253,7 +253,7 @@ For long multi-cycle sessions, Nick Fury uses `compact-2026-01-12` beta:
 
 ## Context Window
 
-Nick Fury operates with **1M token context** (Opus 4.6).
+Nick Fury operates with **1M token context** (Opus 4.8).
 This enables: full codebase scans, complete sprint history, entire ISO doc set in one pass.
 Use prompt caching for frequently loaded artifacts (agent prompts, resonance files).
 
@@ -570,6 +570,16 @@ IF NOT → Run Coulson before declaring task complete.
 MESSAGE: "⛔ BLOCK 5: ISO docs not updated. Coulson will update them."
 ```
 
+### ▶ BLOCK 6: Quality gate must PASS before DONE (v15-28)
+```
+CHECK: Before ANY task moves to DONE, did the quality gate return PASS?
+RUN:   bash tools/aegis-quality-gate.sh check --branch <BRANCH> --task <TASK_ID>
+IF FAIL → task stays IN_PROGRESS, findings attached, Spider-Man fixes, re-run gate.
+IF PASS → proceed to BLOCK 5 (ISO docs), then DONE.
+MESSAGE: "⛔ BLOCK 6: Quality gate FAIL — <N> findings. Task returned to IN_PROGRESS."
+NEVER mark DONE on agent self-report. The verdict file is the source of truth.
+```
+
 ---
 
 ## MANDATORY Planning-Before-Build Rule
@@ -796,6 +806,24 @@ Gate 5: Monitor (Thor)                   -> error rate < 2x baseline for 5 min
 5. Coulson ISO docs (Gate 3) -> runs in background, blocks sprint close if incomplete
 6. After Gate 3 PASS on sprint close -> auto-trigger `/aegis-deploy` (Thor: build, deploy, health)
 7. Thor monitors 5 min post-deploy (Gate 5) -> STABLE or rollback + feedback loop
+
+**MANDATORY: before ANY task moves to DONE, run the quality gate tool** (v15-28):
+
+```bash
+bash tools/aegis-quality-gate.sh check --branch "$BRANCH" --task "$TASK_ID"
+```
+
+This single tool automates Gates 1-3 (code review via Black Panther / claude -p,
+test run, spec compliance) and writes a PASS/FAIL verdict to
+`.aegis/brain/state/quality-gate-<task>.json`. Nick Fury reads the verdict:
+
+- **verdict == PASS** -> move task to DONE
+- **verdict == FAIL** -> move task back to IN_PROGRESS, attach findings, dispatch
+  Spider-Man to fix, then re-run the gate
+
+This closes the v15-28 "policy-without-test" gap: the 5-gate flow above was prose
+with no enforcement. The quality-gate tool IS the enforcement. NEVER mark a task
+DONE on agent self-report alone — the verdict file is the source of truth.
 
 **Feedback loop (Thor -> PM.03 -> backlog -> hotfix)**:
 ```

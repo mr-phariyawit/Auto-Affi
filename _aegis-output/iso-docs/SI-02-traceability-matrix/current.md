@@ -1,105 +1,175 @@
-# SI.02 Traceability Matrix -- Auto-Affi
-
-> Maps SI.01 requirements to implementation artifacts + test coverage.
-> Updated: 2026-05-13 (Sprint 10 in progress, Sprint 1-9 complete).
-
-- **Project**: Auto-Affi
-- **Created**: 2026-05-13
-- **Last updated**: 2026-05-13 (Sprint 10, session 9)
-- **Status**: Phase 1+2 complete, MANUAL mode prep in progress
-
+---
+document: SI.02
+title: Requirements Traceability Matrix — AEGIS (living document)
+version: 2
+status: Approved
+created: 2026-03-24
+updated: 2026-04-24
+author: Coulson (AEGIS v7.1), updated by Nick Fury (sprint-v10-01)
+project: AEGIS — AI Agent Team Framework
 ---
 
-## Legend
+# SI.02 Traceability Matrix
 
-| Column | Meaning |
-|--------|---------|
-| REQ ID | Requirement ID from SI.01 |
-| Description | Short description |
-| Epic | AEGIS Epic ID |
-| Task(s) | AEGIS Task IDs that implement this requirement |
-| Source File(s) | Implementation files |
-| Test(s) | Test files that verify this requirement |
-| Status | NOT_STARTED / IN_PROGRESS / IMPLEMENTED / VERIFIED |
+## 1. Purpose
 
----
+This matrix traces each functional requirement (SI.01) to its design element
+(SI.03), implementation files, and test cases (SI.04). Ensures no requirement
+is unimplemented or untested.
 
-## Functional Requirements
+**Reality snapshot (v9.0, 2026-04-24):**
+- 11 agent personas (`.claude/agents/*.md`)
+- 30 canonical commands (`.claude/commands/*.md`)
+- 61 operational tools (`tools/*.sh`)
+- 11 enforcement hooks (`.claude/hooks/*.sh`)
+- 28 reference documents (`.claude/references/*.md`)
+- 12 ISO documents: PM.01-PM.06 + SI.01-SI.06 (SI.07 removed — does not exist in standard)
 
-| REQ ID | Description | Epic | Task(s) | Source File(s) | Test(s) | Status |
-|--------|-------------|------|---------|----------------|---------|--------|
-| FR-SC-01 | Shopee product search | E-001 | T-001 | adapters/shopee.py, adapters/shopee_public.py | test_shopee_adapter.py, test_shopee_public.py | VERIFIED |
-| FR-SC-02 | Product scoring rubric | E-001 | T-002 | agents/scout_scoring.py | test_scout_scoring.py | VERIFIED |
-| FR-SC-03 | Restricted category filter | E-001 | T-003 | agents/scout_scoring.py | test_scout_scoring.py | VERIFIED |
-| FR-SC-04 | Wiki saturation query | E-001 | T-004 | wiki/saturation.py | test_saturation.py | VERIFIED |
-| FR-ST-01 | CampaignBrief creation | E-002 | T-005 | schemas/campaign_brief.py | test_campaign_brief.py | VERIFIED |
-| FR-ST-02 | Wiki RAG before reasoning | E-002 | T-006 | wiki/retriever.py | test_wiki_retriever.py | VERIFIED |
-| FR-ST-03 | Mega-sale calendar boost | E-002 | T-007 | agents/strategist.py | test_strategist.py | VERIFIED |
-| FR-WR-01 | Storyboard JSON creation | E-003 | T-008, T-037 | schemas/storyboard.py, agents/writers_room.py | test_storyboard.py, test_writers_room.py | VERIFIED |
-| FR-WR-02 | Writers' Room debate panel | E-003 | T-038 | agents/writers_room.py | test_writers_room.py | VERIFIED |
-| FR-WR-03 | Hook/shot/audio timing rules | E-003 | T-010 | schemas/storyboard.py (validators) | test_storyboard.py | VERIFIED |
-| FR-WR-04 | Thai script + claim safety | E-003 | T-011 | agents/claim_auditor.py | test_claim_auditor.py | VERIFIED |
-| FR-VD-01 | Master video specs | E-004 | T-012 | pipeline/local_renderer.py | test_local_renderer.py | VERIFIED |
-| FR-VD-02 | Editor standard passes | E-004 | T-013 | pipeline/editor_passes.py | test_editor_passes.py | VERIFIED |
-| FR-VD-03 | Hyperframe Thai overlay | E-004 | T-014 | pipeline/hyperframe.py | test_hyperframe.py | VERIFIED |
-| FR-VD-04 | Editor budget cap + fallback | E-004 | T-015 | pipeline/editor_budget.py | test_editor_budget.py | VERIFIED |
-| FR-VD-05 | TTS provider whitelist | E-004 | T-016 | adapters/tts.py | test_tts.py | VERIFIED |
-| FR-PB-01 | IG Reels publish | E-005 | T-017 | adapters/publisher.py | test_publisher_adapter.py | VERIFIED |
-| FR-PB-02 | FB Reels + YT Shorts | E-005 | T-018, T-048, T-049 | adapters/publisher.py | test_publisher_multiplatform.py | VERIFIED |
-| FR-PB-03 | subId taxonomy on links | E-005 | T-019 | adapters/shopee_subids.py | test_shopee_subids.py | VERIFIED |
-| FR-PB-04 | Ad disclosure in caption | E-005 | T-020 | agents/caption_builder.py | test_caption_builder.py | VERIFIED |
-| FR-PB-05 | Wiki-driven posting time | E-005 | T-021 | agents/posting_scheduler.py | test_posting_scheduler.py | VERIFIED |
-| FR-AN-01 | Metrics polling schedule | E-006 | T-022 | agents/analytics_collector.py | test_analytics_collector.py | VERIFIED |
-| FR-AN-02 | Full metrics recording | E-006 | T-023 | schemas/metrics.py | test_metrics.py | VERIFIED |
-| FR-AN-03 | Click-conversion attribution | E-006 | T-024 | schemas/metrics.py (ConversionReport) | test_conversion.py | VERIFIED |
-| FR-FB-01 | Feedback Curator nightly | E-007 | T-025 | wiki/review_queue.py | test_wiki_review.py | VERIFIED |
-| FR-FB-02 | Wiki tier system | E-007 | T-026 | wiki/tier_promoter.py, wiki/entry.py | test_tier_promoter.py | VERIFIED |
-| FR-FB-03 | Bilateral sync | E-007 | T-027 | wiki/store.py | test_wiki_store.py | VERIFIED |
-| FR-FB-04 | Offline replay | E-007 | T-028 | wiki/replay.py | test_replay.py | VERIFIED |
-| FR-SF-01 | Pre-publish safety gates | E-008 | T-029 | agents/safety_gate.py | test_safety_gate.py | VERIFIED |
-| FR-SF-02 | Music license check | E-008 | T-030 | agents/music_license.py | test_music_license.py | VERIFIED |
-| FR-SF-03 | Ad disclosure enforcement | E-008 | T-031 | agents/caption_builder.py | test_caption_builder.py | VERIFIED |
-| FR-SF-04 | Kill switch (multi-level) | E-008 | T-032, T-054 | agents/kill_switch.py, adapters/publisher.py | test_kill_switch.py, test_publisher_approval_gate.py | VERIFIED |
-| FR-SF-05 | Auto-kill on 3 violations | E-008 | T-033 | agents/kill_switch.py | test_kill_switch.py | VERIFIED |
-| FR-OR-01 | Five Temporal workflows | E-009 | T-034 | workflows/definitions.py | test_workflows.py | VERIFIED |
-| FR-OR-02 | Idempotent activities | E-009 | T-035 | workflows/handlers.py | test_workflow_handlers.py | VERIFIED |
-| FR-OR-03 | Budget cap circuit-breaker | E-009 | T-036 | workflows/budget.py | test_budget.py | VERIFIED |
-| FR-OC-01 | Ops dashboard | E-010 | T-044, T-045, T-046 | ops/console/app.py, ops/console/server.py | test_ops_console.py | VERIFIED |
-| FR-OC-02 | Manual approve/reject | E-010 | T-038 | ops/produce.py, agents/production_director.py | test_production_director.py | VERIFIED |
+## 2. Requirement --> Design --> Implementation --> Test
 
-### Sprint 10 additions (MANUAL mode prep)
+### 2.1 Original Requirements (FR-01 through FR-11, NFR-01 through NFR-07)
 
-| REQ ID | Description | Epic | Task(s) | Source File(s) | Test(s) | Status |
-|--------|-------------|------|---------|----------------|---------|--------|
-| FR-QW-07 | Human approval gate on Publisher | E-008 | T-054 | adapters/publisher.py (HumanApprovalGatePublisher) | test_publisher_approval_gate.py | VERIFIED |
-| FR-QW-08a | LLM-driven perfect storyboard | E-003 | T-055 | agents/writers_room.py (LLM path) | test_writers_room_llm.py | VERIFIED |
-| FR-QW-09 | Deploy cron scheduler | E-013 | T-056 | scripts/deploy-cron.sh | (manual verification) | IMPLEMENTED |
-| FR-QW-10 | Monitoring lite JSONL exporter | E-010 | T-057 | ops/metrics_export.py | test_metrics_export.py | VERIFIED |
+| Req ID | Requirement | Design Element | Implementation File(s) | Test Case(s) | Status |
+|--------|-------------|---------------|----------------------|-------------|--------|
+| FR-01 | Agent roster and routing | Layer 1: Agent Personas | `.claude/agents/*.md` (11 agents: beast, black-panther, captain-america, coulson, iron-man, loki, nick-fury, spider-man, thor, war-machine, wasp) | TC-01 | Current (was "12 agents", now 11 after v9-03 Songbird+Vision consolidation) |
+| FR-02 | Skill command system | Layer 2: Commands | `.claude/commands/*.md` (30 canonical commands) | TC-02 | Current (was "27 skills" in CLAUDE_skills.md; now 30 commands after v9-06 consolidation) |
+| FR-03 | Session lifecycle (start/work/retro) | PM State Machine | CLAUDE.md, `.claude/commands/aegis-start.md`, `.claude/commands/aegis-retro.md` | TC-03 | Current |
+| FR-04 | Persistent memory (brain directory) | Layer 4: Agent Memory | `.aegis/brain/**` (migrated from `_aegis-brain/` in v9-01) | TC-04 | Current (path changed v9-01) |
+| FR-05 | Five-gate quality system | Layer 3: Quality Gates + Gate 0 + Gate 4/5 | `.claude/agents/black-panther.md`, `war-machine.md`, `loki.md`, `nick-fury.md`, `thor.md` | TC-05 | Current (was "three-gate", now 5-gate: Gate 0 Pre-Work + Gate 1 Code + Gate 2 QA + Gate 4 Deploy + Gate 5 Monitor) |
+| FR-06 | PM State Machine | PM State Machine (SI.03 S3) | `.claude/references/pm-state-protocol.md` | TC-06 | Current |
+| FR-07 | ISO 29110 compliance docs (12 docs) | Layer 6: ISO Compliance | `_aegis-output/iso-docs/` (PM.01-PM.06 + SI.01-SI.06) | TC-07 | Current (was "11 docs, SI.01-SI.07"; now 12 docs, PM.01-PM.06 + SI.01-SI.06, SI.07 removed) |
+| FR-08 | Autonomy levels (L1/L2/L3) | Nick Fury, /aegis-mode | CLAUDE.md, `.claude/agents/nick-fury.md`, `.claude/commands/aegis-mode.md` | TC-08 | Current |
+| FR-09 | Nick Fury orchestration | Decision Matrix (SI.03 S4) | `.claude/agents/nick-fury.md` | TC-09 | Current |
+| FR-10 | In-process agent execution | Layer 0: Framework Core | CLAUDE.md | TC-10 | Current (tmux mode deprecated v9-01; in-process only) |
+| FR-11 | Post-install verification (/aegis-verify --doctor) | Health check layer | `tools/aegis-doctor.sh` | TC-001..TC-008 | Current (skill replaced by `tools/aegis-doctor.sh` in PR #161; cleanup 2026-05-18 removed obsolete skill stub) |
 
-## Non-Functional Requirements
+### 2.2 New Requirements (v9.0 series, FR-12 through FR-21)
 
-| REQ ID | Description | Task(s) | Verification Method | Status |
-|--------|-------------|---------|---------------------|--------|
-| NFR-PF-01 | Video latency P50 < 90min | -- | Temporal metrics | NOT_STARTED (needs live ops) |
-| NFR-PF-02 | Metrics lag < 5 min | T-022 | Polling schedule test | VERIFIED (dry-run) |
-| NFR-PF-03 | Prompt cache >= 70% | -- | Langfuse dashboard | NOT_STARTED (needs live ops) |
-| NFR-RL-01 | Pipeline success >= 90% P1 | -- | Success rate monitor | NOT_STARTED (needs live ops) |
-| NFR-CS-01 | Cost/video <= $3.32 P1 | T-015 | EditorBudgetTracker | VERIFIED (unit test) |
-| NFR-SC-01 | 5 videos/day P1 | -- | Daily count monitor | NOT_STARTED (needs live ops) |
-| NFR-SEC-01 | Secrets in Vault/SOPS | T-052 | dev-setup.sh checks | IMPLEMENTED |
-| NFR-OB-01 | OTel 100% coverage | -- | Trace analysis | NOT_STARTED |
-| NFR-MT-02 | Test coverage >= 70% | -- | pytest-cov report | VERIFIED (80% coverage) |
+| Req ID | Requirement | Design Element | Implementation File(s) | Test Case(s) | Sprint |
+|--------|-------------|---------------|----------------------|-------------|--------|
+| FR-12 | Master Brain Protocol (MBP) — agents ask Nick Fury, not human | Nick Fury proxy, guard-ask-user hook | `.claude/agents/nick-fury.md`, `.claude/hooks/guard-ask-user.sh`, `tools/aegis-apply-mbp-guard.sh` | `tools/aegis-nick-fury-loop-harness.sh` (20 assertions) | v9-01 |
+| FR-13 | BLOCK 0 pre-work documentation gate | Gate 0: 5-check pipeline (0A-0E) | `.claude/agents/nick-fury.md` (BLOCK 0 section), `tools/aegis-block0-mode.sh` | `tests/aegis-block0-gate-test.sh`, `tests/aegis-block0-mode-test.sh` | v9-01 |
+| FR-14 | Enforcement hooks (guard-bash, guard-write, guard-ui-edit) | Hook layer | `.claude/hooks/guard-bash.sh`, `.claude/hooks/guard-write.sh`, `.claude/hooks/guard-ui-edit.sh` | `tests/aegis-guard-write-test.sh`, `tests/aegis-guard-ui-edit-test.sh` | v9-01 |
+| FR-15 | Decision audit logging | Decision audit protocol | `tools/aegis-log-decision.sh`, `.claude/references/decision-audit-protocol.md` | `tests/aegis-distill-counter-test.sh` | v9-02 |
+| FR-16 | Captain America fallback (judgment threshold) | Tier-2 brain escalation | `.claude/references/captain-america-fallback.md`, `.claude/agents/captain-america.md` | `tests/aegis-distill-counter-test.sh` (threshold check) | v9-02 |
+| FR-17 | Visual design layer (DESIGN.md, BLOCK 0F) | Wasp design system | `.claude/agents/wasp.md`, `tools/aegis-design-init.sh`, `tools/aegis-design-lint.sh`, `tools/aegis-design-fetch.sh` | `tests/aegis-block0-f-gate-test.sh`, `tests/aegis-design-lint-test.sh`, `tests/aegis-design-fetch-test.sh` | v9-03 |
+| FR-18 | Sprint lifecycle (/aegis-sprint plan/close/status) | Sprint management | `.claude/commands/aegis-sprint.md`, `.aegis/brain/sprints/` | Manual (sprint artifact verification) | v9-01 |
+| FR-19 | Policy-without-test audit | Enforcement verification | `tools/aegis-policy-audit.sh` | Manual audit + CI lint workflow (sprint-v13-01-D) | v9-06 |
+| FR-20 | Hook governance (ADR-005) | Architectural decision record | `.aegis/brain/resonance/architecture-decisions.md` (ADR-005) | `tools/aegis-policy-audit.sh` (covers hook completeness) | v9-06 |
+| FR-21 | Application playbook (framework adoption guide) | Layer 7: Documentation | `docs/AEGIS_APPLICATION_PLAYBOOK.md` | Manual (walkthrough verification) | v9-06 |
 
----
+### 2.3 Non-Functional Requirements (unchanged + additions)
 
-## Coverage Summary
+| Req ID | Requirement | Design Element | Implementation File(s) | Test Case(s) | Status |
+|--------|-------------|---------------|----------------------|-------------|--------|
+| NFR-01 | Zero external runtime dependencies | All layers (no imports) | All `CLAUDE*.md`, `.aegis/brain/` | TC-11 | Current |
+| NFR-02 | Token efficiency (model routing) | Layer 1: Model tier assignment | `.claude/agents/*.md` (per-agent effort levels) | TC-12 | Current |
+| NFR-03 | Portability | Layer 0: plain file approach | All `*.md`, `*.json` | TC-13 | Current |
+| NFR-04 | Graceful degradation | Skill error handling, hook fallbacks | `.claude/commands/*.md`, `.claude/hooks/*.sh` | TC-14 | Current |
+| NFR-05 | Audit trail | Layer 4 + Layer 5 + decision log | `.aegis/brain/`, `_aegis-output/`, `tools/aegis-log-decision.sh` | TC-15 | Current |
+| NFR-06 | Bilingual operator interface | Songbird (consolidated into Vision), language rules | CLAUDE.md (language rules) | TC-16 | Current (Songbird persona retired v9-03) |
+| NFR-07 | Version compatibility | CLAUDE.md version header | CLAUDE.md | TC-17 | Current |
+| NFR-08 | Test harness self-validation | Template-based testing | `tests/run-all.sh` (sprint-v13-01-D), `.github/workflows/test.yml` | `tests/aegis-doc-canon-lint-test.sh` (template demonstration) | v9-06 (refreshed v13-01-D) |
 
-| Category | Total | NOT_STARTED | IN_PROGRESS | IMPLEMENTED | VERIFIED |
-|----------|-------|-------------|-------------|-------------|----------|
-| FR-* | 42 | 0 | 0 | 1 | 41 |
-| NFR-* | 9 | 4 | 0 | 1 | 4 |
-| **Total** | **51** | **4** | **0** | **2** | **45** |
+## 3. Design Element --> Requirements Coverage
 
-> 41/42 functional requirements VERIFIED with passing tests (605 unit tests, 80% coverage).
-> 4 NFR items require live production data (blocked on vendor credential onboarding).
-> Sprint 10 added 4 new QW-track requirements, 3 already VERIFIED.
+| Design Element | Satisfies Requirements |
+|----------------|----------------------|
+| Layer 0: Framework Core (CLAUDE.md, CLAUDE_safety.md, CLAUDE_lessons.md) | FR-03, FR-08, FR-10, NFR-07 |
+| Layer 1: Agent Personas (`.claude/agents/*.md`, 11 agents) | FR-01, FR-12, NFR-02 |
+| Layer 2: Commands (`.claude/commands/*.md`, 30 commands) | FR-02, FR-03, FR-06, FR-18 |
+| Layer 3: Quality Gates (5-gate pipeline) | FR-05, FR-13 |
+| Layer 4: Agent Memory (`.aegis/brain/`) | FR-04, FR-06, FR-15, NFR-05 |
+| Layer 5: Output Artifacts (`_aegis-output/`) | NFR-05 |
+| Layer 6: ISO Compliance (`_aegis-output/iso-docs/`, 12 docs) | FR-07 |
+| Layer 7: Documentation (`docs/`) | FR-21 |
+| Hook Layer (`.claude/hooks/*.sh`, 11 hooks) | FR-14, FR-12 |
+| Tool Layer (`tools/*.sh`, 61 tools) | FR-15, FR-17, FR-19 |
+| Reference Layer (`.claude/references/*.md`, 28 refs) | FR-16, FR-20 |
+| PM State Machine | FR-06, FR-03 |
+| Decision Matrix | FR-09 |
+| Visual Design System | FR-17 |
+| Sprint Management | FR-18 |
+
+## 4. Implementation File --> Requirements Coverage
+
+| File / Directory | Requirements Satisfied |
+|------------------|----------------------|
+| CLAUDE.md | FR-03, FR-08, FR-09, FR-10, NFR-07 |
+| CLAUDE_safety.md | NFR-05, NFR-04 |
+| CLAUDE_lessons.md | NFR-05 |
+| `.claude/agents/nick-fury.md` | FR-09, FR-12, FR-13, FR-16 |
+| `.claude/agents/black-panther.md` | FR-05 |
+| `.claude/agents/war-machine.md` | FR-05 |
+| `.claude/agents/loki.md` | FR-05 |
+| `.claude/agents/thor.md` | FR-05 |
+| `.claude/agents/wasp.md` | FR-17 |
+| `.claude/agents/spider-man.md` | FR-02 |
+| `.claude/agents/iron-man.md` | FR-01 |
+| `.claude/agents/captain-america.md` | FR-16 |
+| `.claude/agents/coulson.md` | FR-07 |
+| `.claude/agents/beast.md` | NFR-02 |
+| `.claude/hooks/guard-bash.sh` | FR-14 |
+| `.claude/hooks/guard-write.sh` | FR-14 |
+| `.claude/hooks/guard-ui-edit.sh` | FR-14 |
+| `.claude/hooks/guard-ask-user.sh` | FR-12 |
+| `.claude/hooks/on-stop.sh` | FR-12 |
+| `tools/aegis-log-decision.sh` | FR-15, NFR-05 |
+| `tools/aegis-block0-mode.sh` | FR-13 |
+| `tools/aegis-policy-audit.sh` | FR-19 |
+| `tools/aegis-design-init.sh` | FR-17 |
+| `tools/aegis-design-lint.sh` | FR-17 |
+| `.aegis/brain/` | FR-04, FR-06, NFR-05 |
+| `_aegis-output/iso-docs/` | FR-07 |
+| `docs/AEGIS_APPLICATION_PLAYBOOK.md` | FR-21 |
+
+## 5. Module --> Requirements Crosstab
+
+See SI.03 S2.8 "Module Catalog (MOD-XX)" for module definitions.
+
+| Module | Requirements Satisfied |
+|--------|----------------------|
+| MOD-CORE | FR-03, FR-08, FR-10, NFR-04, NFR-07 |
+| MOD-AGENTS | FR-01, FR-05, FR-09, FR-12, FR-16, FR-17, NFR-02 |
+| MOD-COMMANDS | FR-02, FR-03, FR-06, FR-11, FR-18 |
+| MOD-HOOKS | FR-12, FR-13, FR-14 |
+| MOD-BRAIN | FR-04, FR-06, FR-15, NFR-05 |
+| MOD-TOOLS | FR-13, FR-15, FR-17, FR-19, NFR-08 |
+| MOD-ISO | FR-07 |
+| MOD-REFS | FR-16, FR-20 |
+| MOD-SPRINTS | FR-18 |
+| MOD-SPECS | FR-05, FR-09 |
+| MOD-PLAYBOOK | FR-21 |
+
+## 6. Coverage Summary
+
+| Category | Total | Covered | Gap |
+|----------|-------|---------|-----|
+| Functional Requirements (FR-01..FR-21) | 21 | 21 | 0 |
+| Non-Functional Requirements (NFR-01..NFR-08) | 8 | 8 | 0 |
+| Design Elements | 15 | 15 | 0 |
+| Implementation Paths | 28 | 28 | 0 |
+| Modules (MOD-XX) | 11 | 11 | 0 |
+
+**Coverage: 100% -- No untraced requirements.**
+
+## 7. Open Traceability Issues
+
+| ID | Issue | Status |
+|----|-------|--------|
+| TI-01 | Automated traceability checking | CLOSED -- delivered as `tools/aegis-trace-audit.sh` (sprint-v10-01-E) |
+| TI-02 | NFR-02 (token efficiency) -- no automated cost measurement | Open -- deferred (requires API billing integration) |
+
+## Changelog (v2)
+
+- 2026-04-24: Major refresh (sprint-v10-01-A)
+  - Updated agent count: 12 -> 11 (Songbird+Vision consolidated in v9-03)
+  - Updated command count: 27 skills -> 30 canonical commands (v9-06 consolidation)
+  - Updated ISO doc count: "SI.01-SI.07" -> "PM.01-PM.06 + SI.01-SI.06" (SI.07 removed)
+  - Updated brain path: `_aegis-brain/` -> `.aegis/brain/` (v9-01 migration)
+  - Updated gate system: 3-gate -> 5-gate (Gate 0 Pre-Work, Gate 4 Deploy, Gate 5 Monitor)
+  - Added FR-12 through FR-21 (v9.0 series requirements)
+  - Added NFR-08 (test harness self-validation)
+  - Added Module -> Requirements crosstab (S5)
+  - Closed TI-01 (automated traceability checking shipped)
+  - Fixed header: was "SI.03 Traceability Matrix", corrected to "SI.02 Traceability Matrix"

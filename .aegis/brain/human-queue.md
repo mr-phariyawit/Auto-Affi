@@ -115,6 +115,16 @@
 - **Blocks**: Replace Seedance --generate-audio dialogue with HeyGen Avatar IV lip-sync on clips 2+3
 - **Raised**: 2026-05-15T08:14:10Z
 - **Resolved**: _(pending)_
+
+### [2026-06-08] IRREVERSIBLE — Resolve mid-hard-reset working tree: finalize wipe OR restore from HEAD / ตัดสินสถานะ hard-reset ค้าง: commit การลบทั้งหมด หรือ restore กลับจาก HEAD
+
+- **EN**: doctor 2026-06-08 found the working tree mid-hard-reset. HEAD (5602e53c) = 'snapshot before hard-reset'; tree has 380 unstaged DELETIONS wiping src/ (87), tests/ (67), .aegis brain (108), pyproject.toml + uv.lock + tools/docs/scripts/skills. 0 staged, 50 untracked, 19 modified. Verification (tests+lint) CANNOT run — infra deleted. Fully recoverable from HEAD. Two irreversible paths: (A) finalize the reset = git add -A && commit && push; (B) abort = git restore . to bring code/tests/brain back, then re-run /aegis-verify. Human must pick intent; AEGIS will not auto-commit a source/brain wipe nor auto-restore over an intentional reset. Also queued: stray venv (17,408 .py) inside runs/2026-06-04-hanky-dry-towel.../ should be gitignored+removed either way.
+- **TH**: doctor 2026-06-08 พบ working tree ค้างกลางการ hard-reset. HEAD คือ snapshot ก่อน reset; tree มีการลบ 380 ไฟล์ที่ยังไม่ stage (src/ tests/ .aegis brain pyproject.toml uv.lock). รัน test/lint ไม่ได้เพราะ infra ถูกลบ แต่กู้คืนจาก HEAD ได้ครบ. เลือก: (A) ยืนยัน reset = commit+push การลบ; (B) ยกเลิก = git restore . แล้วรัน /aegis-verify ใหม่. ต้องให้ human ตัดสินเจตนา. หมายเหตุ: มี venv หลง 17,408 ไฟล์ใน runs/hanky-dry-towel ควร gitignore+ลบ.
+- **Category**: Irreversible scope
+- **Raised by**: claude-orchestrator
+- **Blocks**: /aegis-verify (tests+lint), any build/deploy until tree resolved
+- **Raised**: 2026-06-08T12:21:04Z
+- **Resolved**: _(pending)_
 <!-- PENDING_END -->
 
 ## Resolved

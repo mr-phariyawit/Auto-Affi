@@ -1,90 +1,6 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-.eggs/
-build/
-dist/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
-.tox/
-.nox/
-
-# uv / venv
-.venv/
-venv/
-env/
-.python-version
-
-# Secrets & config
+# Secrets
 .env
 .env.*
-!.env.example
-secrets/
-*.pem
-*.key
-
-# OS / editor
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-*.swp
-*~
-
-# Project data (large / volatile)
-# data/* ignores contents but keeps the directory traversable so the
-# negation rule below can match (a bare `data/` blocks descent entirely).
-data/*
-# Fixtures are first-class data (committed, used by tests + runtime).
-!data/fixtures/
-!data/fixtures/**
-assets/
-.cache/
-*.mp4
-*.webm
-*.wav
-*.mp3
-!tests/fixtures/**/*.mp4
-!tests/fixtures/**/*.wav
-!docs/demo/*.mp4
-
-# Logs
-*.log
-logs/
-
-# Temporal / docker
-.tctl/
-docker-compose.override.yml
-out/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # >>> AEGIS Framework (managed by install.sh — do not edit between markers) >>>
 _aegis-output/*.tmp
@@ -132,3 +48,16 @@ _aegis-backup-*/
 *secret*
 credentials.*
 # <<< AEGIS Framework <<<
+
+# Python virtualenv (regenerable from pyproject.toml / uv.lock)
+.venv/
+
+# Production run outputs — large generated media (video/audio/frames), not source
+runs/
+
+# macOS junk
+.DS_Store
+**/.DS_Store
+
+# Keep the env TEMPLATE tracked (required key NAMES only, never values)
+!.env.example

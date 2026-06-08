@@ -1,6 +1,6 @@
 <!-- Auto-generated from .aegis/brain/graph/ — edit topic pages under _aegis-output/wiki/ -->
-<!-- built_at: 2026-05-14T10:07:33.955Z -->
-<!-- node_count: 372 edge_count: 518 -->
+<!-- built_at: 2026-05-26T20:54:39.689Z -->
+<!-- node_count: 404 edge_count: 566 -->
 
 # AEGIS Project Index
 
@@ -16,22 +16,22 @@
 - [GUARDRAILS.md](GUARDRAILS.md) — recurring failure-mode catalog
 - [CLAUDE_safety.md](CLAUDE_safety.md), [CLAUDE_agents.md](CLAUDE_agents.md), [CLAUDE_skills.md](CLAUDE_skills.md), [CLAUDE_lessons.md](CLAUDE_lessons.md)
 
-## Skills (39)
+## Skills (40)
 
 - [adversarial-review](_aegis-output/wiki/skill-adversarial-review.md) — _full_
 - [aegis-activity-logger](_aegis-output/wiki/skill-aegis-activity-logger.md) — _standard_
 - [aegis-approval-gate](_aegis-output/wiki/skill-aegis-approval-gate.md) — _standard_
 - [aegis-builder](_aegis-output/wiki/skill-aegis-builder.md) — _full_
+- [aegis-coverage-screen](_aegis-output/wiki/skill-aegis-coverage-screen.md) — _minimal|standard|full_
+- [aegis-cross-session-awareness](_aegis-output/wiki/skill-aegis-cross-session-awareness.md) — _standard|full_
 - [aegis-distill](_aegis-output/wiki/skill-aegis-distill.md) — _full_
-- [aegis-doctor](_aegis-output/wiki/skill-aegis-doctor.md) — _full_
 - [aegis-issue-thread](_aegis-output/wiki/skill-aegis-issue-thread.md) — _standard_
 - [aegis-live-tail](_aegis-output/wiki/skill-aegis-live-tail.md) — _standard_
 - [aegis-multi-tenant](_aegis-output/wiki/skill-aegis-multi-tenant.md) — _standard_
-- [aegis-observe](_aegis-output/wiki/skill-aegis-observe.md) — _full_
 - [aegis-parallel-dispatch](_aegis-output/wiki/skill-aegis-parallel-dispatch.md) — _standard_
-- [aegis-plus-pilot](_aegis-output/wiki/skill-aegis-plus-pilot.md) — _standard_
 - [aegis-reengineer](_aegis-output/wiki/skill-aegis-reengineer.md) — _full_
 - [aegis-resume](_aegis-output/wiki/skill-aegis-resume.md) — _standard_
+- [aegis-return-format](_aegis-output/wiki/skill-aegis-return-format.md) — _minimal|standard|full_
 - [aegis-router](_aegis-output/wiki/skill-aegis-router.md) — _standard_
 - [aegis-run-logger](_aegis-output/wiki/skill-aegis-run-logger.md) — _standard_
 - [aegis-trace-export](_aegis-output/wiki/skill-aegis-trace-export.md) — _standard_
@@ -43,6 +43,7 @@
 - [code-standards](_aegis-output/wiki/skill-code-standards.md) — _minimal_
 - [course-correction](_aegis-output/wiki/skill-course-correction.md) — _full_
 - [design-system-md](_aegis-output/wiki/skill-design-system-md.md) — _full_
+- [diagram-first-reflex](_aegis-output/wiki/skill-diagram-first-reflex.md) — _full_
 - [git-workflow](_aegis-output/wiki/skill-git-workflow.md) — _minimal_
 - [iso-29110-docs](_aegis-output/wiki/skill-iso-29110-docs.md) — _full_
 - [kanban-board](_aegis-output/wiki/skill-kanban-board.md) — _standard_
@@ -58,7 +59,7 @@
 - [test-architect](_aegis-output/wiki/skill-test-architect.md) — _standard_
 - [work-breakdown](_aegis-output/wiki/skill-work-breakdown.md) — _standard_
 
-## Sprints (44)
+## Sprints (52)
 
 - [v10-01](_aegis-output/wiki/sprint-v10-01.md) — CLOSED
 - [v10-02](_aegis-output/wiki/sprint-v10-02.md) — CLOSED
@@ -99,15 +100,24 @@
 - [v15-08-terminal-sequence-notifications](_aegis-output/wiki/sprint-v15-08-terminal-sequence-notifications.md) — CLOSED
 - [v15-09-approval-gate-cc2141-schema](_aegis-output/wiki/sprint-v15-09-approval-gate-cc2141-schema.md) — CLOSED
 - [v15-10-multi-tenant-cwd](_aegis-output/wiki/sprint-v15-10-multi-tenant-cwd.md) — CLOSED
+- [v15-12-hook-error-friendly-fail](_aegis-output/wiki/sprint-v15-12-hook-error-friendly-fail.md) — CLOSED
+- [v15-13-install-glob-fix](_aegis-output/wiki/sprint-v15-13-install-glob-fix.md) — CLOSED
+- [v15-14-install-manifest-fix](_aegis-output/wiki/sprint-v15-14-install-manifest-fix.md) — CLOSED
+- [v15-15-pretooluse-modern-schema](_aegis-output/wiki/sprint-v15-15-pretooluse-modern-schema.md) — CLOSED
+- [v15-16-performance-leak-fix](_aegis-output/wiki/sprint-v15-16-performance-leak-fix.md) — CLOSED
+- [v15-17-diagram-first-reflex](_aegis-output/wiki/sprint-v15-17-diagram-first-reflex.md) — CLOSED
+- [v15-18a-skill-autodiscover](_aegis-output/wiki/sprint-v15-18a-skill-autodiscover.md) — CLOSED
+- [v15-18b-settings-patch-tool](_aegis-output/wiki/sprint-v15-18b-settings-patch-tool.md) — CLOSED
 - [v9-02](_aegis-output/wiki/sprint-v9-02.md) — CLOSED
 - [v9-03](_aegis-output/wiki/sprint-v9-03.md) — CLOSED
 - [v9-04](_aegis-output/wiki/sprint-v9-04.md) — CLOSED · 14pt
 - [v9-05](_aegis-output/wiki/sprint-v9-05.md) — CLOSED · 46pt
 - [v9-06](_aegis-output/wiki/sprint-v9-06.md) — CLOSED
 
-## Tools (19 packages, 101 files)
+## Tools (19 packages, 106 files)
 
-- **_archived** (5 files)
+- **_archived** (7 files)
+- **_hook-utils** (1 files)
 - **aegis-activity-logger** (3 files)
 - **aegis-approval-gate** (5 files)
 - **aegis-brain-checkpoint** (3 files)
@@ -120,22 +130,22 @@
 - **aegis-multi-tenant** (1 files)
 - **aegis-parallel-dispatch** (1 files)
 - **aegis-pattern-mine** (3 files)
-- **aegis-plus-pilot** (4 files)
 - **aegis-resume** (4 files)
 - **aegis-router** (1 files)
 - **aegis-run-logger** (3 files)
 - **aegis-trace-export** (3 files)
-- **misc** (47 files)
+- **misc** (53 files)
 
-## Hooks (16)
+## Hooks (17)
 
-- **PostToolUse** (7)
-  - `.*` → `node "$CLAUDE_PROJECT_DIR/tools/aegis-activity-logger/log.mjs"`
-  - `.*` → `node "$CLAUDE_PROJECT_DIR/tools/aegis-live-tail/emit.mjs"`
-  - `.*` → `bash "$CLAUDE_PROJECT_DIR/tools/aegis-token-profile.sh"`
+- **PostToolUse** (8)
   - `Bash` → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/run-with-flags.sh" post-tool-use "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.sh"`
+  - `Bash|Edit|Write|MultiEdit|Task` → `node "$CLAUDE_PROJECT_DIR/tools/aegis-activity-logger/log.mjs"`
+  - `Bash|Edit|Write|MultiEdit|Task` → `node "$CLAUDE_PROJECT_DIR/tools/aegis-live-tail/emit.mjs"`
+  - `Bash|Edit|Write|MultiEdit|Task` → `bash "$CLAUDE_PROJECT_DIR/tools/aegis-token-profile.sh"`
   - `Edit|Write|MultiEdit` → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/run-with-flags.sh" post-edit-accumulate "$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-accumulate.sh"`
   - `Edit|Write|MultiEdit` → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/linear-sync-on-kanban.sh"`
+  - `Edit|Write|MultiEdit` → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/research-probe-on-write.sh"`
   - `Edit|Write|MultiEdit` → `bash "$CLAUDE_PROJECT_DIR/tools/aegis-brain-graph/hook.sh"`
 - **PreToolUse** (4)
   - `AskUserQuestion` → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/run-with-flags.sh" guard-ask-user "$CLAUDE_PROJECT_DIR/.claude/hooks/guard-ask-user.sh"`
