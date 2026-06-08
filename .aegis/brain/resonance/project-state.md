@@ -8,15 +8,18 @@
 - Created: 2026-06-08
 
 ## Current State
-- Phase: initialization
-- Active Branch: main
-- Autonomy Level: L1 (human approves every action)
+- Phase: Phase 1 rebuild — Sprint 1 (offline pipeline foundation)
+- Active Branch: claude/ai-marketing-platform-JFcLs
+- Autonomy Level: L3 (Nick Fury active; human is supervisor + credential owner)
+- Source of truth: SPEC.md (685L) + SUPER_SPEC.md + wiki/
 
 ## Key Decisions
-(none yet -- decisions will be logged here by /aegis-retro)
+- 2026-06-08: Hard-reset finalized (commit 82c7fe5c) — code wiped to rebuild from SPEC.md; prior impl recoverable at 5602e53c.
+- Stack locked (SPEC §19.3): Higgsfield Seedance 2.0 + edge-tts + Gemini stills + HyperFrames. No vendor re-evaluation without an ADR.
+- Plan is gate-centric (SPEC §17.3): build offline; live outcome gated on G1–G4.
 
 ## Active Tasks
-(none yet)
+- Sprint 1: AFFI-S1-01..08 (rebuild src/ to green offline vertical slice). See .aegis/brain/sprints/current/kanban.md.
 
 ## Blockers
-(none)
+- 4 human gates (critical path): G1 Shopee Affiliate TH · G2 Meta/IG token · G3 Higgsfield credits · G4 runtime host. See human-queue.md.
