@@ -6,6 +6,7 @@
 - **Status**: Code-complete, **ZERO live outcome**. Read §17 As-Built Reconciliation first.
 - **Owner**: mr.phariyawit@gmail.com
 - **Last updated**: 2026-05-29 (project hard-reset: consolidated SPEC + ADR-001..008 + strategic learnings + roadmap + open blockers into this one file; everything else deleted)
+- **2026-06-08 consolidation**: Folded SUPER_SPEC.md (2026-06-05) operational gates into §10.5; SUPER_SPEC archived to `docs/archive/SUPER_SPEC-2026-06-05.md`. Added `scripts/verify_runs.py` cleanroom verifier. Hard-reset finalized (commit `82c7fe5c`).
 
 ---
 
@@ -426,6 +427,25 @@ GET  /metrics/dashboard
 ### 10.4 Kill Switches
 - Per-product, per-campaign, per-platform, และ global stop ผ่าน ops console
 - Auto-kill เมื่อ platform return policy violation 3 ครั้งใน 24h
+
+---
+
+## 10.5 Operational Compliance Gates (non-negotiable)
+
+> Folded 2026-06-08 from `SUPER_SPEC.md` (2026-06-05). Hard, per-run gates the
+> pipeline must enforce — stricter and more operational than §10.1's pre-publish checks.
+
+1. **Human-in-the-Loop** — no public post without a recorded human approval.
+2. **Speed Guard** — Thai VO playback 1.0–1.15x (warn >1.08x, reject >1.15x); never solve timing by speeding up Thai voice.
+3. **Disclosure** — `#โฆษณา` / `#affiliate` mandatory in every caption before public posting.
+4. **Cleanroom** — final delivery has exactly 1 video + 1 audio stream; the source visual has 0 audio streams.
+5. **Env Secrets** — no provider call before `.env` is loaded and required key NAMES are present; never print secret values.
+6. **Caption/VO Sync** — final render blocked unless captions match the approved voice-segment report.
+7. **Learning Closeout** — every run records successes, failures, user-caught issues, and any workflow rule changed.
+8. **Seedance-Only Visual** — generated visual video uses `seedance_2_0` only (via Higgsfield, §19.3); no visual-video fallback model.
+9. **Human-Visible Storyboard** — no paid visual-video provider call before a 3×3 storyboard/contact sheet is shown and approval is recorded in `pre_generation_user_review.json`.
+
+_Verifier: `scripts/verify_runs.py` checks gates 2/4 (aspect + stream-count cleanroom) post-hoc; caption/disclosure/sync (gates 3/6) need caption + voice-segment inputs._
 
 ---
 
