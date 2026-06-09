@@ -1,4 +1,4 @@
-<!-- version: 1.1.0 -->
+<!-- version: 1.2.0 -->
 <!-- Last updated: 2026-06-09 -->
 
 Last reviewed: 2026-06-09
@@ -11,13 +11,14 @@ Last reviewed: 2026-06-09
 |------|---------|--------|
 | 2026-05-06 | 1.0.0 | Version header pattern introduced (sprint-v12-01). |
 | 2026-06-09 | 1.1.0 | Added aegis-chronicle (project-wide activity + lessons consolidator; complements session-scoped aegis-retro). |
+| 2026-06-09 | 1.2.0 | Added aegis-thai-tldr (Thai decision-first TLDR of any agent output; minimal/core). |
 
 ## Profiles
 | Profile | Skills | Context |
 |---------|:------:|:-------:|
-| minimal | 7 | ~3K tokens |
-| standard | 16 | ~6K tokens |
-| full | 29 | ~12K tokens |
+| minimal | 8 | ~3K tokens |
+| standard | 17 | ~6K tokens |
+| full | 30 | ~12K tokens |
 
 ## Skills List
 | # | Skill | Profile | Triggers |
@@ -51,12 +52,13 @@ Last reviewed: 2026-06-09
 | 28 | aegis-adr | full | ADR, architecture decision, decision record |
 | 29 | aegis-dashboard | full | dashboard, status, overview, metrics |
 | 30 | aegis-chronicle | standard | chronicle, project history, all activities, successes/failures, lessons |
+| 31 | aegis-thai-tldr | minimal | สรุปไทย, แปลไทย, TLDR, ต้องทำอะไร, อ่านไม่ไหว, decision tldr |
 
 ## Profile Switching
 ```
-/aegis-mode minimal    # 7 core skills
-/aegis-mode standard   # 16 skills (default)
-/aegis-mode full       # All 29 skills
+/aegis-mode minimal    # 8 core skills
+/aegis-mode standard   # 17 skills (default)
+/aegis-mode full       # All 30 skills
 /aegis-mode custom personas,code-review,security-audit
 ```
 
