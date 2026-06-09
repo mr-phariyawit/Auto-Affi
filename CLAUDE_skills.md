@@ -1,7 +1,7 @@
-<!-- version: 1.0.0 -->
-<!-- Last updated: 2026-05-06 -->
+<!-- version: 1.1.0 -->
+<!-- Last updated: 2026-06-09 -->
 
-Last reviewed: 2026-05-06
+Last reviewed: 2026-06-09
 
 # AEGIS Skills Catalog v15.1.0
 
@@ -10,13 +10,14 @@ Last reviewed: 2026-05-06
 | Date | Version | Change |
 |------|---------|--------|
 | 2026-05-06 | 1.0.0 | Version header pattern introduced (sprint-v12-01). |
+| 2026-06-09 | 1.1.0 | Added aegis-chronicle (project-wide activity + lessons consolidator; complements session-scoped aegis-retro). |
 
 ## Profiles
 | Profile | Skills | Context |
 |---------|:------:|:-------:|
 | minimal | 7 | ~3K tokens |
-| standard | 15 | ~6K tokens |
-| full | 28 | ~12K tokens |
+| standard | 16 | ~6K tokens |
+| full | 29 | ~12K tokens |
 
 ## Skills List
 | # | Skill | Profile | Triggers |
@@ -49,12 +50,13 @@ Last reviewed: 2026-05-06
 | 27 | aegis-deploy | full | deploy, release, rollback, health check |
 | 28 | aegis-adr | full | ADR, architecture decision, decision record |
 | 29 | aegis-dashboard | full | dashboard, status, overview, metrics |
+| 30 | aegis-chronicle | standard | chronicle, project history, all activities, successes/failures, lessons |
 
 ## Profile Switching
 ```
 /aegis-mode minimal    # 7 core skills
-/aegis-mode standard   # 15 skills (default)
-/aegis-mode full       # All 28 skills
+/aegis-mode standard   # 16 skills (default)
+/aegis-mode full       # All 29 skills
 /aegis-mode custom personas,code-review,security-audit
 ```
 
