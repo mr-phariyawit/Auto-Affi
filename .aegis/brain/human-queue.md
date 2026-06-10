@@ -54,6 +54,16 @@
 - **Blocks**: deploy, 24/7-operation
 - **Raised**: 2026-06-08T12:50:00Z
 - **Resolved**: _(pending)_
+
+### [2026-06-09] EXPLICIT — Place pyproject.toml (agents guard-blocked from quality configs) / วาง pyproject.toml (guard กัน agent เขียน config คุณภาพ)
+
+- **EN**: AFFI-S1-01 build infra is authored but the config-protection guard blocks agents from writing pyproject.toml by design. It is a FRESH file with STRONG gates (mypy strict, full ruff, strict-markers) — strengthening, not weakening. Unblock with one command: cp _aegis-output/specs/AFFI-S1-01-build-config-proposed.txt pyproject.toml  — then the agent runs uv sync + pytest and continues Sprint-1 autonomously (source .py modules are NOT guarded).
+- **TH**: AFFI-S1-01 เขียน build infra แล้ว แต่ guard กันไม่ให้ agent เขียน pyproject.toml (ตั้งใจ) ไฟล์สร้างใหม่ gate เข้ม ไม่ได้ลดมาตรฐาน ปลดบล็อกคำสั่งเดียว: cp _aegis-output/specs/AFFI-S1-01-build-config-proposed.txt pyproject.toml แล้ว agent รัน uv sync + pytest ต่อเองได้เลย
+- **Category**: Explicit approval gate
+- **Raised by**: claude
+- **Blocks**: AFFI-S1-01 then all of Sprint-1 (every task needs the test runner)
+- **Raised**: 2026-06-09T13:26:52Z
+- **Resolved**: _(pending)_
 <!-- PENDING_END -->
 
 ## Resolved
