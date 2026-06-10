@@ -1,4 +1,4 @@
-<!-- version: 1.2.0 -->
+<!-- version: 1.3.0 -->
 <!-- Last updated: 2026-06-09 -->
 
 Last reviewed: 2026-06-09
@@ -12,6 +12,7 @@ Last reviewed: 2026-06-09
 | 2026-05-06 | 1.0.0 | Version header pattern introduced (sprint-v12-01). |
 | 2026-06-09 | 1.1.0 | Added aegis-chronicle (project-wide activity + lessons consolidator; complements session-scoped aegis-retro). |
 | 2026-06-09 | 1.2.0 | Added aegis-thai-tldr (Thai decision-first TLDR of any agent output; minimal/core). |
+| 2026-06-09 | 1.3.0 | Renamed aegis-thai-tldr → tldr-th; TLDR now ends with a dead-simple human action (พิมพ์ go / เลือก A) + reason + expected outcome. |
 
 ## Profiles
 | Profile | Skills | Context |
@@ -52,7 +53,7 @@ Last reviewed: 2026-06-09
 | 28 | aegis-adr | full | ADR, architecture decision, decision record |
 | 29 | aegis-dashboard | full | dashboard, status, overview, metrics |
 | 30 | aegis-chronicle | standard | chronicle, project history, all activities, successes/failures, lessons |
-| 31 | aegis-thai-tldr | minimal | สรุปไทย, แปลไทย, TLDR, ต้องทำอะไร, อ่านไม่ไหว, decision tldr |
+| 31 | tldr-th | minimal | สรุปไทย, แปลไทย, TLDR, ต้องทำอะไร, พิมพ์ go, เลือก A, อ่านไม่ไหว |
 
 ## Profile Switching
 ```
