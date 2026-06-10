@@ -9,14 +9,13 @@ import pytest
 
 from auto_affi.adapters.shopee import ShopeeProduct, get_fixture_products
 from auto_affi.agents.strategist import build_brief
-from auto_affi.agents.writers_room import build_storyboard, _derive_seed
+from auto_affi.agents.writers_room import _derive_seed, build_storyboard
 from auto_affi.schemas.storyboard import (
-    EditorPass,
     REQUIRED_EDITOR_PASSES,
+    EditorPass,
     ScenePurpose,
     Storyboard,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -140,7 +139,7 @@ def test_total_duration_positive(umbrella_storyboard: Storyboard) -> None:
 
 @pytest.mark.unit
 def test_avg_body_shot_in_band(umbrella_storyboard: Storyboard) -> None:
-    """Body shots (non-hook) average must be 1.0–5.0s per Storyboard validator."""
+    """Body shots (non-hook) average must be 1.0-5.0s per Storyboard validator."""
     body = umbrella_storyboard.scenes[1:]
     avg = sum(s.duration_s for s in body) / len(body)
     assert 1.0 <= avg <= 5.0, f"avg body shot {avg:.2f}s outside [1.0, 5.0]"
@@ -250,7 +249,7 @@ def test_build_storyboard_is_deterministic(
     sb2 = build_storyboard(umbrella_brief, umbrella_product)
     # Same number of scenes, same durations, same purposes
     assert len(sb1.scenes) == len(sb2.scenes)
-    for s1, s2 in zip(sb1.scenes, sb2.scenes):
+    for s1, s2 in zip(sb1.scenes, sb2.scenes, strict=False):
         assert s1.duration_s == s2.duration_s
         assert s1.purpose == s2.purpose
 

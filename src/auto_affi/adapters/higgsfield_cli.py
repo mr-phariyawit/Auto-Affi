@@ -22,14 +22,13 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import shutil
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
-
 
 HIGGSFIELD_BIN = "higgsfield"
 
 # Placeholder path returned by dry-run (guaranteed non-existent, clearly fake)
-_DRY_RUN_PLACEHOLDER = Path("/tmp/higgsfield_dryrun_placeholder.mp4")
+_DRY_RUN_PLACEHOLDER = Path("/tmp/higgsfield_dryrun_placeholder.mp4")  # noqa: S108
 
 
 class HiggsfieldCliError(RuntimeError):
@@ -71,13 +70,12 @@ class HiggsfieldCli:
         self._dry_run = dry_run
         self._bin = binary
 
-        if not dry_run:
-            if shutil.which(binary) is None:
-                raise HiggsfieldCliError(
-                    f"`{binary}` not found on PATH. Install with "
-                    f"`npm install -g @higgsfield/cli` and run "
-                    f"`{binary} auth login`."
-                )
+        if not dry_run and shutil.which(binary) is None:
+            raise HiggsfieldCliError(
+                f"`{binary}` not found on PATH. Install with "
+                f"`npm install -g @higgsfield/cli` and run "
+                f"`{binary} auth login`."
+            )
 
     # ------------------------------------------------------------------
     # Internal helpers

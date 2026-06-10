@@ -180,10 +180,7 @@ _DISCLOSURE_PATTERNS: tuple[re.Pattern[str], ...] = (
 def has_disclosure(text: str) -> bool:
     """Return True if *text* contains at least one disclosure marker."""
     lower = text.lower()
-    for pat in _DISCLOSURE_PATTERNS:
-        if pat.search(lower):
-            return True
-    return False
+    return any(pat.search(lower) for pat in _DISCLOSURE_PATTERNS)
 
 
 def audit(text_th: str) -> list[ClaimViolation]:

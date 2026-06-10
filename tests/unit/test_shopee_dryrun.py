@@ -88,10 +88,6 @@ def test_dry_run_source_no_network_imports() -> None:
     if mod_name in sys.modules:
         del sys.modules[mod_name]
 
-    # Also remove any httpx/requests from sys.modules to detect fresh imports
-    before_httpx = "httpx" in sys.modules
-    before_requests = "requests" in sys.modules
-
     importlib.import_module(mod_name)
 
     # The shopee module must NOT have introduced httpx or requests
@@ -101,7 +97,7 @@ def test_dry_run_source_no_network_imports() -> None:
 
     src = shopee_mod.__file__
     assert src is not None
-    with open(src) as f:  # noqa: PTH123
+    with open(src) as f:
         content = f.read()
     assert "import httpx" not in content
     assert "import requests" not in content

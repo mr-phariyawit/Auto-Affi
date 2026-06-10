@@ -8,14 +8,13 @@ from pathlib import Path
 import pytest
 
 from auto_affi.schemas.production import (
+    STAGE_NAMES,
     Decision,
-    MAX_REVISIONS_PER_STAGE,
     ProductionRun,
     ProductionRunStatus,
     ProductionStage,
     ProductionStageStatus,
     Revision,
-    STAGE_NAMES,
     from_json_path,
     to_json_path,
 )

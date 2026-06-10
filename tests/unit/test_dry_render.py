@@ -17,7 +17,6 @@ import pytest
 
 from auto_affi.pipeline.dry_render import assemble_master, render_shot
 
-
 # ---------------------------------------------------------------------------
 # Helper: minimal shot-like object
 # ---------------------------------------------------------------------------
@@ -43,7 +42,7 @@ def _ffprobe_streams(path: Path) -> list[dict]:  # type: ignore[type-arg]
         "-show_streams",
         str(path),
     ]
-    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603 -- cmd is [ffprobe, fixed flags, path]; no user input
     data = json.loads(result.stdout)
     return data.get("streams", [])  # type: ignore[no-any-return]
 

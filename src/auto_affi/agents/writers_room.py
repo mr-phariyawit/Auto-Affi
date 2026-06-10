@@ -22,17 +22,15 @@ from dataclasses import dataclass
 from auto_affi.adapters.shopee import ShopeeProduct
 from auto_affi.schemas.campaign_brief import CampaignBrief
 from auto_affi.schemas.storyboard import (
+    REQUIRED_EDITOR_PASSES,
     Dialogue,
-    EditorPass,
     MusicBrief,
     OnScreenText,
-    REQUIRED_EDITOR_PASSES,
     Scene,
     ScenePurpose,
     Storyboard,
     VoiceProfile,
 )
-
 
 # ---------------------------------------------------------------------------
 # Deterministic seed generation
@@ -72,7 +70,7 @@ class _SceneSpec:
 #   - scenes[0].duration_s <= 2.0 (hook cap)
 #   - avg body shot (scenes[1:]) in [1.0, 5.0]
 #   - total <= 60s
-# Body shots: 5 scenes × avg 4.4s = 22s; total ≈ 2 + 22 = 24s (well under 60s)
+# Body shots: 5 scenes x avg 4.4s = 22s; total approx 2 + 22 = 24s (well under 60s)
 
 _SCENE_SPECS: tuple[_SceneSpec, ...] = (
     _SceneSpec(

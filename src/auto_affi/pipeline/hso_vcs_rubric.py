@@ -1,13 +1,13 @@
-"""HSO×VCS creative rubric lint (SPEC §19.1) — deterministic, offline-only.
+"""HSO x VCS creative rubric lint (SPEC §19.1) -- deterministic, offline-only.
 
-The rubric enforces Hard-Sell Offer (HSO) × Value-Creation Script (VCS)
+The rubric enforces Hard-Sell Offer (HSO) x Value-Creation Script (VCS)
 creative standards on a completed Storyboard before it is handed to the
 video-generation pipeline. All violations are surfaced at lint time, before
 any GPU spend occurs.
 
 Rules enforced (from SPEC §19.1):
-  1. HOOK TIMING — hook (scenes[0]) duration must be 1.0s–2.0s inclusive.
-  2. BODY SHOT TIMING — average body shot (scenes[1:end-1]) must be 3–5s.
+  1. HOOK TIMING -- hook (scenes[0]) duration must be 1.0s-2.0s inclusive.
+  2. BODY SHOT TIMING -- average body shot (scenes[1:end-1]) must be 3-5s.
   3. CLIP MAX — every individual clip must be <= 6s.
   4. CAPTIONS/DIALOGUE — every scene must have dialogue OR on_screen_text
      (not both required, but at least one is required per scene).
@@ -41,7 +41,7 @@ _CLIP_MAX_S = 6.0
 # ---------------------------------------------------------------------------
 
 class RubricReport(BaseModel):
-    """Result of the HSO×VCS creative rubric lint."""
+    """Result of the HSO x VCS creative rubric lint."""
 
     ok: bool
     violations: list[str]
@@ -52,7 +52,7 @@ class RubricReport(BaseModel):
 # ---------------------------------------------------------------------------
 
 def lint_storyboard(sb: Storyboard) -> RubricReport:
-    """Lint a Storyboard against the HSO×VCS creative rubric (SPEC §19.1).
+    """Lint a Storyboard against the HSO x VCS creative rubric (SPEC §19.1).
 
     Parameters
     ----------

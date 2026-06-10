@@ -14,8 +14,8 @@ Zero paid calls. Zero network. Only ffmpeg (local) + dry-run fixtures.
 from __future__ import annotations
 
 import json
-import subprocess
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -45,7 +45,7 @@ def test_offline_slice_full_contract(tmp_path: Path) -> None:
         "-show_streams",
         str(master),
     ]
-    probe_output = subprocess.run(probe_cmd, check=True, capture_output=True, text=True)
+    probe_output = subprocess.run(probe_cmd, check=True, capture_output=True, text=True)  # noqa: S603 -- cmd is [ffprobe, fixed flags, path]; no user input
     probe_data = json.loads(probe_output.stdout)
     streams = probe_data.get("streams", [])
 

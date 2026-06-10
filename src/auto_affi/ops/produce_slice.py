@@ -2,7 +2,7 @@
 
 Chains every built component into a single end-to-end run:
   DryRunShopeeSource → scout score → strategist → writers' room →
-  HSO×VCS rubric lint → dry render (6 shots) → assemble master →
+  HSO x VCS rubric lint → dry render (6 shots) → assemble master →
   compliance gate → registry → budget check.
 
 Zero paid calls. Zero network. Only ffmpeg (local) + dry-run fixtures.
@@ -18,7 +18,8 @@ from typing import Any
 from pydantic import BaseModel
 
 from auto_affi.adapters.shopee import DryRunShopeeSource, ShopeeProduct, get_fixture_products
-from auto_affi.agents.scout_scoring import ScoutInput, score as scout_score
+from auto_affi.agents.scout_scoring import ScoutInput
+from auto_affi.agents.scout_scoring import score as scout_score
 from auto_affi.agents.strategist import build_brief
 from auto_affi.agents.writers_room import build_storyboard
 from auto_affi.pipeline.compliance_gate import ComplianceReport, run_compliance
@@ -28,7 +29,6 @@ from auto_affi.pipeline.hso_vcs_rubric import RubricReport, lint_storyboard
 from auto_affi.registry.local_jsonl import LocalJsonlRegistry
 from auto_affi.schemas.storyboard import Storyboard
 from auto_affi.workflows.budget import BudgetCircuitBreaker, BudgetDecision
-
 
 # ---------------------------------------------------------------------------
 # Result model
@@ -142,7 +142,7 @@ def run_offline_slice(out_dir: Path, *, product: ShopeeProduct | None = None) ->
     2. Scout-score the product (deterministic).
     3. Build a CampaignBrief (strategist, deterministic).
     4. Build a Storyboard (writers' room, deterministic).
-    5. Lint with HSO×VCS rubric (raise on failure).
+    5. Lint with HSO x VCS rubric (raise on failure).
     6. Render 6 shots into out_dir/clips/ using ffmpeg lavfi.
     7. Assemble master → out_dir/master.mp4.
     8. Build VO segments + caption lines (dry-run: speed_factor == 1.0).
@@ -322,7 +322,6 @@ def main() -> int:
 
     Exits 0 if compliance.ok, else 1.
     """
-    import sys
 
     out_dir = Path("out") / "slice"
     out_dir.mkdir(parents=True, exist_ok=True)

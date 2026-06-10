@@ -19,7 +19,6 @@ from auto_affi.adapters.higgsfield_cli import (
     HiggsfieldVideo,
 )
 
-
 # ---------------------------------------------------------------------------
 # dry_run=True (default) — no subprocess, no network
 # ---------------------------------------------------------------------------
@@ -143,9 +142,8 @@ def _fake_proc(stdout: str, returncode: int = 0) -> MagicMock:
 @pytest.mark.unit
 def test_live_mode_raises_when_binary_missing() -> None:
     import auto_affi.adapters.higgsfield_cli as _mod
-    with patch.object(_mod.shutil, "which", return_value=None):
-        with pytest.raises(HiggsfieldCliError, match="not found"):
-            HiggsfieldCli(dry_run=False)
+    with patch.object(_mod.shutil, "which", return_value=None), pytest.raises(HiggsfieldCliError, match="not found"):
+        HiggsfieldCli(dry_run=False)
 
 
 @pytest.mark.unit

@@ -95,7 +95,7 @@ def render_shot(shot: object, dest: Path) -> Path:
         "-pix_fmt", _PIXEL_FORMAT,
         str(dest),
     ]
-    subprocess.run(cmd, check=True, capture_output=True)
+    subprocess.run(cmd, check=True, capture_output=True)  # noqa: S603 -- cmd is [ffmpeg, fixed lavfi flags, path]; no user input
     return dest
 
 
@@ -145,7 +145,7 @@ def assemble_master(clips: list[Path], dest: Path) -> Path:
             "-c", "copy",  # no re-encode; clips are already h264
             str(intermediate),
         ]
-        subprocess.run(concat_cmd, check=True, capture_output=True)
+        subprocess.run(concat_cmd, check=True, capture_output=True)  # noqa: S603 -- cmd is [ffmpeg, fixed concat flags, path]; no user input
 
         # Step 2: mux in exactly one silent audio track (anullsrc -> aac)
         # -shortest stops encoding when the video ends (anullsrc is infinite)
@@ -163,6 +163,6 @@ def assemble_master(clips: list[Path], dest: Path) -> Path:
             "-map", "1:a:0",               # exactly 1 audio stream
             str(dest),
         ]
-        subprocess.run(mux_cmd, check=True, capture_output=True)
+        subprocess.run(mux_cmd, check=True, capture_output=True)  # noqa: S603 -- cmd is [ffmpeg, fixed mux flags, path]; no user input
 
     return dest

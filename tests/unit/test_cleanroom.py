@@ -24,7 +24,6 @@ import pytest
 from auto_affi.pipeline.cleanroom import CleanroomReport, verify_master
 from auto_affi.pipeline.dry_render import assemble_master, render_shot
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -68,7 +67,7 @@ def _make_master_with_two_audio(tmpdir: Path, duration_s: float = 3.0) -> Path:
         "-shortest",
         str(dest),
     ]
-    subprocess.run(cmd, check=True, capture_output=True)
+    subprocess.run(cmd, check=True, capture_output=True)  # noqa: S603 -- cmd is [ffmpeg, fixed flags, path]; no user input
     return dest
 
 

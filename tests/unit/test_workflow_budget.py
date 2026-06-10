@@ -5,10 +5,10 @@ from __future__ import annotations
 import pytest
 
 from auto_affi.workflows.budget import (
-    BudgetCircuitBreaker,
-    BudgetDecision,
     DEFAULT_DAILY_CAP,
     DEFAULT_PER_VIDEO_TARGET,
+    BudgetCircuitBreaker,
+    BudgetDecision,
 )
 
 
@@ -118,14 +118,14 @@ class TestBudgetCircuitBreaker:
     @pytest.mark.unit
     def test_default_daily_cap_is_50(self) -> None:
         """Daily cap must be exactly $50.0 per NFR-CS-03."""
-        assert DEFAULT_DAILY_CAP == pytest.approx(50.0)
+        assert pytest.approx(50.0) == DEFAULT_DAILY_CAP
         breaker = BudgetCircuitBreaker()
         assert breaker.daily_cap == pytest.approx(50.0)
 
     @pytest.mark.unit
     def test_default_per_video_target_is_287(self) -> None:
         """Per-video target must be $2.87 per cost-model.md."""
-        assert DEFAULT_PER_VIDEO_TARGET == pytest.approx(2.87)
+        assert pytest.approx(2.87) == DEFAULT_PER_VIDEO_TARGET
         breaker = BudgetCircuitBreaker()
         assert breaker.per_video_target == pytest.approx(2.87)
 

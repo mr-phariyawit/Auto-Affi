@@ -22,7 +22,6 @@ import pytest
 from auto_affi.pipeline.compliance_gate import ComplianceReport, run_compliance
 from auto_affi.pipeline.dry_render import assemble_master, render_shot
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

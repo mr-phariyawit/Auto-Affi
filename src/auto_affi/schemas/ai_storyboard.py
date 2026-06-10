@@ -55,7 +55,7 @@ class Generator(StrEnum):
 
 
 class NarrativeRole(StrEnum):
-    """HSO×VCS Method narrative function of the shot."""
+    """HSO x VCS Method narrative function of the shot."""
 
     HOOK = "hook"  # 0-3s — pattern interrupt
     STORY = "story"  # 3-30s — emotional / informational beats
@@ -126,7 +126,7 @@ class AiShot(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _enforce_generator_invariants(self) -> "AiShot":
+    def _enforce_generator_invariants(self) -> AiShot:
         # Two-keyframe Seedance must declare keyframes (1.5 Pro AND 2.0)
         if self.generator in (
             Generator.SEEDANCE_2KF,
@@ -138,13 +138,12 @@ class AiShot(BaseModel):
             )
 
         # Higgsfield CLI shots must name which underlying model to dispatch
-        if self.generator is Generator.HIGGSFIELD_CLI:
-            if not self.higgsfield_model:
-                raise ValueError(
-                    f"shot {self.shot_id}: higgsfield_cli requires "
-                    f"higgsfield_model (e.g. 'seedance_2_0', "
-                    f"'cinematic_studio_3_0', 'veo3_1')"
-                )
+        if self.generator is Generator.HIGGSFIELD_CLI and not self.higgsfield_model:
+            raise ValueError(
+                f"shot {self.shot_id}: higgsfield_cli requires "
+                f"higgsfield_model (e.g. 'seedance_2_0', "
+                f"'cinematic_studio_3_0', 'veo3_1')"
+            )
 
         # phaya_tts requires dialogue_th
         if self.audio_source is AudioSource.PHAYA_TTS and not self.dialogue_th:
@@ -179,7 +178,7 @@ class AiStoryboard(BaseModel):
     shots: list[AiShot] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def _propagate_and_validate(self) -> "AiStoryboard":
+    def _propagate_and_validate(self) -> AiStoryboard:
         # Force every shot to share the storyboard's consistency_seed —
         # the schema's load-bearing invariant against character drift.
         for shot in self.shots:
@@ -214,7 +213,7 @@ class AiStoryboard(BaseModel):
 
 
 class ConceptVariantSet(BaseModel):
-    """One concept × N hook variants on a shared body+CTA base.
+    """One concept x N hook variants on a shared body+CTA base.
 
     Spec: docs/superpowers/specs/2026-05-18-auto-affi-variant-testing-design.md
 
@@ -257,7 +256,7 @@ class ConceptVariantSet(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _validate_variant_shape(self) -> "ConceptVariantSet":
+    def _validate_variant_shape(self) -> ConceptVariantSet:
         # Concept-level consistency_seed = base.consistency_seed
         base_seed = self.base.consistency_seed
         # All variants must have the same shot count

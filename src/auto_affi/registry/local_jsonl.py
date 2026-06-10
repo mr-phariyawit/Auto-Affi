@@ -21,7 +21,7 @@ import contextlib
 import json  # noqa: F401 — kept for future use / clarity
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from auto_affi.registry.models import ProductEntry, RunEntry, StoryboardSceneOverride
@@ -181,7 +181,7 @@ class LocalJsonlRegistry:
         rows[idx] = rows[idx].model_copy(
             update={
                 "status": status,
-                "ended_at": datetime.now(timezone.utc),
+                "ended_at": datetime.now(UTC),
                 "total_cost_thb": total_cost_thb,
                 "gcs_prefix": gcs_prefix,
                 "final_mp4_gs_uri": final_mp4_gs_uri,

@@ -19,10 +19,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from auto_affi.agents.claim_auditor import audit as claim_audit, has_disclosure
+from auto_affi.agents.claim_auditor import audit as claim_audit
+from auto_affi.agents.claim_auditor import has_disclosure
 from auto_affi.pipeline.cleanroom import CleanroomReport, verify_master
 from auto_affi.pipeline.speed_guard import SpeedGuardReport, VoSegment, check_speed
-
 
 # ---------------------------------------------------------------------------
 # Caption sync sub-report

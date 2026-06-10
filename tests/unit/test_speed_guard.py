@@ -18,7 +18,6 @@ import pytest
 
 from auto_affi.pipeline.speed_guard import SpeedGuardReport, check_speed
 
-
 # ---------------------------------------------------------------------------
 # Minimal segment helper
 # ---------------------------------------------------------------------------

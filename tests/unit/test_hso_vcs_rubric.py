@@ -7,8 +7,6 @@ Covers:
 
 from __future__ import annotations
 
-import copy
-
 import pytest
 
 from auto_affi.adapters.shopee import ShopeeProduct
@@ -16,17 +14,15 @@ from auto_affi.agents.strategist import build_brief
 from auto_affi.agents.writers_room import build_storyboard
 from auto_affi.pipeline.hso_vcs_rubric import RubricReport, lint_storyboard
 from auto_affi.schemas.storyboard import (
+    REQUIRED_EDITOR_PASSES,
     Dialogue,
-    EditorPass,
     MusicBrief,
     OnScreenText,
-    REQUIRED_EDITOR_PASSES,
     Scene,
     ScenePurpose,
     Storyboard,
     VoiceProfile,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -131,7 +127,7 @@ def test_lint_passes_on_writers_room_storyboard() -> None:
     sb = _make_valid_storyboard()
     report = lint_storyboard(sb)
     assert report.ok is True, (
-        f"Writers' Room storyboard FAILED rubric lint:\n" +
+        "Writers' Room storyboard FAILED rubric lint:\n" +
         "\n".join(f"  - {v}" for v in report.violations)
     )
     assert report.violations == []
@@ -142,7 +138,7 @@ def test_lint_passes_on_minimal_valid_storyboard() -> None:
     sb = _make_minimal_valid_storyboard()
     report = lint_storyboard(sb)
     assert report.ok is True, (
-        f"Minimal storyboard failed:\n" + "\n".join(report.violations)
+        "Minimal storyboard failed:\n" + "\n".join(report.violations)
     )
 
 
@@ -212,7 +208,7 @@ def test_flag_hook_purpose_wrong() -> None:
 @pytest.mark.unit
 def test_flag_body_avg_too_low() -> None:
     """Avg body shot below 3.0s → Rule 2 BODY AVG violation."""
-    # Build manually: hook 2s, body 2s×3, CTA 4s → body avg 2.0s < 3.0s
+    # Build manually: hook 2s, body 2s x3, CTA 4s -> body avg 2.0s < 3.0s
     # Schema avg band is [1.0, 5.0] → 2.0s is VALID for schema but FAILS rubric
     def _scene(idx: int, purpose: ScenePurpose, duration: float) -> Scene:
         return Scene(
@@ -317,16 +313,8 @@ def test_flag_clip_over_6s() -> None:
             dialogue=Dialogue(speaker="narrator", text_th="ดูสินค้าของเราสิ", emphasis_words=[]),
         )
 
-    scenes = [
-        _scene(0, ScenePurpose.HOOK, 2.0),
-        _scene(1, ScenePurpose.AGITATE, 4.0),
-        _scene(2, ScenePurpose.DEMONSTRATE, 12.0),  # 12s → Rule 3 violation
-        _scene(3, ScenePurpose.RESOLVE, 4.0),
-        _scene(4, ScenePurpose.CTA, 4.0),
-    ]
-    # total = 26s ≤ 60 ✓; schema avg body (exc. hook) = (4+12+4+4)/4 = 6.0 > 5.0s
-    # Wait — schema _avg_shot_in_band uses scenes[1:] = (4+12+4+4)/4=6.0 > 5.0 → FAILS schema
-    # Use 7s instead so schema passes: (4+7+4+4)/4 = 4.75 ∈ [1,5] ✓ but 7 > 6 → rubric flag
+    # Note: a 12s clip would fail Storyboard schema (avg body 6.0s > 5.0s bound); use 7s instead
+    # so schema passes: avg body (4+7+4+4)/4 = 4.75 in [1,5] ✓ but 7 > 6 → rubric flag
     scenes_7 = [
         _scene(0, ScenePurpose.HOOK, 2.0),
         _scene(1, ScenePurpose.AGITATE, 4.0),

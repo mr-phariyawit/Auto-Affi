@@ -6,7 +6,7 @@ Verifies that a final master mp4 satisfies the production-review principle:
   - exactly 1 audio stream  (final has VO muxed in)
   - each source clip has 0 audio streams (raw/visual B-roll is silent)
   - duration within ``tolerance_s`` of ``profile_s`` (if given) and ≤ 60s
-  - resolution is 1080 × 1920 (9:16)
+  - resolution is 1080x1920 (9:16)
 
 See docs/principles/2026-06-03-production-review-principle.md §Cleanroom
 Verification Gate for the full policy.
@@ -20,7 +20,6 @@ import subprocess
 from pathlib import Path
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Report model
@@ -64,7 +63,7 @@ def _probe_streams(path: Path) -> list[dict]:  # type: ignore[type-arg]
         "-show_streams",
         str(path),
     ]
-    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603 -- cmd is [ffprobe, fixed flags, path]; no user input
     data: dict = json.loads(result.stdout)  # type: ignore[assignment]
     return data.get("streams", [])  # type: ignore[no-any-return]
 
@@ -146,23 +145,21 @@ def verify_master(
         )
 
     # --- resolution check ---
-    if n_video >= 1:
-        if width != 1080 or height != 1920:
-            violations.append(
-                f"resolution must be 1080x1920 (9:16); found {width}x{height}"
-            )
+    if n_video >= 1 and (width != 1080 or height != 1920):
+        violations.append(
+            f"resolution must be 1080x1920 (9:16); found {width}x{height}"
+        )
 
     # --- duration checks ---
     if duration > 60.0:
         violations.append(
             f"duration {duration:.2f}s exceeds 60s cap"
         )
-    if profile_s is not None:
-        if abs(duration - profile_s) > tolerance_s:
-            violations.append(
-                f"duration {duration:.2f}s deviates from profile "
-                f"{profile_s:.2f}s by more than {tolerance_s:.2f}s"
-            )
+    if profile_s is not None and abs(duration - profile_s) > tolerance_s:
+        violations.append(
+            f"duration {duration:.2f}s deviates from profile "
+            f"{profile_s:.2f}s by more than {tolerance_s:.2f}s"
+        )
 
     # --- source clip audio checks ---
     if source_clips:

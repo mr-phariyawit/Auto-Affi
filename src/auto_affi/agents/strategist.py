@@ -248,7 +248,7 @@ def build_brief(
     product:
         The Shopee product candidate from the Scout agent.
     scout_score:
-        Optional numeric score (0–1) from the Scout rubric. When provided
+        Optional numeric score (0-1) from the Scout rubric. When provided
         and high (>= 0.6) it slightly adjusts expected_ctr upward.
     today:
         Override today's date (for testability of the mega-sale window check).

@@ -1,4 +1,4 @@
-"""Tests for ConceptVariantSet — one concept × N hook variants on
+"""Tests for ConceptVariantSet -- one concept x N hook variants on
 shared body+CTA base."""
 
 from __future__ import annotations
@@ -6,8 +6,12 @@ from __future__ import annotations
 import pytest
 
 from auto_affi.schemas.ai_storyboard import (
-    AiShot, AiStoryboard, AudioSource, ConceptVariantSet,
-    Generator, NarrativeRole,
+    AiShot,
+    AiStoryboard,
+    AudioSource,
+    ConceptVariantSet,
+    Generator,
+    NarrativeRole,
 )
 
 
@@ -120,13 +124,13 @@ def test_concept_variant_set_rejects_variant_seed_mismatch():
 def test_concept_variant_set_total_duration_check():
     """base.target_total_duration must equal hook-duration + body-duration."""
     base = _base_with_body_and_cta(target_total=20.0)
-    # Hooks here add 2s (2 × 1s), body adds 18s, total 20 ✓
+    # Hooks here add 2s (2 x 1s), body adds 18s, total 20 ✓
     ok = ConceptVariantSet(
         concept_id="x", item_id=1, base=base,
         variants={"a": [_hook_shot("s0"), _hook_shot("s1")]},
     )
     assert ok is not None
-    # Now overshoot: 3 × 1s hooks = 3s, body 18s, total 21 vs target 20 → fail
+    # Now overshoot: 3 x 1s hooks = 3s, body 18s, total 21 vs target 20 → fail
     with pytest.raises(ValueError, match="total duration"):
         ConceptVariantSet(
             concept_id="x", item_id=1, base=base,

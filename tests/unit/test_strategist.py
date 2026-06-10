@@ -14,7 +14,6 @@ from auto_affi.adapters.shopee import ShopeeProduct, get_fixture_products
 from auto_affi.agents.strategist import build_brief, is_mega_sale_window
 from auto_affi.schemas.campaign_brief import BriefStatus, CampaignBrief
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
