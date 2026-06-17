@@ -15,6 +15,7 @@ obvious raw sources are excluded from the "final" verdict but counted.
 Usage: python3 scripts/verify_runs.py [--json] [runs_dir]
 """
 from __future__ import annotations
+
 import json
 import os
 import re
@@ -31,8 +32,8 @@ RAW_DIR_RE = re.compile(r"/(raw|source|sources|seedance_visual|kie_outputs|clips
 def ffprobe(path: str):
     """Return (width, height, duration_s, n_video, n_audio) or None on error."""
     try:
-        out = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_entries",
+        out = subprocess.run(  # noqa: S603 — fixed ffprobe args, no shell, no user input
+            ["ffprobe", "-v", "error", "-show_entries",  # noqa: S607 — ffprobe resolved from PATH by design
              "stream=codec_type,width,height:format=duration",
              "-of", "json", path],
             capture_output=True, text=True, timeout=60)
@@ -65,8 +66,9 @@ def declared_mp4s(run_dir: str):
             if not any(k in low for k in ("approval", "manifest", "deliver", "final")):
                 continue
             try:
-                txt = open(os.path.join(root, fn), encoding="utf-8").read()
-            except Exception:
+                with open(os.path.join(root, fn), encoding="utf-8") as fh:
+                    txt = fh.read()
+            except (OSError, UnicodeDecodeError):  # best-effort scan, skip unreadable JSONs
                 continue
             for m in re.findall(r'"([^"]+\.mp4)"', txt):
                 cand = m if os.path.isabs(m) else os.path.join(run_dir, m)
@@ -187,7 +189,7 @@ def main():
           "`OK-silent-src`=9:16 silent B-roll/source (0 audio, expected) · "
           "`WARN`=silent but odd · `FAIL`=NOT 9:16 (raw 1024x1024 etc.) or wrong stream counts.\n")
     print("**Scope (honest)**: this checks aspect/resolution/stream-count (cleanroom) only. "
-          "It does NOT verify caption disclosure, VO speed-guard (1.0–1.15x), caption/VO sync, "
+          "It does NOT verify caption disclosure, VO speed-guard (1.0-1.15x), caption/VO sync, "
           "or product-identity accuracy — those need caption text + voice-segment reports, not ffprobe. "
           "Candidate finals = mp4s referenced in approval/manifest JSONs + composited outputs (per-scene `sNNN_*` and raw sources excluded best-effort).\n")
     for name, rows, note in report:

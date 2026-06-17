@@ -26,6 +26,7 @@ from auto_affi.pipeline.compliance_gate import ComplianceReport, run_compliance
 from auto_affi.pipeline.dry_render import assemble_master, render_shot
 from auto_affi.pipeline.editor_budget import EditorBudgetTracker, PassMode
 from auto_affi.pipeline.hso_vcs_rubric import RubricReport, lint_storyboard
+from auto_affi.pipeline.speed_guard import VoSegment
 from auto_affi.registry.local_jsonl import LocalJsonlRegistry
 from auto_affi.schemas.storyboard import Storyboard
 from auto_affi.workflows.budget import BudgetCircuitBreaker, BudgetDecision
@@ -221,7 +222,7 @@ def run_offline_slice(out_dir: Path, *, product: ShopeeProduct | None = None) ->
     # --- 8. VO segments + captions -------------------------------------- #
     # Dry-run: raw_audio_s == slot_s (speed_factor == 1.0 exactly)
     # One segment per scene that has dialogue text.
-    vo_segments: list[_VoSegmentImpl] = []
+    vo_segments: list[VoSegment] = []
     caption_lines: list[str] = []
 
     for scene in storyboard.scenes:
@@ -243,7 +244,7 @@ def run_offline_slice(out_dir: Path, *, product: ShopeeProduct | None = None) ->
         master_path,
         sb_adapter,
         source_clips=clips,
-        vo_segments=vo_segments,  # type: ignore[arg-type]
+        vo_segments=vo_segments,
         caption_lines=caption_lines,
         profile_s=storyboard.total_duration_s,
     )

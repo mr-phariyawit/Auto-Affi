@@ -23,8 +23,14 @@ import os
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
-from auto_affi.registry.models import ProductEntry, RunEntry, StoryboardSceneOverride
+from auto_affi.registry.models import (
+    ProductEntry,
+    PublishMode,
+    RunEntry,
+    StoryboardSceneOverride,
+)
 
 
 def _atomic_write(path: Path, content: str) -> None:
@@ -107,6 +113,9 @@ class LocalJsonlRegistry:
         if existing is not None:
             return existing
         next_no = 1 + max((p.order_no for p in self._iter_products()), default=0)
+        extra_fields: dict[str, Any] = {
+            k: v for k, v in extras.items() if k in ProductEntry.model_fields
+        }
         entry = ProductEntry(
             order_no=next_no,
             item_id=item_id,
@@ -122,7 +131,7 @@ class LocalJsonlRegistry:
             cta_text=cta_text,
             hypothesis=hypothesis,
             expected_ctr=expected_ctr,
-            **{k: v for k, v in extras.items() if k in ProductEntry.model_fields},
+            **extra_fields,
         )
         with self.products_path.open("a", encoding="utf-8") as fp:
             fp.write(entry.model_dump_json() + "\n")
@@ -144,7 +153,7 @@ class LocalJsonlRegistry:
         return list(latest.values())
 
     def start_run(
-        self, *, order_no: int, run_id: str, publish_mode: str = "dry_run"
+        self, *, order_no: int, run_id: str, publish_mode: PublishMode = "dry_run"
     ) -> RunEntry:
         existing = [r for r in self._iter_runs() if r.order_no == order_no]
         next_no = 1 + max((r.run_no for r in existing), default=0)
@@ -152,7 +161,7 @@ class LocalJsonlRegistry:
             run_no=next_no,
             order_no=order_no,
             run_id=run_id,
-            publish_mode=publish_mode,  # type: ignore[arg-type]
+            publish_mode=publish_mode,
         )
         with self.runs_path.open("a", encoding="utf-8") as fp:
             fp.write(entry.model_dump_json() + "\n")
