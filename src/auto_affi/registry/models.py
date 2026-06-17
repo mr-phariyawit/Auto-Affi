@@ -12,6 +12,9 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+PublishMode = Literal["dry_run", "live"]
+
+
 class ProductEntry(BaseModel):
     """One row of the `products` tab.
 
@@ -66,7 +69,7 @@ class RunEntry(BaseModel):
     final_mp4_gs_uri: str = ""
     scene_count: int = 0
     last_decision: str = ""
-    publish_mode: Literal["dry_run", "live"] = "dry_run"
+    publish_mode: PublishMode = "dry_run"
     error: str = ""
 
 
