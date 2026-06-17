@@ -18,7 +18,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel, Field
 
@@ -54,7 +54,7 @@ def _require_ffprobe() -> str:
     return binary
 
 
-def _probe_streams(path: Path) -> list[dict]:  # type: ignore[type-arg]
+def _probe_streams(path: Path) -> list[dict[str, Any]]:
     """Run ffprobe on *path* and return the list of stream dicts."""
     ffprobe = _require_ffprobe()
     cmd = [
@@ -66,14 +66,14 @@ def _probe_streams(path: Path) -> list[dict]:  # type: ignore[type-arg]
     ]
     result = subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603 -- cmd is [ffprobe, fixed flags, path]; no user input
     data: dict[str, Any] = json.loads(result.stdout)
-    return data.get("streams", [])  # type: ignore[no-any-return]
+    return cast(list[dict[str, Any]], data.get("streams", []))
 
 
-def _count_streams(streams: list[dict], codec_type: str) -> int:  # type: ignore[type-arg]
+def _count_streams(streams: list[dict[str, Any]], codec_type: str) -> int:
     return sum(1 for s in streams if s.get("codec_type") == codec_type)
 
 
-def _get_duration(streams: list[dict]) -> float:  # type: ignore[type-arg]
+def _get_duration(streams: list[dict[str, Any]]) -> float:
     """Best-effort duration from the first video or audio stream."""
     for s in streams:
         raw = s.get("duration")
@@ -85,7 +85,7 @@ def _get_duration(streams: list[dict]) -> float:  # type: ignore[type-arg]
     return 0.0
 
 
-def _get_dimensions(streams: list[dict]) -> tuple[int, int]:  # type: ignore[type-arg]
+def _get_dimensions(streams: list[dict[str, Any]]) -> tuple[int, int]:
     """Return (width, height) from the first video stream, or (0, 0)."""
     for s in streams:
         if s.get("codec_type") == "video":
