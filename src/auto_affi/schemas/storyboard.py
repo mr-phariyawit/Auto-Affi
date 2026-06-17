@@ -76,6 +76,9 @@ class OnScreenText(BaseModel):
     position: str = Field(min_length=1, max_length=40)
 
 
+GeneratorName = Literal["veo3", "veo3_fast", "sora2", "kling", "hailuo", "flux", "imagen"]
+
+
 class Scene(BaseModel):
     """One shot in the storyboard."""
 
@@ -85,7 +88,7 @@ class Scene(BaseModel):
     shot_type: str = Field(min_length=1, max_length=60)
     movement: str = Field(default="static", max_length=60)
     visual_prompt: str = Field(min_length=1, max_length=2000)
-    generator: Literal["veo3", "veo3_fast", "sora2", "kling", "hailuo", "flux", "imagen"]
+    generator: GeneratorName
     dialogue: Dialogue | None = None
     on_screen_text: OnScreenText | None = None
     sfx: list[str] = Field(default_factory=list)

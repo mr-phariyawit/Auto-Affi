@@ -11,7 +11,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 CAPTION_RE = re.compile(r'id=["\']cap-(\d+)["\'][^>]*>(.*?)</div>', re.DOTALL)
 TAG_RE = re.compile(r"<[^>]+>")
 

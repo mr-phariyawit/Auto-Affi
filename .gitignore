@@ -59,5 +59,19 @@ runs/
 .DS_Store
 **/.DS_Store
 
+# Python build/test artifacts (regenerable)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Offline pipeline scratch outputs
+out/
+
 # Keep the env TEMPLATE tracked (required key NAMES only, never values)
 !.env.example

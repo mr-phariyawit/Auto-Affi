@@ -18,6 +18,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -64,7 +65,7 @@ def _probe_streams(path: Path) -> list[dict]:  # type: ignore[type-arg]
         str(path),
     ]
     result = subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603 -- cmd is [ffprobe, fixed flags, path]; no user input
-    data: dict = json.loads(result.stdout)  # type: ignore[assignment]
+    data: dict[str, Any] = json.loads(result.stdout)
     return data.get("streams", [])  # type: ignore[no-any-return]
 
 

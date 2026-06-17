@@ -12,7 +12,7 @@ we fall through silently to ``LocalJsonlRegistry``.
 from __future__ import annotations
 
 import os
-from typing import Protocol, runtime_checkable
+from typing import Protocol, cast, runtime_checkable
 
 from auto_affi.registry.models import ProductEntry, RunEntry, StoryboardSceneOverride
 
@@ -91,7 +91,7 @@ def registry_from_env() -> Registry:
         try:
             from auto_affi.registry.sheets import SheetsRegistry  # type: ignore[import-not-found]
 
-            return SheetsRegistry(sheet_id=sheet_id, service_account_json=sa_json)
+            return cast(Registry, SheetsRegistry(sheet_id=sheet_id, service_account_json=sa_json))
         except ImportError:
             # gspread not installed — fall through to local
             pass

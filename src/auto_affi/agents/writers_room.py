@@ -24,6 +24,7 @@ from auto_affi.schemas.campaign_brief import CampaignBrief
 from auto_affi.schemas.storyboard import (
     REQUIRED_EDITOR_PASSES,
     Dialogue,
+    GeneratorName,
     MusicBrief,
     OnScreenText,
     Scene,
@@ -176,7 +177,7 @@ def _render_scene(
     spec: _SceneSpec,
     product_name: str,
     cta_text: str,
-    generator: str = "sora2",
+    generator: GeneratorName = "sora2",
 ) -> Scene:
     """Instantiate a Scene from a _SceneSpec with substituted text."""
     vprompt = spec.visual_prompt_template.format(product_name=product_name)

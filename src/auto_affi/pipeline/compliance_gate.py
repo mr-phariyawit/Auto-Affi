@@ -73,7 +73,7 @@ class ComplianceReport(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _extract_dialogue(storyboard: Any) -> list[str]:  # type: ignore[explicit-any]
+def _extract_dialogue(storyboard: Any) -> list[str]:
     """Pull all non-empty dialogue_th strings from storyboard shots.
 
     Supports both ``AiStoryboard`` (with ``.shots``) and plain dicts.
@@ -90,14 +90,14 @@ def _extract_dialogue(storyboard: Any) -> list[str]:  # type: ignore[explicit-an
     return texts
 
 
-def _get_shots(storyboard: Any) -> list[Any]:  # type: ignore[explicit-any]
+def _get_shots(storyboard: Any) -> list[Any]:
     """Return shots list from storyboard (object or dict)."""
     if isinstance(storyboard, dict):
         return storyboard.get("shots", [])  # type: ignore[no-any-return]
-    return getattr(storyboard, "shots", [])  # type: ignore[no-any-return]
+    return getattr(storyboard, "shots", [])
 
 
-def _count_dialogue_shots(storyboard: Any) -> int:  # type: ignore[explicit-any]
+def _count_dialogue_shots(storyboard: Any) -> int:
     """Count shots that have non-empty dialogue_th."""
     count = 0
     for shot in _get_shots(storyboard):
@@ -116,7 +116,7 @@ def _count_dialogue_shots(storyboard: Any) -> int:  # type: ignore[explicit-any]
 
 
 def _check_caption_sync(
-    storyboard: Any,  # type: ignore[explicit-any]
+    storyboard: Any,
     caption_lines: list[str] | None,
 ) -> CaptionSyncReport:
     """Verify every shot with dialogue has a corresponding caption line."""
@@ -148,7 +148,7 @@ def _check_caption_sync(
 
 
 def _check_claims(
-    storyboard: Any,  # type: ignore[explicit-any]
+    storyboard: Any,
     caption_lines: list[str] | None,
 ) -> ClaimsReport:
     """Run the claim auditor over all dialogue + captions."""
@@ -195,7 +195,7 @@ def _check_claims(
 
 def run_compliance(
     master_path: Path,
-    storyboard: Any,  # type: ignore[explicit-any]
+    storyboard: Any,
     *,
     source_clips: list[Path] | None = None,
     vo_segments: list[VoSegment] | None = None,

@@ -23,6 +23,7 @@ import os
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from auto_affi.registry.models import ProductEntry, RunEntry, StoryboardSceneOverride
 
@@ -107,6 +108,9 @@ class LocalJsonlRegistry:
         if existing is not None:
             return existing
         next_no = 1 + max((p.order_no for p in self._iter_products()), default=0)
+        extra_fields: dict[str, Any] = {
+            k: v for k, v in extras.items() if k in ProductEntry.model_fields
+        }
         entry = ProductEntry(
             order_no=next_no,
             item_id=item_id,
@@ -122,7 +126,7 @@ class LocalJsonlRegistry:
             cta_text=cta_text,
             hypothesis=hypothesis,
             expected_ctr=expected_ctr,
-            **{k: v for k, v in extras.items() if k in ProductEntry.model_fields},
+            **extra_fields,
         )
         with self.products_path.open("a", encoding="utf-8") as fp:
             fp.write(entry.model_dump_json() + "\n")

@@ -18,12 +18,10 @@ import hashlib
 import json
 import os
 import re
-import sys
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 TZ = dt.timezone(dt.timedelta(hours=7))
@@ -305,7 +303,7 @@ def slug_hash(text: str) -> str:
     cleaned = re.sub(r"\s+", "-", text.strip().lower())
     cleaned = re.sub(r"[^0-9a-zA-Zก-๙_-]+", "", cleaned)
     cleaned = cleaned.strip("-")[:40] or "trend"
-    digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:8]
+    digest = hashlib.sha1(text.encode("utf-8"), usedforsecurity=False).hexdigest()[:8]
     return f"{cleaned}-{digest}"
 
 
@@ -344,10 +342,10 @@ def append_unique(name: str, rows: list[dict[str, str]], key: str, row: dict[str
 
 def fetch_google_trends(geo: str, limit: int) -> list[dict[str, object]]:
     url = f"https://trends.google.com/trending/rss?geo={geo}"
-    req = urllib.request.Request(url, headers={"User-Agent": "AutoAffiSocialScanner/0.1"})
-    with urllib.request.urlopen(req, timeout=25) as response:
+    req = urllib.request.Request(url, headers={"User-Agent": "AutoAffiSocialScanner/0.1"})  # noqa: S310 — known https trends feed
+    with urllib.request.urlopen(req, timeout=25) as response:  # noqa: S310 — known https trends feed
         xml = response.read()
-    root = ET.fromstring(xml)
+    root = ET.fromstring(xml)  # noqa: S314 — parses our own fetched RSS feed
     items = []
     for rank, item in enumerate(root.findall("./channel/item")[:limit], start=1):
         title = item.findtext("title") or ""
@@ -367,8 +365,8 @@ def fetch_google_trends(geo: str, limit: int) -> list[dict[str, object]]:
 
 
 def fetch_json(url: str, *, headers: dict[str, str] | None = None, data: bytes | None = None, timeout: int = 25) -> dict:
-    req = urllib.request.Request(url, data=data, headers=headers or {})
-    with urllib.request.urlopen(req, timeout=timeout) as response:
+    req = urllib.request.Request(url, data=data, headers=headers or {})  # noqa: S310 — known https JSON endpoint
+    with urllib.request.urlopen(req, timeout=timeout) as response:  # noqa: S310 — known https JSON endpoint
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -523,7 +521,7 @@ def youtube_items(geos: list[str], limit: int, tasks: list[dict[str, str]], run_
 
 
 def reddit_access_token(client_id: str, client_secret: str, user_agent: str) -> str:
-    auth = base64.b64encode(f"{client_id}:{client_secret}".encode("utf-8")).decode("ascii")
+    auth = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode("ascii")
     body = urllib.parse.urlencode({"grant_type": "client_credentials"}).encode("utf-8")
     data = fetch_json(
         "https://www.reddit.com/api/v1/access_token",
@@ -674,8 +672,8 @@ def pub_age_hours(pub_date: str) -> str:
     try:
         parsed = email.utils.parsedate_to_datetime(pub_date)
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=dt.timezone.utc)
-        delta = dt.datetime.now(dt.timezone.utc) - parsed.astimezone(dt.timezone.utc)
+            parsed = parsed.replace(tzinfo=dt.UTC)
+        delta = dt.datetime.now(dt.UTC) - parsed.astimezone(dt.UTC)
         return str(max(0, int(delta.total_seconds() // 3600)))
     except Exception:
         return ""
