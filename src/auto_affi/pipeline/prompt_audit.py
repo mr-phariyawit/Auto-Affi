@@ -284,21 +284,6 @@ def _read_events(run_dir: Path) -> list[dict[str, str]]:
     return events
 
 
-def _has_event(run_dir: Path, *, event: str, stage: str, prompt_hash: str | None = None) -> bool:
-    """True if the append-only log carries a matching event (tamper-evidence).
-
-    A legitimate approve/bypass always writes both approvals.json AND an event;
-    a JSON-only forge has no matching event and is therefore detectable.
-    """
-    for ev in _read_events(run_dir):
-        if ev.get("event") != event or ev.get("stage") != stage:
-            continue
-        if prompt_hash is not None and ev.get("prompt_hash") != prompt_hash:
-            continue
-        return True
-    return False
-
-
 def _latest_event_index(events: list[dict[str, str]], *, event: str, stage: str) -> int | None:
     found: int | None = None
     for i, ev in enumerate(events):
@@ -318,6 +303,26 @@ def _hard_blocked(run_dir: Path, stage: str) -> bool:
     events = _read_events(run_dir)
     idx = _latest_event_index(events, event="audit", stage=stage)
     return idx is not None and events[idx].get("hard_block") == "true"
+
+
+def _latest_event(run_dir: Path, *, event: str, stage: str) -> dict[str, str] | None:
+    events = _read_events(run_dir)
+    idx = _latest_event_index(events, event=event, stage=stage)
+    return events[idx] if idx is not None else None
+
+
+def _bypass_is_current(run_dir: Path, stage: str) -> bool:
+    """True only if a bypass event post-dates the latest audit event for the stage.
+
+    Mirrors :func:`_approval_is_current` for the bypass path — defeats stale
+    bypass-event replay after a hash-invalidating re-audit.
+    """
+    events = _read_events(run_dir)
+    last_audit = _latest_event_index(events, event="audit", stage=stage)
+    last_bypass = _latest_event_index(events, event="bypass", stage=stage)
+    if last_bypass is None:
+        return False
+    return last_audit is None or last_bypass > last_audit
 
 
 def _approval_is_current(run_dir: Path, stage: str, prompt_hash: str | None) -> bool:
@@ -440,7 +445,14 @@ def record_bypass(
     save_approvals(run_dir, approvals)
     _log_event(
         run_dir,
-        {"event": "bypass", "stage": stage, "reason": reason, "by": by, "at": _now_iso()},
+        {
+            "event": "bypass",
+            "stage": stage,
+            "reason": reason,
+            "by": by,
+            "prompt_hash": st.prompt_hash or "",
+            "at": _now_iso(),
+        },
     )
     return approvals
 
@@ -470,7 +482,7 @@ def assert_may_generate(
     # append-only log so editing approvals.json cannot launder it (gap #6).
     if _hard_blocked(run_dir, stage):
         raise GenerationBlocked(
-            stage, f"hard-compliance audit failure cannot be cleared: {st.audit_failure_codes}"
+            stage, "hard-compliance audit failure cannot be cleared (see audit log)"
         )
 
     for prior in STAGES[:idx]:
@@ -479,10 +491,19 @@ def assert_may_generate(
             raise GenerationBlocked(stage, f"prior stage '{prior}' not approved/bypassed")
 
     if st.bypassed:
-        # Tamper-evidence: a bypassed stage must have a matching event in the
-        # append-only log (a JSON-only forge has none).
-        if not _has_event(run_dir, event="bypass", stage=stage):
-            raise GenerationBlocked(stage, "bypass has no matching event in the audit log (tamper)")
+        # Tamper-evidence: the bypass event must post-date the latest audit event
+        # (defeats stale bypass-event replay), and — when a manifest is supplied —
+        # must be bound to the exact content (a bypass trusts ONE artifact, not any).
+        if not _bypass_is_current(run_dir, stage):
+            raise GenerationBlocked(
+                stage, "no matching current bypass event in the audit log (tamper / superseded)"
+            )
+        if manifest is not None:
+            ev = _latest_event(run_dir, event="bypass", stage=stage)
+            if (ev or {}).get("prompt_hash", "") != prompt_hash(manifest):
+                raise GenerationBlocked(
+                    stage, "prompt/reference changed since bypass (hash mismatch)"
+                )
         return
     if not st.audited or not st.audit_pass:
         raise GenerationBlocked(stage, "stage not audited or audit failed")

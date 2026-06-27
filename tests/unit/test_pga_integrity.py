@@ -160,6 +160,41 @@ def test_forged_approval_without_event_is_rejected(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_stale_bypass_event_replay_is_rejected(tmp_path: Path) -> None:
+    """Bypass-path mirror of the replay attack: bypass a soft-fail at H1, re-audit
+    to H2 (invalidates), revert approvals.json to bypassed=true — the old bypass
+    event predates the H2 audit event, so it is rejected."""
+    m1 = _manifest(prompt=f"{_IDENTITY}. Scene A.", aspect="16:9")  # soft fail -> bypassable
+    record_audit(tmp_path, "cast_sheet", audit(m1))
+    record_bypass(tmp_path, "cast_sheet", reason="trusted hand-made A")
+
+    m2 = _manifest(prompt=f"{_IDENTITY}. Scene B.", aspect="16:9")
+    record_audit(tmp_path, "cast_sheet", audit(m2))  # newer audit invalidates the bypass
+
+    approvals = load_approvals(tmp_path)
+    st = approvals["cast_sheet"]
+    st.bypassed = True
+    save_approvals(tmp_path, approvals)
+    with pytest.raises(GenerationBlocked, match=r"tamper|superseded"):
+        assert_may_generate("cast_sheet", tmp_path)
+
+
+@pytest.mark.unit
+def test_bypass_does_not_authorize_a_different_manifest(tmp_path: Path) -> None:
+    """A bypass trusts ONE artifact, not any. Generating a different manifest on a
+    bypassed stage is blocked by the bypass hash binding."""
+    trusted = _manifest(prompt=f"{_IDENTITY}. Trusted scene.", aspect="16:9")
+    record_audit(tmp_path, "cast_sheet", audit(trusted))
+    record_bypass(tmp_path, "cast_sheet", reason="trust this one")
+    # Same artifact is fine.
+    assert_may_generate("cast_sheet", tmp_path, manifest=trusted)
+    # A different artifact must NOT ride the bypass.
+    evil = _manifest(prompt=f"{_IDENTITY}. Evil different scene.", aspect="16:9")
+    with pytest.raises(GenerationBlocked, match="hash mismatch"):
+        assert_may_generate("cast_sheet", tmp_path, manifest=evil)
+
+
+@pytest.mark.unit
 def test_forged_bypass_without_event_is_rejected(tmp_path: Path) -> None:
     approvals = {
         "cast_sheet": StageApproval(bypassed=True, bypass_reason="forged"),

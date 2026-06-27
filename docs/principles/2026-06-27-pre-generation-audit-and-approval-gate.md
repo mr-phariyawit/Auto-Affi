@@ -98,11 +98,14 @@ Lead gap #6 + H2/H5, after two adversarial BLOCK rounds):
    different artifact, which records a fresh audit event. `assert_may_generate` reads the
    latest audit event from the log, so editing `approvals.json` cannot launder it.
 
-2. **Approvals are tamper-EVIDENT against JSON edits AND stale-event replay.** An approval is
-   honoured only if an `approve` event for the exact `prompt_hash` **post-dates the latest
-   audit event** for that stage in the append-only log. This rejects (a) the JSON-only forge
-   (`approved=true` with no event) and (b) reverting `approvals.json` to a previously-approved
-   hash to replay an old approve event (a newer audit event now sits after it).
+2. **Approvals AND bypasses are tamper-EVIDENT against JSON edits and stale-event replay.** A
+   clearance is honoured only if its event (`approve` bound to the exact `prompt_hash`, or
+   `bypass`) **post-dates the latest audit event** for that stage in the append-only log. This
+   rejects (a) the JSON-only forge (`approved=true`/`bypassed=true` with no event) and (b)
+   reverting `approvals.json` to a previously-cleared state to replay an old event (a newer
+   audit event now sits after it). A `bypass` is additionally bound to one artifact: when a
+   manifest is supplied, its hash must equal the hash recorded at bypass time — a bypass trusts
+   ONE hand-made artifact, not any content.
 
    **Honest limits (still NOT cryptographic):** a local actor who can write the run directory
    can still *append a forged `approve`/`audit` event* to the log — append-only does not stop
