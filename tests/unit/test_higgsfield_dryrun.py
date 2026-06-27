@@ -172,6 +172,7 @@ def test_live_mode_parses_url_from_stdout(tmp_path: Path) -> None:
     with (
         patch.object(_mod.shutil, "which", return_value="/usr/bin/hf"),
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
+        patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)),
     ):
         _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
@@ -202,6 +203,7 @@ def test_live_mode_raises_on_nonzero_exit(tmp_path: Path) -> None:
     with (
         patch.object(_mod.shutil, "which", return_value="/x/hf"),
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
+        patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)),
     ):
         _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
@@ -218,6 +220,7 @@ def test_live_mode_raises_when_no_url_in_output(tmp_path: Path) -> None:
     with (
         patch.object(_mod.shutil, "which", return_value="/x/hf"),
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
+        patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)),
     ):
         _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)

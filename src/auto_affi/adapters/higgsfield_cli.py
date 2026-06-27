@@ -30,11 +30,21 @@ from auto_affi.pipeline.prompt_audit import (
     ReferenceManifest,
     assert_may_generate,
 )
+from auto_affi.workflows.budget import BudgetCircuitBreaker, BudgetDecision
 
 HIGGSFIELD_BIN = "higgsfield"
 
 # Placeholder path returned by dry-run (guaranteed non-existent, clearly fake)
 _DRY_RUN_PLACEHOLDER = Path("/tmp/higgsfield_dryrun_placeholder.mp4")  # noqa: S108
+
+# --- Cost model (ESTIMATES — Higgsfield credit pricing is not exposed by the CLI) ---
+# Sourced from the Seedance reference (~20.5 credits/s) and the hula-hoop study
+# (656 credits ≈ $3.28 ⇒ ~$0.005/credit). Treat as estimates; callers may override
+# via estimated_credits / estimated_cost_usd. Used for verify-before-spend only.
+_VIDEO_CREDITS_PER_SECOND: float = 20.5
+_IMAGE_CREDITS_DEFAULT: float = 20.0
+_USD_PER_CREDIT: float = 0.005
+_CREDIT_SAFETY_MARGIN: float = 1.2
 
 
 class HiggsfieldCliError(RuntimeError):
@@ -55,6 +65,23 @@ class HiggsfieldVideo:
     raw_stdout: str
     cost_usd: float = 0.0
     local_path: Path = _DRY_RUN_PLACEHOLDER
+    cost_estimated: bool = False
+
+
+@dataclasses.dataclass(frozen=True)
+class HiggsfieldImage:
+    """Returned by ``generate_image`` — the public URL of the rendered still.
+
+    Dry-run: ``image_url`` empty, ``local_path`` the placeholder, cost 0.0.
+    Live: ``image_url`` is the CDN URL, ``cost_usd`` is the ESTIMATED spend
+    (``cost_estimated=True``) since the CLI does not report per-job cost.
+    """
+
+    image_url: str
+    raw_stdout: str
+    cost_usd: float = 0.0
+    local_path: Path = _DRY_RUN_PLACEHOLDER
+    cost_estimated: bool = False
 
 
 class HiggsfieldCli:
@@ -105,6 +132,54 @@ class HiggsfieldCli:
             )
         return out, err
 
+    async def _pre_spend_guard(
+        self,
+        *,
+        node: str,
+        stage: str,
+        run_dir: Path | None,
+        manifest: ReferenceManifest | None,
+        estimated_credits: float,
+        estimated_cost_usd: float,
+        budget: BudgetCircuitBreaker | None,
+        credit_margin: float,
+    ) -> None:
+        """Single chokepoint before ANY generation (video or image).
+
+        1. Generation Lock (fail-closed): live calls require run_dir; the PGA gate
+           + hash binding is enforced via assert_may_generate.
+        2. Verify-before-spend (SPEC §10.5 gate 13): for live calls, assert the
+           provider credit balance covers the job, and consult the budget breaker.
+        Dry-run performs only the gate (no balance/budget checks, no spend).
+        """
+        if not self._dry_run and run_dir is None:
+            raise GenerationBlocked(
+                stage, "live generation requires run_dir — the PGA gate cannot be skipped"
+            )
+        if run_dir is not None:
+            assert_may_generate(stage, run_dir, manifest=manifest)
+
+        if self._dry_run:
+            return
+
+        # verify-before-spend: provider credit balance must cover the job.
+        balance = await self.account_credits()
+        required = estimated_credits * credit_margin
+        if balance < required:
+            raise HiggsfieldCliError(
+                f"insufficient Higgsfield credits for {node}: balance {balance:.1f} < "
+                f"required {required:.1f} ({estimated_credits:.1f} x {credit_margin} margin)"
+            )
+
+        # budget circuit breaker (daily + per-node USD caps).
+        if budget is not None:
+            decision = budget.check_budget(node, estimated_cost_usd)
+            if decision is BudgetDecision.DENY:
+                raise HiggsfieldCliError(
+                    f"budget breaker DENY for {node}: estimated ${estimated_cost_usd:.2f} "
+                    f"would exceed a cap"
+                )
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -125,6 +200,10 @@ class HiggsfieldCli:
         run_dir: Path | None = None,
         stage: str = "video",
         manifest: ReferenceManifest | None = None,
+        budget: BudgetCircuitBreaker | None = None,
+        estimated_credits: float | None = None,
+        estimated_cost_usd: float | None = None,
+        credit_margin: float = _CREDIT_SAFETY_MARGIN,
     ) -> HiggsfieldVideo:
         """Submit a video generation job and wait for completion.
 
@@ -153,16 +232,22 @@ class HiggsfieldCli:
             :class:`HiggsfieldVideo` with ``video_url`` set to the
             CloudFront URL (live) or empty string (dry-run).
         """
-        # Generation Lock (fail-closed): a LIVE paid call may never skip the gate.
-        # run_dir is mandatory whenever dry_run is False (Audit Lead GAP-2). When a
-        # manifest is supplied the gate also binds the approval to the exact content
-        # being generated via the prompt hash (Audit Lead GAP-1).
-        if not self._dry_run and run_dir is None:
-            raise GenerationBlocked(
-                stage, "live generation requires run_dir — the PGA gate cannot be skipped"
-            )
-        if run_dir is not None:
-            assert_may_generate(stage, run_dir, manifest=manifest)
+        est_credits = (
+            estimated_credits
+            if estimated_credits is not None
+            else _VIDEO_CREDITS_PER_SECOND * duration
+        )
+        est_usd = estimated_cost_usd if estimated_cost_usd is not None else est_credits * _USD_PER_CREDIT
+        await self._pre_spend_guard(
+            node="video_gen",
+            stage=stage,
+            run_dir=run_dir,
+            manifest=manifest,
+            estimated_credits=est_credits,
+            estimated_cost_usd=est_usd,
+            budget=budget,
+            credit_margin=credit_margin,
+        )
 
         if self._dry_run:
             stub_stdout = (
@@ -216,11 +301,98 @@ class HiggsfieldCli:
                 f"could not parse video URL from CLI output (exit 0).\n"
                 f"STDOUT: {out[-400:]!r}\nSTDERR: {err[-400:]!r}"
             )
+        if budget is not None:
+            budget.record_spend("video_gen", est_usd)
         return HiggsfieldVideo(
             video_url=video_url,
             raw_stdout=out,
-            cost_usd=0.0,
+            cost_usd=est_usd,
             local_path=_DRY_RUN_PLACEHOLDER,
+            cost_estimated=True,
+        )
+
+    async def generate_image(
+        self,
+        *,
+        model: str,
+        prompt: str,
+        stage: str,
+        aspect_ratio: str = "9:16",
+        images: dict[str, Path | str] | None = None,
+        run_dir: Path | None = None,
+        manifest: ReferenceManifest | None = None,
+        budget: BudgetCircuitBreaker | None = None,
+        estimated_credits: float | None = None,
+        estimated_cost_usd: float | None = None,
+        credit_margin: float = _CREDIT_SAFETY_MARGIN,
+        extra_args: Iterable[str] = (),
+    ) -> HiggsfieldImage:
+        """Submit an image generation job (cast/objects/storyboard/contact stills).
+
+        Routed through the SAME PGA gate + verify-before-spend chokepoint as
+        ``generate_video`` (SPEC §10.5 gate 10 requires EVERY image to pass). ``stage``
+        MUST be the image stage being generated (e.g. ``cast_sheet``). Fail-closed:
+        a live call requires ``run_dir``.
+        """
+        est_credits = estimated_credits if estimated_credits is not None else _IMAGE_CREDITS_DEFAULT
+        est_usd = estimated_cost_usd if estimated_cost_usd is not None else est_credits * _USD_PER_CREDIT
+        await self._pre_spend_guard(
+            node="image_gen",
+            stage=stage,
+            run_dir=run_dir,
+            manifest=manifest,
+            estimated_credits=est_credits,
+            estimated_cost_usd=est_usd,
+            budget=budget,
+            credit_margin=credit_margin,
+        )
+
+        if self._dry_run:
+            stub_stdout = f"[DRY-RUN] image model={model} stage={stage} prompt={prompt[:40]!r}"
+            return HiggsfieldImage(
+                image_url="",
+                raw_stdout=stub_stdout,
+                cost_usd=0.0,
+                local_path=_DRY_RUN_PLACEHOLDER,
+            )
+
+        # --- live path (dry_run=False) ---
+        args: list[str] = [
+            "generate",
+            "image",
+            model,
+            "--prompt",
+            prompt,
+            "--aspect_ratio",
+            aspect_ratio,
+            "--wait",
+        ]
+        if images:
+            for flag, value in images.items():
+                args += [f"--{flag}", str(value)]
+        args += list(extra_args)
+
+        out, err = await self._run(args)
+
+        image_url = ""
+        for line in reversed(out.strip().splitlines()):
+            line = line.strip()
+            if line.startswith("http://") or line.startswith("https://"):
+                image_url = line
+                break
+        if not image_url:
+            raise HiggsfieldCliError(
+                f"could not parse image URL from CLI output (exit 0).\n"
+                f"STDOUT: {out[-400:]!r}\nSTDERR: {err[-400:]!r}"
+            )
+        if budget is not None:
+            budget.record_spend("image_gen", est_usd)
+        return HiggsfieldImage(
+            image_url=image_url,
+            raw_stdout=out,
+            cost_usd=est_usd,
+            local_path=_DRY_RUN_PLACEHOLDER,
+            cost_estimated=True,
         )
 
     async def account_credits(self) -> float:
