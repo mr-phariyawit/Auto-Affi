@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import re
 import shutil
 from collections.abc import Iterable
 from pathlib import Path
@@ -49,6 +50,44 @@ _CREDIT_SAFETY_MARGIN: float = 1.2
 
 class HiggsfieldCliError(RuntimeError):
     """Raised on non-zero exit, missing CLI, or malformed output."""
+
+
+# Numbers bound to the word "credit" on either side (grouped digits allowed).
+_CREDIT_AFTER = re.compile(r"credits?\s*[:=]?\s*([\d][\d,]*(?:\.\d+)?)", re.IGNORECASE)
+_CREDIT_BEFORE = re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*credits?\b", re.IGNORECASE)
+_BALANCE_HINTS = ("remaining", "available", "balance")
+
+
+def _parse_credit_balance(out: str) -> float:
+    """Fail-closed parse of `higgsfield account status` output -> balance.
+
+    Only accepts a number directly adjacent to the word "credit"; never wraps to
+    an unrelated token. Prefers a line that names remaining/available/balance;
+    otherwise returns the CONSERVATIVE (minimum) candidate so the balance is never
+    overstated. Raises when nothing can be confidently parsed (never guesses high).
+    """
+    preferred: list[float] = []
+    candidates: list[float] = []
+    for raw in out.splitlines():
+        line = raw.strip()
+        if "credit" not in line.lower():
+            continue
+        nums = [
+            float(m.group(1).replace(",", ""))
+            for pattern in (_CREDIT_AFTER, _CREDIT_BEFORE)
+            for m in pattern.finditer(line)
+        ]
+        if not nums:
+            continue
+        candidates.extend(nums)
+        if any(hint in line.lower() for hint in _BALANCE_HINTS):
+            preferred.extend(nums)
+    pool = preferred or candidates
+    if not pool:
+        raise HiggsfieldCliError(
+            f"could not confidently parse a credit balance (fail-closed):\n{out}"
+        )
+    return min(pool)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -171,14 +210,19 @@ class HiggsfieldCli:
                 f"required {required:.1f} ({estimated_credits:.1f} x {credit_margin} margin)"
             )
 
-        # budget circuit breaker (daily + per-node USD caps).
-        if budget is not None:
-            decision = budget.check_budget(node, estimated_cost_usd)
-            if decision is BudgetDecision.DENY:
-                raise HiggsfieldCliError(
-                    f"budget breaker DENY for {node}: estimated ${estimated_cost_usd:.2f} "
-                    f"would exceed a cap"
-                )
+        # budget circuit breaker is MANDATORY on the live path (Audit Lead GAP-C) —
+        # a cap that defaults off is not a cap.
+        if budget is None:
+            raise HiggsfieldCliError(
+                f"live generation requires a BudgetCircuitBreaker for {node} "
+                f"(verify-before-spend cannot be skipped)"
+            )
+        decision = budget.check_budget(node, estimated_cost_usd)
+        if decision is BudgetDecision.DENY:
+            raise HiggsfieldCliError(
+                f"budget breaker DENY for {node}: estimated ${estimated_cost_usd:.2f} "
+                f"would exceed a cap"
+            )
 
     # ------------------------------------------------------------------
     # Public API
@@ -289,6 +333,10 @@ class HiggsfieldCli:
         args += list(extra_args)
 
         out, err = await self._run(args)
+        # The job ran (exit 0) → credits were spent. Record BEFORE parsing the URL
+        # so a parse failure cannot make real spend invisible (Audit Lead GAP-E).
+        if budget is not None:
+            budget.record_spend("video_gen", est_usd)
 
         video_url = ""
         for line in reversed(out.strip().splitlines()):
@@ -301,8 +349,6 @@ class HiggsfieldCli:
                 f"could not parse video URL from CLI output (exit 0).\n"
                 f"STDOUT: {out[-400:]!r}\nSTDERR: {err[-400:]!r}"
             )
-        if budget is not None:
-            budget.record_spend("video_gen", est_usd)
         return HiggsfieldVideo(
             video_url=video_url,
             raw_stdout=out,
@@ -373,6 +419,9 @@ class HiggsfieldCli:
         args += list(extra_args)
 
         out, err = await self._run(args)
+        # Record spend before URL parse (Audit Lead GAP-E).
+        if budget is not None:
+            budget.record_spend("image_gen", est_usd)
 
         image_url = ""
         for line in reversed(out.strip().splitlines()):
@@ -385,8 +434,6 @@ class HiggsfieldCli:
                 f"could not parse image URL from CLI output (exit 0).\n"
                 f"STDOUT: {out[-400:]!r}\nSTDERR: {err[-400:]!r}"
             )
-        if budget is not None:
-            budget.record_spend("image_gen", est_usd)
         return HiggsfieldImage(
             image_url=image_url,
             raw_stdout=out,
@@ -396,24 +443,23 @@ class HiggsfieldCli:
         )
 
     async def account_credits(self) -> float:
-        """Best-effort parse of `higgsfield account status` -> credits.
+        """Parse `higgsfield account status` -> available credit balance.
 
         Dry-run: returns 0.0 (no CLI call).
+
+        FAIL-CLOSED (Audit Lead GAP-A): the previous parser did ``tokens[i-1]``
+        which wrapped to the last token when a line started with "credit",
+        reading a fabricated/overstated balance. This implementation:
+        - only accepts a number directly bound to the word "credit" (either side),
+        - handles grouped digits (``1,234``),
+        - biases to the CONSERVATIVE (minimum) candidate so balance is never
+          overstated, and prefers a line naming remaining/available/balance,
+        - raises when nothing can be confidently parsed (never guesses high).
+        The real CLI output format is still unverified — capture it and add a
+        format test before trusting a live balance.
         """
         if self._dry_run:
             return 0.0
 
         out, _ = await self._run(["account", "status"])
-        for line in out.splitlines():
-            line = line.strip().lower()
-            if "credit" in line:
-                tokens = line.replace(",", " ").split()
-                for i, tok in enumerate(tokens):
-                    if tok.startswith("credit"):
-                        try:
-                            return float(tokens[i - 1])
-                        except (IndexError, ValueError):
-                            continue
-        raise HiggsfieldCliError(
-            f"could not parse credit balance from `account status`:\n{out}"
-        )
+        return _parse_credit_balance(out)

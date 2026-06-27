@@ -18,6 +18,7 @@ from auto_affi.adapters.higgsfield_cli import (
     HiggsfieldCliError,
     HiggsfieldVideo,
 )
+from auto_affi.workflows.budget import BudgetCircuitBreaker
 
 # ---------------------------------------------------------------------------
 # dry_run=True (default) — no subprocess, no network
@@ -184,6 +185,7 @@ def test_live_mode_parses_url_from_stdout(tmp_path: Path) -> None:
                 duration=5,
                 mode="fast",
                 run_dir=tmp_path,
+                budget=BudgetCircuitBreaker(),
             )
         )
 
@@ -208,7 +210,11 @@ def test_live_mode_raises_on_nonzero_exit(tmp_path: Path) -> None:
         _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="exit 1"):
-            asyncio.run(cli.generate_video(model="seedance_2_0", prompt="x", run_dir=tmp_path))
+            asyncio.run(
+                cli.generate_video(
+                    model="seedance_2_0", prompt="x", run_dir=tmp_path, budget=BudgetCircuitBreaker()
+                )
+            )
 
 
 @pytest.mark.unit
@@ -225,7 +231,11 @@ def test_live_mode_raises_when_no_url_in_output(tmp_path: Path) -> None:
         _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="could not parse video URL"):
-            asyncio.run(cli.generate_video(model="seedance_2_0", prompt="x", run_dir=tmp_path))
+            asyncio.run(
+                cli.generate_video(
+                    model="seedance_2_0", prompt="x", run_dir=tmp_path, budget=BudgetCircuitBreaker()
+                )
+            )
 
 
 @pytest.mark.unit
