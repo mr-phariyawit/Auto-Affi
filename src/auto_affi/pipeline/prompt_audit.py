@@ -74,6 +74,11 @@ class ReferenceManifest(BaseModel):
     declared_objects: list[str] = Field(default_factory=list)
     scene_objects: list[str] = Field(default_factory=list)
     face_reference_count: int
+    reference_uris: list[str] = Field(
+        default_factory=list,
+        description="Actual reference-image URIs/paths fed to the generator; hashed so swapping a "
+        "reference invalidates approval (Audit Lead GAP-5).",
+    )
     negative_prompt: str
     aspect: str
     resolution: str
@@ -140,6 +145,8 @@ def prompt_hash(manifest: ReferenceManifest) -> str:
         "duration_s": manifest.duration_s,
         "seed": manifest.seed,
         "soul_id": manifest.soul_id,
+        "face_reference_count": manifest.face_reference_count,
+        "reference_uris": sorted(manifest.reference_uris),
     }
     canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -311,11 +318,19 @@ def record_bypass(
     return approvals
 
 
-def assert_may_generate(stage: str, run_dir: Path) -> None:
+def assert_may_generate(
+    stage: str, run_dir: Path, *, manifest: ReferenceManifest | None = None
+) -> None:
     """Block generation unless the stage is cleared and stage ordering holds.
 
     Cleared = ``bypassed`` OR (``audit_pass`` AND ``approved``). Every earlier
     stage must itself be approved or bypassed.
+
+    When ``manifest`` is supplied, the gate BINDS the approval to the exact
+    content being generated: it recomputes the prompt hash and rejects unless it
+    equals the approved hash. Without this binding the audit is decoupled from the
+    generation (Audit Lead GAP-1) — approving a clean manifest then generating
+    something else would otherwise pass.
     """
     if stage not in STAGES:
         raise ValueError(f"unknown stage: {stage!r}")
@@ -334,3 +349,8 @@ def assert_may_generate(stage: str, run_dir: Path) -> None:
         raise GenerationBlocked(stage, "stage not audited or audit failed")
     if not st.approved:
         raise GenerationBlocked(stage, "stage not approved by human")
+    if manifest is not None and prompt_hash(manifest) != st.prompt_hash:
+        raise GenerationBlocked(
+            stage,
+            "prompt/reference changed since approval (hash mismatch) — re-audit and re-approve",
+        )

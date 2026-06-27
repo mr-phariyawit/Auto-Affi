@@ -25,7 +25,11 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
-from auto_affi.pipeline.prompt_audit import assert_may_generate
+from auto_affi.pipeline.prompt_audit import (
+    GenerationBlocked,
+    ReferenceManifest,
+    assert_may_generate,
+)
 
 HIGGSFIELD_BIN = "higgsfield"
 
@@ -120,6 +124,7 @@ class HiggsfieldCli:
         extra_args: Iterable[str] = (),
         run_dir: Path | None = None,
         stage: str = "video",
+        manifest: ReferenceManifest | None = None,
     ) -> HiggsfieldVideo:
         """Submit a video generation job and wait for completion.
 
@@ -148,10 +153,16 @@ class HiggsfieldCli:
             :class:`HiggsfieldVideo` with ``video_url`` set to the
             CloudFront URL (live) or empty string (dry-run).
         """
-        # Generation Lock: enforce the approval gate before ANY generation
-        # (draft or final) once a run context is supplied.
+        # Generation Lock (fail-closed): a LIVE paid call may never skip the gate.
+        # run_dir is mandatory whenever dry_run is False (Audit Lead GAP-2). When a
+        # manifest is supplied the gate also binds the approval to the exact content
+        # being generated via the prompt hash (Audit Lead GAP-1).
+        if not self._dry_run and run_dir is None:
+            raise GenerationBlocked(
+                stage, "live generation requires run_dir — the PGA gate cannot be skipped"
+            )
         if run_dir is not None:
-            assert_may_generate(stage, run_dir)
+            assert_may_generate(stage, run_dir, manifest=manifest)
 
         if self._dry_run:
             stub_stdout = (

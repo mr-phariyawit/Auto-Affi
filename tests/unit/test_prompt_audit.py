@@ -189,6 +189,38 @@ def test_input_change_invalidates_downstream_approvals(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_assert_binds_approved_hash_to_generated_content(tmp_path: Path) -> None:
+    """Audit Lead GAP-1: approving a clean manifest must NOT clear generation of
+    a different one. assert_may_generate rejects a manifest whose hash differs
+    from the approved hash."""
+    approved = _clean_manifest()
+    record_audit(tmp_path, "cast_sheet", audit(approved))
+    record_approval(tmp_path, "cast_sheet")
+
+    # Same content -> allowed.
+    assert_may_generate("cast_sheet", tmp_path, manifest=approved)
+
+    # Swapped content (different prompt) -> blocked even though stage is approved.
+    tampered = _clean_manifest(prompt="a different scene " + _IDENTITY)
+    with pytest.raises(GenerationBlocked, match="hash mismatch"):
+        assert_may_generate("cast_sheet", tmp_path, manifest=tampered)
+
+
+@pytest.mark.unit
+def test_swapping_face_reference_invalidates_hash(tmp_path: Path) -> None:
+    """Audit Lead GAP-5: reference_uris + face_reference_count are hashed, so
+    swapping the reference image changes the hash and blocks generation."""
+    approved = _clean_manifest(reference_uris=["s3://refs/jiap02_a.png"])
+    record_audit(tmp_path, "cast_sheet", audit(approved))
+    record_approval(tmp_path, "cast_sheet")
+
+    swapped = _clean_manifest(reference_uris=["s3://refs/someone_else.png"])
+    assert prompt_hash(approved) != prompt_hash(swapped)
+    with pytest.raises(GenerationBlocked, match="hash mismatch"):
+        assert_may_generate("cast_sheet", tmp_path, manifest=swapped)
+
+
+@pytest.mark.unit
 def test_stages_constant_order() -> None:
     assert STAGES == (
         "cast_sheet",

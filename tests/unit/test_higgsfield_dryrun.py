@@ -139,6 +139,14 @@ def _fake_proc(stdout: str, returncode: int = 0) -> MagicMock:
     return proc
 
 
+def _approved_run(run_dir: Path) -> None:
+    """Clear every PGA stage so a live generate_video() call passes the gate."""
+    from auto_affi.pipeline.prompt_audit import STAGES, record_bypass
+
+    for stage in STAGES:
+        record_bypass(run_dir, stage, reason="test fixture: gate pre-cleared")
+
+
 @pytest.mark.unit
 def test_live_mode_raises_when_binary_missing() -> None:
     import auto_affi.adapters.higgsfield_cli as _mod
@@ -147,7 +155,7 @@ def test_live_mode_raises_when_binary_missing() -> None:
 
 
 @pytest.mark.unit
-def test_live_mode_parses_url_from_stdout() -> None:
+def test_live_mode_parses_url_from_stdout(tmp_path: Path) -> None:
     stdout = (
         "Submitting job...\n"
         "Job queued: abc-123\n"
@@ -165,6 +173,7 @@ def test_live_mode_parses_url_from_stdout() -> None:
         patch.object(_mod.shutil, "which", return_value="/usr/bin/hf"),
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
     ):
+        _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
         result = asyncio.run(
             cli.generate_video(
@@ -173,6 +182,7 @@ def test_live_mode_parses_url_from_stdout() -> None:
                 aspect_ratio="9:16",
                 duration=5,
                 mode="fast",
+                run_dir=tmp_path,
             )
         )
 
@@ -184,7 +194,7 @@ def test_live_mode_parses_url_from_stdout() -> None:
 
 
 @pytest.mark.unit
-def test_live_mode_raises_on_nonzero_exit() -> None:
+def test_live_mode_raises_on_nonzero_exit(tmp_path: Path) -> None:
     async def fake_create(prog: str, *args: str, **kw: object) -> MagicMock:
         return _fake_proc("ERROR: insufficient credits\n", returncode=1)
 
@@ -193,13 +203,14 @@ def test_live_mode_raises_on_nonzero_exit() -> None:
         patch.object(_mod.shutil, "which", return_value="/x/hf"),
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
     ):
+        _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="exit 1"):
-            asyncio.run(cli.generate_video(model="seedance_2_0", prompt="x"))
+            asyncio.run(cli.generate_video(model="seedance_2_0", prompt="x", run_dir=tmp_path))
 
 
 @pytest.mark.unit
-def test_live_mode_raises_when_no_url_in_output() -> None:
+def test_live_mode_raises_when_no_url_in_output(tmp_path: Path) -> None:
     async def fake_create(prog: str, *args: str, **kw: object) -> MagicMock:
         return _fake_proc("Job done.\n")
 
@@ -208,6 +219,19 @@ def test_live_mode_raises_when_no_url_in_output() -> None:
         patch.object(_mod.shutil, "which", return_value="/x/hf"),
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
     ):
+        _approved_run(tmp_path)
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="could not parse video URL"):
+            asyncio.run(cli.generate_video(model="seedance_2_0", prompt="x", run_dir=tmp_path))
+
+
+@pytest.mark.unit
+def test_live_mode_requires_run_dir_fail_closed() -> None:
+    """Fail-closed: a live (paid) call without run_dir is blocked, never silently
+    ungated (Audit Lead GAP-2)."""
+    import auto_affi.adapters.higgsfield_cli as _mod
+    from auto_affi.pipeline.prompt_audit import GenerationBlocked
+    with patch.object(_mod.shutil, "which", return_value="/x/hf"):
+        cli = HiggsfieldCli(dry_run=False)
+        with pytest.raises(GenerationBlocked, match="requires run_dir"):
             asyncio.run(cli.generate_video(model="seedance_2_0", prompt="x"))
