@@ -311,6 +311,17 @@ def _latest_event(run_dir: Path, *, event: str, stage: str) -> dict[str, str] | 
     return events[idx] if idx is not None else None
 
 
+def _audit_passed_in_log(run_dir: Path, stage: str) -> bool:
+    """True if the latest audit event for the stage recorded audit_pass=true.
+
+    The gate derives audit-pass from the append-only log, never from the forgeable
+    approvals.json (Audit Lead GAP-F) — flipping audit_pass in the JSON cannot
+    launder a soft-failed audit into an approval.
+    """
+    ev = _latest_event(run_dir, event="audit", stage=stage)
+    return ev is not None and ev.get("audit_pass") == "true"
+
+
 def _bypass_is_current(run_dir: Path, stage: str) -> bool:
     """True only if a bypass event post-dates the latest audit event for the stage.
 
@@ -401,8 +412,10 @@ def record_approval(
         raise ValueError(f"unknown stage: {stage!r}")
     approvals = load_approvals(run_dir)
     st = approvals[stage]
-    if not st.audited or not st.audit_pass:
-        raise GenerationBlocked(stage, "cannot approve a stage that has not passed audit")
+    if not _audit_passed_in_log(run_dir, stage):
+        raise GenerationBlocked(
+            stage, "cannot approve a stage whose audit did not pass (per audit log)"
+        )
     st.approved = True
     st.approved_by = approved_by
     st.approved_at = _now_iso()
@@ -516,8 +529,8 @@ def assert_may_generate(
                     stage, "prompt/reference changed since bypass (hash mismatch)"
                 )
         return
-    if not st.audited or not st.audit_pass:
-        raise GenerationBlocked(stage, "stage not audited or audit failed")
+    if not _audit_passed_in_log(run_dir, stage):
+        raise GenerationBlocked(stage, "stage not audited or audit failed (per audit log)")
     if not st.approved:
         raise GenerationBlocked(stage, "stage not approved by human")
     # Tamper-evidence: an approve event for this exact hash must POST-DATE the

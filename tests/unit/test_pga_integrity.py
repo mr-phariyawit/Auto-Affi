@@ -145,16 +145,14 @@ def test_legitimate_approval_passes(tmp_path: Path) -> None:
 
 @pytest.mark.unit
 def test_forged_approval_without_event_is_rejected(tmp_path: Path) -> None:
-    # Audit + approve legitimately, then forge by editing approvals.json directly
-    # (no matching event in the append-only log) — must be rejected.
+    # Audit legitimately (so the audit event exists and audit_pass=true), then
+    # forge approved=true in approvals.json with NO approve event — must be rejected.
     record_audit(tmp_path, "cast_sheet", audit(_manifest()))
     approvals = load_approvals(tmp_path)
     forged = approvals["cast_sheet"]
     forged.approved = True
     forged.approved_by = "human"  # the classic forge: just set the field
     save_approvals(tmp_path, approvals)
-    # delete the event log entirely to simulate a JSON-only tamper
-    (tmp_path / "audit_events.jsonl").unlink(missing_ok=True)
     with pytest.raises(GenerationBlocked, match=r"no matching .*event|tamper"):
         assert_may_generate("cast_sheet", tmp_path)
 
@@ -192,6 +190,26 @@ def test_bypass_does_not_authorize_a_different_manifest(tmp_path: Path) -> None:
     evil = _manifest(prompt=f"{_IDENTITY}. Evil different scene.", aspect="16:9")
     with pytest.raises(GenerationBlocked, match="hash mismatch"):
         assert_may_generate("cast_sheet", tmp_path, manifest=evil)
+
+
+@pytest.mark.unit
+def test_json_forged_audit_pass_cannot_be_approved(tmp_path: Path) -> None:
+    """GAP-F: audit-pass is derived from the append-only log, not approvals.json.
+    Flipping audit_pass=true in the JSON on a soft-failed stage cannot launder it
+    into an approval, and cannot clear the gate."""
+    record_audit(tmp_path, "cast_sheet", audit(_manifest(aspect="16:9")))  # soft fail
+    approvals = load_approvals(tmp_path)
+    approvals["cast_sheet"].audit_pass = True  # forge the JSON field
+    save_approvals(tmp_path, approvals)
+    # record_approval reads the log -> refuses.
+    with pytest.raises(GenerationBlocked, match="did not pass"):
+        record_approval(tmp_path, "cast_sheet", approved_by="op")
+    # And forcing approved=true directly still cannot clear the gate.
+    approvals = load_approvals(tmp_path)
+    approvals["cast_sheet"].approved = True
+    save_approvals(tmp_path, approvals)
+    with pytest.raises(GenerationBlocked):
+        assert_may_generate("cast_sheet", tmp_path)
 
 
 @pytest.mark.unit
