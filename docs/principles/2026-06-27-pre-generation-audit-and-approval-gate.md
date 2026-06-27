@@ -86,25 +86,30 @@ human with the failing item. Never "fix silently and proceed".
 
 ## Integrity model (honest threat model)
 
-Two integrity properties are enforced in code (2026-06-28, Audit Lead gap #6 + H2/H5):
+The gate reads the **append-only `audit_events.jsonl` as its source of truth**, not the mutable
+`approvals.json` (which is treated as advisory/forgeable). Two properties (2026-06-28, Audit
+Lead gap #6 + H2/H5, after two adversarial BLOCK rounds):
 
-1. **Hard-compliance is un-bypassable.** A recorded audit failure of `banned_claims`,
-   `category_restricted`, or `economics_not_passed` can NEVER be cleared — not by approval,
-   not by `bypass`. `record_bypass` refuses it and `assert_may_generate` blocks it first,
-   regardless of stage order. `bypass` is for trusting a hand-made artifact (soft/structural
-   failures), not for waving through prohibited content.
+1. **Hard-compliance is sticky and un-launderable.** When an audit records `banned_claims`,
+   `category_restricted`, or `economics_not_passed`, a `hard_block` latch is written to the log.
+   It cannot be cleared by `approve`, by `bypass`, OR by a clean **same-hash re-audit** (the
+   compliance flags are not in the prompt hash, so re-auditing the same artifact "clean" does
+   NOT lift the latch). The latch only resets when the prompt hash changes — a genuinely
+   different artifact, which records a fresh audit event. `assert_may_generate` reads the
+   latest audit event from the log, so editing `approvals.json` cannot launder it.
 
-2. **Approvals/bypasses are tamper-EVIDENT (not tamper-PROOF).** Every legitimate approval or
-   bypass writes BOTH `approvals.json` AND a matching entry in the append-only
-   `audit_events.jsonl`. `assert_may_generate` requires the matching event (approve events are
-   bound to the approved `prompt_hash`). This detects the simplest and most likely forge —
-   an agent editing `approvals.json` to set `approved=true`.
+2. **Approvals are tamper-EVIDENT against JSON edits AND stale-event replay.** An approval is
+   honoured only if an `approve` event for the exact `prompt_hash` **post-dates the latest
+   audit event** for that stage in the append-only log. This rejects (a) the JSON-only forge
+   (`approved=true` with no event) and (b) reverting `approvals.json` to a previously-approved
+   hash to replay an old approve event (a newer audit event now sits after it).
 
-   **Honest limits:** this is NOT cryptographic. A local actor who can write the run directory
-   can append a forged event to the log too, and `approved_by` is a self-asserted string, not a
-   verified identity. True integrity requires signed approvals or an external approval channel
-   that issues verifiable tokens (`approval_token` is plumbed through for that future wiring).
-   Do not claim "human-verified approval"; claim "tamper-evident against JSON-only edits."
+   **Honest limits (still NOT cryptographic):** a local actor who can write the run directory
+   can still *append a forged `approve`/`audit` event* to the log — append-only does not stop
+   appends. And `approved_by` / `approval_token` are self-asserted, not verified identities.
+   True integrity requires signed events or an external approval channel that issues verifiable
+   tokens. Claim "tamper-evident against JSON edits and stale replay", NOT "human-verified" or
+   "tamper-proof".
 
 ## Agent operating procedure (until a code gate lands)
 

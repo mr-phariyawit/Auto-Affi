@@ -18,6 +18,7 @@ from auto_affi.pipeline.prompt_audit import (
     assert_may_generate,
     audit,
     load_approvals,
+    prompt_hash,
     record_approval,
     record_audit,
     record_bypass,
@@ -85,6 +86,48 @@ def test_hard_compliance_blocks_even_if_bypassed_first(tmp_path: Path) -> None:
     record_audit(tmp_path, "video", audit(_manifest(has_banned_claims=True)))
     with pytest.raises(GenerationBlocked, match="hard-compliance"):
         assert_may_generate("video", tmp_path)
+
+
+@pytest.mark.unit
+def test_hard_compliance_sticky_through_clean_same_hash_reaudit(tmp_path: Path) -> None:
+    """Laundering attack: has_banned_claims is NOT in the prompt hash, so a clean
+    re-audit at the SAME hash must NOT clear the latch (Audit Lead re-audit gap)."""
+    banned = _manifest(has_banned_claims=True)
+    clean = _manifest()  # identical prompt/refs -> identical hash, flag flipped
+    assert prompt_hash(banned) == prompt_hash(clean)
+    record_audit(tmp_path, "video", audit(banned))
+    record_audit(tmp_path, "video", audit(clean))  # attempted launder
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        assert_may_generate("video", tmp_path)
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        record_bypass(tmp_path, "video", reason="launder")
+
+
+@pytest.mark.unit
+def test_stale_approve_event_replay_is_rejected(tmp_path: Path) -> None:
+    """Replay attack: approve hash H1, re-audit to H2 (invalidates), then revert
+    approvals.json to H1+approved. The old H1 approve event predates the H2 audit
+    event in the append-only log, so the gate rejects it."""
+    m1 = _manifest(prompt=f"{_IDENTITY}. Scene A.")
+    record_audit(tmp_path, "cast_sheet", audit(m1))
+    record_approval(tmp_path, "cast_sheet", approved_by="operator:alice")
+    h1 = prompt_hash(m1)
+
+    m2 = _manifest(prompt=f"{_IDENTITY}. Scene B.")
+    record_audit(tmp_path, "cast_sheet", audit(m2))  # new hash invalidates approval
+
+    # Attacker fully reverts approvals.json to the old approved H1 state.
+    approvals = load_approvals(tmp_path)
+    st = approvals["cast_sheet"]
+    st.audited = True
+    st.audit_pass = True
+    st.approved = True
+    st.approved_by = "human"
+    st.prompt_hash = h1
+    save_approvals(tmp_path, approvals)
+
+    with pytest.raises(GenerationBlocked, match=r"tamper|superseded"):
+        assert_may_generate("cast_sheet", tmp_path)
 
 
 # --------------------- tamper-evident approvals (H2/H5) ------------------- #

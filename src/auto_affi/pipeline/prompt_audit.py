@@ -121,6 +121,7 @@ class StageApproval(BaseModel):
     bypass_reason: str | None = None
     prompt_hash: str | None = None
     audit_failure_codes: list[str] = Field(default_factory=list)
+    hard_block: bool = False
 
 
 class GenerationBlocked(RuntimeError):
@@ -298,9 +299,45 @@ def _has_event(run_dir: Path, *, event: str, stage: str, prompt_hash: str | None
     return False
 
 
-def _hard_compliance_failed(st: StageApproval) -> bool:
-    """True when a recorded audit carries a failure a bypass may not override."""
-    return st.audited and any(code in HARD_COMPLIANCE_CODES for code in st.audit_failure_codes)
+def _latest_event_index(events: list[dict[str, str]], *, event: str, stage: str) -> int | None:
+    found: int | None = None
+    for i, ev in enumerate(events):
+        if ev.get("event") == event and ev.get("stage") == stage:
+            found = i
+    return found
+
+
+def _hard_blocked(run_dir: Path, stage: str) -> bool:
+    """True if the LATEST audit event for the stage latched a hard-compliance block.
+
+    Reads the append-only log (not the forgeable approvals.json) so editing
+    approvals.json cannot launder a banned/restricted/unviable stage. The latch
+    is sticky across same-hash re-audits and only resets when the prompt hash
+    changes (a genuinely different artifact), which records a fresh audit event.
+    """
+    events = _read_events(run_dir)
+    idx = _latest_event_index(events, event="audit", stage=stage)
+    return idx is not None and events[idx].get("hard_block") == "true"
+
+
+def _approval_is_current(run_dir: Path, stage: str, prompt_hash: str | None) -> bool:
+    """True only if an approve event for this exact hash POST-DATES the latest
+    audit event for the stage.
+
+    Defeats stale-event replay: reverting to a previously-approved hash fails
+    because a newer audit event sits after the old approve event in the
+    append-only log. (Limit: appending a forged approve event still passes —
+    that needs cryptographic signing; documented in the threat model.)
+    """
+    events = _read_events(run_dir)
+    last_audit = _latest_event_index(events, event="audit", stage=stage)
+    approve_idx: int | None = None
+    for i, ev in enumerate(events):
+        if ev.get("event") == "approve" and ev.get("stage") == stage and ev.get("prompt_hash") == prompt_hash:
+            approve_idx = i
+    if approve_idx is None:
+        return False
+    return last_audit is None or approve_idx > last_audit
 
 
 def _invalidate_from(approvals: dict[str, StageApproval], stage: str) -> None:
@@ -324,7 +361,24 @@ def record_audit(run_dir: Path, stage: str, result: AuditResult) -> dict[str, St
     st.audit_pass = result.passed
     st.prompt_hash = result.prompt_hash
     st.audit_failure_codes = [f.code.value for f in result.failures]
+    # Sticky hard-compliance latch: once banned/restricted/unviable is seen for
+    # this artifact, a clean same-hash re-audit cannot launder it (gap #6). The
+    # latch only resets when the hash changed above (genuinely different content).
+    new_hard = any(code in HARD_COMPLIANCE_CODES for code in st.audit_failure_codes)
+    st.hard_block = st.hard_block or new_hard
     save_approvals(run_dir, approvals)
+    # The append-only log is the gate's source of truth (not the mutable JSON).
+    _log_event(
+        run_dir,
+        {
+            "event": "audit",
+            "stage": stage,
+            "prompt_hash": result.prompt_hash,
+            "audit_pass": "true" if result.passed else "false",
+            "hard_block": "true" if st.hard_block else "false",
+            "at": _now_iso(),
+        },
+    )
     return approvals
 
 
@@ -374,7 +428,7 @@ def record_bypass(
         raise ValueError(f"unknown stage: {stage!r}")
     approvals = load_approvals(run_dir)
     st = approvals[stage]
-    if _hard_compliance_failed(st):
+    if _hard_blocked(run_dir, stage):
         raise GenerationBlocked(
             stage,
             f"cannot bypass a hard-compliance audit failure: {st.audit_failure_codes}",
@@ -411,9 +465,10 @@ def assert_may_generate(
     idx = STAGES.index(stage)
     st = approvals[stage]
 
-    # A hard-compliance failure on this stage can NEVER be cleared — not by
-    # approval, not by bypass, regardless of prior stages (Audit Lead gap #6).
-    if _hard_compliance_failed(st):
+    # A hard-compliance latch on this stage can NEVER be cleared — not by
+    # approval, not by bypass, regardless of prior stages. Read from the
+    # append-only log so editing approvals.json cannot launder it (gap #6).
+    if _hard_blocked(run_dir, stage):
         raise GenerationBlocked(
             stage, f"hard-compliance audit failure cannot be cleared: {st.audit_failure_codes}"
         )
@@ -433,11 +488,14 @@ def assert_may_generate(
         raise GenerationBlocked(stage, "stage not audited or audit failed")
     if not st.approved:
         raise GenerationBlocked(stage, "stage not approved by human")
-    # Tamper-evidence: the approval must be backed by a matching event bound to
-    # the approved prompt hash (H2/H5).
-    if not _has_event(run_dir, event="approve", stage=stage, prompt_hash=st.prompt_hash):
+    # Tamper-evidence: an approve event for this exact hash must POST-DATE the
+    # latest audit event — defeats both the JSON-only forge and stale-event
+    # replay after a hash revert (H2/H5).
+    if not _approval_is_current(run_dir, stage, st.prompt_hash):
         raise GenerationBlocked(
-            stage, "approval has no matching event in the audit log (tamper / forged approval)"
+            stage,
+            "no matching current approve event in the audit log "
+            "(tamper / forged or superseded approval)",
         )
     if manifest is not None and prompt_hash(manifest) != st.prompt_hash:
         raise GenerationBlocked(
