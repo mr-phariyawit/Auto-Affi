@@ -25,6 +25,8 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
+from auto_affi.pipeline.prompt_audit import assert_may_generate
+
 HIGGSFIELD_BIN = "higgsfield"
 
 # Placeholder path returned by dry-run (guaranteed non-existent, clearly fake)
@@ -116,11 +118,19 @@ class HiggsfieldCli:
         wait_timeout: str = "10m",
         wait_interval: str = "4s",
         extra_args: Iterable[str] = (),
+        run_dir: Path | None = None,
+        stage: str = "video",
     ) -> HiggsfieldVideo:
         """Submit a video generation job and wait for completion.
 
         In dry-run mode returns a deterministic stub immediately (no network,
         no subprocess, cost 0.0).
+
+        Pre-Generation Audit gate (SPEC §10.5 g10-12): when ``run_dir`` is
+        provided, the Pre-Generation Audit + approval gate is enforced for
+        ``stage`` BEFORE anything is generated — no approval, no generation.
+        The live producer path always passes ``run_dir``; legacy dry-run callers
+        that omit it are unaffected.
 
         Args:
             model:        Higgsfield job_set_type, e.g. ``seedance_2_0``.
@@ -138,6 +148,11 @@ class HiggsfieldCli:
             :class:`HiggsfieldVideo` with ``video_url`` set to the
             CloudFront URL (live) or empty string (dry-run).
         """
+        # Generation Lock: enforce the approval gate before ANY generation
+        # (draft or final) once a run context is supplied.
+        if run_dir is not None:
+            assert_may_generate(stage, run_dir)
+
         if self._dry_run:
             stub_stdout = (
                 f"[DRY-RUN] model={model} prompt={prompt[:40]!r} "
