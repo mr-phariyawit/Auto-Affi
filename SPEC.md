@@ -444,8 +444,11 @@ GET  /metrics/dashboard
 7. **Learning Closeout** — every run records successes, failures, user-caught issues, and any workflow rule changed.
 8. **Seedance-Only Visual** — generated visual video uses `seedance_2_0` only (via Higgsfield, §19.3); no visual-video fallback model.
 9. **Human-Visible Storyboard** — no paid visual-video provider call before a 3×3 storyboard/contact sheet is shown and approval is recorded in `pre_generation_user_review.json`.
+10. **Pre-Generation Audit (PGA)** — before EVERY image OR video generation (free or paid, draft or final), the prompt + references MUST pass the PGA checklist (`docs/principles/2026-06-27-pre-generation-audit-and-approval-gate.md`). Audit fails → generation is blocked, no exception.
+11. **Reference-Sheet Consistency Lock** — character/cast sheet + objects/props sheet are authored and human-approved FIRST and become the single canonical reference for every downstream prompt. Same approved inputs ⇒ same locked prompt (recorded to the run manifest); any input change invalidates prior approval and forces re-audit + re-approval. soul-id / seed locked for cross-shot consistency.
+12. **Generation Lock (no-gen-without-approval)** — every gated stage (cast/objects sheet → storyboard → contact-sheet/stills → video) requires an explicit recorded human approval before generating. Absent approval, the pipeline WAITS — it never generates speculatively. The ONLY override is an explicit human `bypass <stage>` command, which is logged with who/when/why and applies to that one stage only.
 
-_Verifier: `scripts/verify_runs.py` checks gates 2/4 (aspect + stream-count cleanroom) post-hoc; caption/disclosure/sync (gates 3/6) need caption + voice-segment inputs._
+_Verifier: `scripts/verify_runs.py` checks gates 2/4 (aspect + stream-count cleanroom) post-hoc; caption/disclosure/sync (gates 3/6) need caption + voice-segment inputs. Gates 10–12 enforced via per-stage `runs/<run>/approvals.json` + the PGA checklist (binding 2026-06-27 per human directive)._
 
 ---
 
