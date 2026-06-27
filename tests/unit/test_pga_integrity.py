@@ -1,0 +1,129 @@
+"""PGA audit-integrity: bypass cannot override hard-compliance; approvals are
+tamper-evident via the append-only event log.
+
+Closes Audit Lead gap #6 + honesty holes H2/H5
+(reports/2026-06-27_crew-review-findings.md).
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from auto_affi.pipeline.prompt_audit import (
+    GenerationBlocked,
+    ReferenceManifest,
+    StageApproval,
+    assert_may_generate,
+    audit,
+    load_approvals,
+    record_approval,
+    record_audit,
+    record_bypass,
+    save_approvals,
+)
+
+_IDENTITY = "JIAP02, lean athletic Southeast Asian male"
+
+
+def _manifest(**overrides: object) -> ReferenceManifest:
+    base: dict[str, object] = {
+        "prompt": f"{_IDENTITY}. Product orbit, sunlit room.",
+        "identity_string": _IDENTITY,
+        "cast_sheet_approved": True,
+        "objects_sheet_approved": True,
+        "declared_objects": ["product"],
+        "scene_objects": ["product"],
+        "face_reference_count": 1,
+        "negative_prompt": "different person, extra limbs, watermark",
+        "aspect": "9:16",
+        "resolution": "720p",
+        "duration_s": 8.0,
+        "soul_id": "soul-x",
+    }
+    base.update(overrides)
+    return ReferenceManifest(**base)  # type: ignore[arg-type]
+
+
+# --------------------- bypass vs hard-compliance (gap #6) ----------------- #
+
+
+@pytest.mark.unit
+def test_bypass_refused_on_banned_claims(tmp_path: Path) -> None:
+    record_audit(tmp_path, "video", audit(_manifest(has_banned_claims=True)))
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        record_bypass(tmp_path, "video", reason="ship it anyway")
+
+
+@pytest.mark.unit
+def test_bypass_refused_on_restricted_category(tmp_path: Path) -> None:
+    record_audit(tmp_path, "video", audit(_manifest(category_restricted=True)))
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        record_bypass(tmp_path, "video", reason="override")
+
+
+@pytest.mark.unit
+def test_bypass_refused_on_failed_economics(tmp_path: Path) -> None:
+    record_audit(tmp_path, "video", audit(_manifest(economics_passed=False)))
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        record_bypass(tmp_path, "video", reason="override")
+
+
+@pytest.mark.unit
+def test_bypass_still_works_for_soft_failure(tmp_path: Path) -> None:
+    # A structural/soft failure (wrong aspect) may still be bypassed.
+    record_audit(tmp_path, "cast_sheet", audit(_manifest(aspect="16:9")))
+    record_bypass(tmp_path, "cast_sheet", reason="hand-made sheet, trusted")
+    assert_may_generate("cast_sheet", tmp_path)  # cleared
+
+
+@pytest.mark.unit
+def test_hard_compliance_blocks_even_if_bypassed_first(tmp_path: Path) -> None:
+    # bypass BEFORE audit, then audit reveals a hard-compliance failure.
+    record_bypass(tmp_path, "video", reason="pre-cleared")
+    record_audit(tmp_path, "video", audit(_manifest(has_banned_claims=True)))
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        assert_may_generate("video", tmp_path)
+
+
+# --------------------- tamper-evident approvals (H2/H5) ------------------- #
+
+
+@pytest.mark.unit
+def test_legitimate_approval_passes(tmp_path: Path) -> None:
+    record_audit(tmp_path, "cast_sheet", audit(_manifest()))
+    record_approval(tmp_path, "cast_sheet", approved_by="operator:alice")
+    assert_may_generate("cast_sheet", tmp_path)
+    # an approve event is in the append-only log
+    log = (tmp_path / "audit_events.jsonl").read_text()
+    assert "approve" in log and "operator:alice" in log
+
+
+@pytest.mark.unit
+def test_forged_approval_without_event_is_rejected(tmp_path: Path) -> None:
+    # Audit + approve legitimately, then forge by editing approvals.json directly
+    # (no matching event in the append-only log) — must be rejected.
+    record_audit(tmp_path, "cast_sheet", audit(_manifest()))
+    approvals = load_approvals(tmp_path)
+    forged = approvals["cast_sheet"]
+    forged.approved = True
+    forged.approved_by = "human"  # the classic forge: just set the field
+    save_approvals(tmp_path, approvals)
+    # delete the event log entirely to simulate a JSON-only tamper
+    (tmp_path / "audit_events.jsonl").unlink(missing_ok=True)
+    with pytest.raises(GenerationBlocked, match=r"no matching .*event|tamper"):
+        assert_may_generate("cast_sheet", tmp_path)
+
+
+@pytest.mark.unit
+def test_forged_bypass_without_event_is_rejected(tmp_path: Path) -> None:
+    approvals = {
+        "cast_sheet": StageApproval(bypassed=True, bypass_reason="forged"),
+    }
+    full = load_approvals(tmp_path)
+    full["cast_sheet"] = approvals["cast_sheet"]
+    save_approvals(tmp_path, full)
+    # no event log written
+    with pytest.raises(GenerationBlocked, match=r"no matching .*event|tamper"):
+        assert_may_generate("cast_sheet", tmp_path)

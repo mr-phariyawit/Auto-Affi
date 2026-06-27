@@ -84,6 +84,28 @@ human with the failing item. Never "fix silently and proceed".
 
 ---
 
+## Integrity model (honest threat model)
+
+Two integrity properties are enforced in code (2026-06-28, Audit Lead gap #6 + H2/H5):
+
+1. **Hard-compliance is un-bypassable.** A recorded audit failure of `banned_claims`,
+   `category_restricted`, or `economics_not_passed` can NEVER be cleared — not by approval,
+   not by `bypass`. `record_bypass` refuses it and `assert_may_generate` blocks it first,
+   regardless of stage order. `bypass` is for trusting a hand-made artifact (soft/structural
+   failures), not for waving through prohibited content.
+
+2. **Approvals/bypasses are tamper-EVIDENT (not tamper-PROOF).** Every legitimate approval or
+   bypass writes BOTH `approvals.json` AND a matching entry in the append-only
+   `audit_events.jsonl`. `assert_may_generate` requires the matching event (approve events are
+   bound to the approved `prompt_hash`). This detects the simplest and most likely forge —
+   an agent editing `approvals.json` to set `approved=true`.
+
+   **Honest limits:** this is NOT cryptographic. A local actor who can write the run directory
+   can append a forged event to the log too, and `approved_by` is a self-asserted string, not a
+   verified identity. True integrity requires signed approvals or an external approval channel
+   that issues verifiable tokens (`approval_token` is plumbed through for that future wiring).
+   Do not claim "human-verified approval"; claim "tamper-evident against JSON-only edits."
+
 ## Agent operating procedure (until a code gate lands)
 
 The pipeline is partly agent-driven, so the agent IS the enforcement point:

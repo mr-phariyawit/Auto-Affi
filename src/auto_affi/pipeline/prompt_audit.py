@@ -56,6 +56,14 @@ class AuditCode(StrEnum):
     ECONOMICS_NOT_PASSED = "economics_not_passed"
 
 
+# Failures that a human `bypass` may NEVER override — bypass is for trusting a
+# hand-made artifact, not for waving through banned claims / restricted goods /
+# unviable economics (Audit Lead gap #6).
+HARD_COMPLIANCE_CODES: frozenset[AuditCode] = frozenset(
+    {AuditCode.BANNED_CLAIMS, AuditCode.CATEGORY_RESTRICTED, AuditCode.ECONOMICS_NOT_PASSED}
+)
+
+
 class AuditFailure(BaseModel):
     """One failing checklist item."""
 
@@ -112,6 +120,7 @@ class StageApproval(BaseModel):
     bypassed: bool = False
     bypass_reason: str | None = None
     prompt_hash: str | None = None
+    audit_failure_codes: list[str] = Field(default_factory=list)
 
 
 class GenerationBlocked(RuntimeError):
@@ -259,6 +268,41 @@ def _log_event(run_dir: Path, event: dict[str, str]) -> None:
         fh.write(line + "\n")
 
 
+def _read_events(run_dir: Path) -> list[dict[str, str]]:
+    path = Path(run_dir) / _EVENTS_FILENAME
+    if not path.exists():
+        return []
+    events: list[dict[str, str]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parsed = json.loads(line)
+        if isinstance(parsed, dict):
+            events.append(parsed)
+    return events
+
+
+def _has_event(run_dir: Path, *, event: str, stage: str, prompt_hash: str | None = None) -> bool:
+    """True if the append-only log carries a matching event (tamper-evidence).
+
+    A legitimate approve/bypass always writes both approvals.json AND an event;
+    a JSON-only forge has no matching event and is therefore detectable.
+    """
+    for ev in _read_events(run_dir):
+        if ev.get("event") != event or ev.get("stage") != stage:
+            continue
+        if prompt_hash is not None and ev.get("prompt_hash") != prompt_hash:
+            continue
+        return True
+    return False
+
+
+def _hard_compliance_failed(st: StageApproval) -> bool:
+    """True when a recorded audit carries a failure a bypass may not override."""
+    return st.audited and any(code in HARD_COMPLIANCE_CODES for code in st.audit_failure_codes)
+
+
 def _invalidate_from(approvals: dict[str, StageApproval], stage: str) -> None:
     """Reset the given stage and every downstream stage to a fresh state."""
     for downstream in STAGES[STAGES.index(stage) :]:
@@ -279,12 +323,21 @@ def record_audit(run_dir: Path, stage: str, result: AuditResult) -> dict[str, St
     st.audited = True
     st.audit_pass = result.passed
     st.prompt_hash = result.prompt_hash
+    st.audit_failure_codes = [f.code.value for f in result.failures]
     save_approvals(run_dir, approvals)
     return approvals
 
 
-def record_approval(run_dir: Path, stage: str, approved_by: str = "human") -> dict[str, StageApproval]:
-    """Mark a stage human-approved. Refuses to approve an un-audited/failed stage."""
+def record_approval(
+    run_dir: Path, stage: str, approved_by: str = "human", *, approval_token: str | None = None
+) -> dict[str, StageApproval]:
+    """Mark a stage human-approved. Refuses to approve an un-audited/failed stage.
+
+    Writes a matching ``approve`` event to the append-only log so the approval is
+    tamper-evident (a JSON-only forge has no event). ``approved_by`` SHOULD name a
+    real approver source (e.g. ``operator:alice``); ``approval_token`` carries an
+    out-of-band token when an approval channel issues one.
+    """
     if stage not in STAGES:
         raise ValueError(f"unknown stage: {stage!r}")
     approvals = load_approvals(run_dir)
@@ -295,17 +348,37 @@ def record_approval(run_dir: Path, stage: str, approved_by: str = "human") -> di
     st.approved_by = approved_by
     st.approved_at = _now_iso()
     save_approvals(run_dir, approvals)
+    _log_event(
+        run_dir,
+        {
+            "event": "approve",
+            "stage": stage,
+            "prompt_hash": st.prompt_hash or "",
+            "by": approved_by,
+            "token": approval_token or "",
+            "at": _now_iso(),
+        },
+    )
     return approvals
 
 
 def record_bypass(
     run_dir: Path, stage: str, reason: str, by: str = "human"
 ) -> dict[str, StageApproval]:
-    """Explicit human override for one stage. Logged to ``audit_events.jsonl``."""
+    """Explicit human override for one stage. Logged to ``audit_events.jsonl``.
+
+    A bypass may NOT override a hard-compliance audit failure (banned claims /
+    restricted category / failed economics) — those raise (Audit Lead gap #6).
+    """
     if stage not in STAGES:
         raise ValueError(f"unknown stage: {stage!r}")
     approvals = load_approvals(run_dir)
     st = approvals[stage]
+    if _hard_compliance_failed(st):
+        raise GenerationBlocked(
+            stage,
+            f"cannot bypass a hard-compliance audit failure: {st.audit_failure_codes}",
+        )
     st.bypassed = True
     st.bypass_reason = reason
     st.approved_by = by
@@ -336,19 +409,36 @@ def assert_may_generate(
         raise ValueError(f"unknown stage: {stage!r}")
     approvals = load_approvals(run_dir)
     idx = STAGES.index(stage)
+    st = approvals[stage]
+
+    # A hard-compliance failure on this stage can NEVER be cleared — not by
+    # approval, not by bypass, regardless of prior stages (Audit Lead gap #6).
+    if _hard_compliance_failed(st):
+        raise GenerationBlocked(
+            stage, f"hard-compliance audit failure cannot be cleared: {st.audit_failure_codes}"
+        )
 
     for prior in STAGES[:idx]:
         prev = approvals[prior]
         if not (prev.approved or prev.bypassed):
             raise GenerationBlocked(stage, f"prior stage '{prior}' not approved/bypassed")
 
-    st = approvals[stage]
     if st.bypassed:
+        # Tamper-evidence: a bypassed stage must have a matching event in the
+        # append-only log (a JSON-only forge has none).
+        if not _has_event(run_dir, event="bypass", stage=stage):
+            raise GenerationBlocked(stage, "bypass has no matching event in the audit log (tamper)")
         return
     if not st.audited or not st.audit_pass:
         raise GenerationBlocked(stage, "stage not audited or audit failed")
     if not st.approved:
         raise GenerationBlocked(stage, "stage not approved by human")
+    # Tamper-evidence: the approval must be backed by a matching event bound to
+    # the approved prompt hash (H2/H5).
+    if not _has_event(run_dir, event="approve", stage=stage, prompt_hash=st.prompt_hash):
+        raise GenerationBlocked(
+            stage, "approval has no matching event in the audit log (tamper / forged approval)"
+        )
     if manifest is not None and prompt_hash(manifest) != st.prompt_hash:
         raise GenerationBlocked(
             stage,
