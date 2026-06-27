@@ -87,8 +87,10 @@ human with the failing item. Never "fix silently and proceed".
 ## Integrity model (honest threat model)
 
 The gate reads the **append-only `audit_events.jsonl` as its source of truth**, not the mutable
-`approvals.json` (which is treated as advisory/forgeable). Two properties (2026-06-28, Audit
-Lead gap #6 + H2/H5, after two adversarial BLOCK rounds):
+`approvals.json` (which is treated as advisory/forgeable). This applies to the **target stage AND
+every prior stage** in the ordering chain — a forged `approvals.json` cannot launder an upstream
+stage or leak a banned upstream artifact downstream. Properties (2026-06-28, Audit Lead gap #6 +
+H2/H5, hardened across four adversarial BLOCK rounds):
 
 1. **Hard-compliance is sticky and un-launderable.** When an audit records `banned_claims`,
    `category_restricted`, or `economics_not_passed`, a `hard_block` latch is written to the log.

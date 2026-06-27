@@ -485,10 +485,21 @@ def assert_may_generate(
             stage, "hard-compliance audit failure cannot be cleared (see audit log)"
         )
 
+    # Prior stages must be VALIDLY cleared too — using the same log-authoritative
+    # checks as the target (Audit Lead GAP-C/GAP-D). Reading raw approvals.json
+    # booleans here would let a forged JSON launder upstream stages and leak a
+    # banned/restricted upstream artifact into downstream generation.
     for prior in STAGES[:idx]:
+        if _hard_blocked(run_dir, prior):
+            raise GenerationBlocked(
+                stage, f"prior stage '{prior}' has an un-cleared hard-compliance failure"
+            )
         prev = approvals[prior]
-        if not (prev.approved or prev.bypassed):
-            raise GenerationBlocked(stage, f"prior stage '{prior}' not approved/bypassed")
+        prior_cleared = (prev.bypassed and _bypass_is_current(run_dir, prior)) or (
+            prev.approved and _approval_is_current(run_dir, prior, prev.prompt_hash)
+        )
+        if not prior_cleared:
+            raise GenerationBlocked(stage, f"prior stage '{prior}' not validly approved/bypassed")
 
     if st.bypassed:
         # Tamper-evidence: the bypass event must post-date the latest audit event

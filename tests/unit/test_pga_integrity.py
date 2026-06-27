@@ -195,6 +195,39 @@ def test_bypass_does_not_authorize_a_different_manifest(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_forged_prior_stage_approval_is_rejected(tmp_path: Path) -> None:
+    """GAP-C: prior stages are log-authoritative too. Forging cast_sheet/objects
+    approved=true in approvals.json (no events) must not let a later stage generate."""
+    record_audit(tmp_path, "storyboard", audit(_manifest()))
+    record_approval(tmp_path, "storyboard", approved_by="operator:alice")
+    approvals = load_approvals(tmp_path)
+    for prior in ("cast_sheet", "objects_sheet"):
+        approvals[prior].approved = True  # forged: no approve event exists
+        approvals[prior].audited = True
+        approvals[prior].audit_pass = True
+    save_approvals(tmp_path, approvals)
+    with pytest.raises(GenerationBlocked, match="prior stage"):
+        assert_may_generate("storyboard", tmp_path)
+
+
+@pytest.mark.unit
+def test_banned_prior_stage_blocks_downstream(tmp_path: Path) -> None:
+    """GAP-D: a hard-compliance latch on an upstream stage blocks downstream
+    generation even if approvals.json is forged to clear it."""
+    record_audit(tmp_path, "cast_sheet", audit(_manifest(has_banned_claims=True)))
+    approvals = load_approvals(tmp_path)
+    approvals["cast_sheet"].approved = True  # forged clearance of a banned stage
+    approvals["cast_sheet"].hard_block = False
+    save_approvals(tmp_path, approvals)
+    record_audit(tmp_path, "objects_sheet", audit(_manifest()))
+    record_approval(tmp_path, "objects_sheet", approved_by="op")
+    record_audit(tmp_path, "storyboard", audit(_manifest()))
+    record_approval(tmp_path, "storyboard", approved_by="op")
+    with pytest.raises(GenerationBlocked, match="hard-compliance"):
+        assert_may_generate("storyboard", tmp_path)
+
+
+@pytest.mark.unit
 def test_forged_bypass_without_event_is_rejected(tmp_path: Path) -> None:
     approvals = {
         "cast_sheet": StageApproval(bypassed=True, bypass_reason="forged"),
