@@ -18,6 +18,16 @@ Hard filters (any one fails → REJECT):
     - category in RESTRICTED_CATEGORIES
     - shop rating < 4.5
     - commission_rate < 3% AND aov_thb < 300
+    - unviable economics: breakeven_views > MAX_BREAKEVEN_VIEWS
+
+The economics filter (2026-06-27) operationalises the #1 finding of the
+successful-operator research: vet *money earned per conversion* (commission-EV
+in THB), not the commission *rate*, BEFORE any paid pipeline run. A blunt
+"reject < 8% commission" rule was deliberately NOT adopted — it contradicts the
+existing principle that a low rate on a high-AOV product still earns real money
+per conversion (see ``test_low_rate_high_aov_survives_economics_gate``). Instead
+we reject products that cannot recoup production cost within a plausible view
+ceiling. See ``reports/2026-06-27_ai-affiliate-upgrade-plan.md`` §2 #1/#2.
 """
 
 from __future__ import annotations
@@ -59,6 +69,18 @@ CR_CATEGORY_PRIOR: dict[str, float] = {
 
 DEFAULT_CR_PRIOR: float = 0.005  # Unknown categories get the floor.
 
+# Economics gate (2026-06-27 research finding #1). ~$3/video SPEC §1.2 target at
+# ~35 THB/USD. A product whose commission-EV cannot recoup this within a
+# modest-success view ceiling is unviable and must not reach paid production.
+PRODUCTION_COST_THB: float = 105.0
+# A product needing more than this many views just to recoup one video's cost is
+# too thin for an organic small-audience operation. Tunable per-pilot via score().
+# Every currently-passing candidate breaks even well under 1k views; the three
+# live Shopee fixtures recoup within ~200-770 views.
+MAX_BREAKEVEN_VIEWS: float = 10_000.0
+# Shopee caps per-order commission near THB 200; shared by EV and breakeven.
+_COMMISSION_CAP_THB: float = 200.0
+
 # Return-rate penalty by category — fashion and electronics are the worst
 # offenders. Values represent the typical fraction of orders returned and
 # directly suppress the score.
@@ -75,6 +97,7 @@ class RejectReason(StrEnum):
     RESTRICTED_CATEGORY = "restricted_category"
     LOW_SHOP_RATING = "low_shop_rating"
     LOW_COMMISSION_AND_AOV = "low_commission_and_aov"
+    UNVIABLE_ECONOMICS = "unviable_economics"
 
 
 @dataclass(frozen=True)
@@ -111,8 +134,23 @@ def _commission_ev(commission_rate: float, aov_thb: float) -> float:
     Shopee caps per-order commission near THB 200 across most categories.
     Scaling against that ceiling keeps the sub-score in the [0, 1] band.
     """
-    raw_thb = min(commission_rate * aov_thb, 200.0)
-    return _clamp(raw_thb / 200.0)
+    raw_thb = min(commission_rate * aov_thb, _COMMISSION_CAP_THB)
+    return _clamp(raw_thb / _COMMISSION_CAP_THB)
+
+
+def _breakeven_views(*, commission_rate: float, aov_thb: float, category: str, production_cost_thb: float) -> float:
+    """Views needed for one video's commission-EV to recoup production cost.
+
+    breakeven_views = production_cost / (commission_per_conversion x CR_prior).
+    Returns ``inf`` when the product can never earn (zero EV or zero CR), which
+    the economics gate treats as unviable.
+    """
+    commission_per_conversion = min(commission_rate * aov_thb, _COMMISSION_CAP_THB)
+    cr_prior = CR_CATEGORY_PRIOR.get(category, DEFAULT_CR_PRIOR)
+    earnings_per_view = commission_per_conversion * cr_prior
+    if earnings_per_view <= 0.0:
+        return math.inf
+    return production_cost_thb / earnings_per_view
 
 
 def _cr_signal(*, category: str, shop_rating: float, review_count: int) -> float:
@@ -156,8 +194,17 @@ def _cookie_utilisation(shop_catalog_size: int) -> float:
     return _clamp(shop_catalog_size / 1000.0)
 
 
-def score(candidate: ScoutInput) -> ScoutScore:
-    """Score a candidate, applying hard filters before weighted sum."""
+def score(
+    candidate: ScoutInput,
+    *,
+    production_cost_thb: float = PRODUCTION_COST_THB,
+    max_breakeven_views: float = MAX_BREAKEVEN_VIEWS,
+) -> ScoutScore:
+    """Score a candidate, applying hard filters before weighted sum.
+
+    ``production_cost_thb`` / ``max_breakeven_views`` tune the economics gate so
+    a niche pilot can tighten the bar (lower ceiling = stricter).
+    """
     # --- hard filters --------------------------------------------------- #
     if candidate.category in RESTRICTED_CATEGORIES:
         return ScoutScore(rejected=True, reject_reason=RejectReason.RESTRICTED_CATEGORY)
@@ -165,6 +212,15 @@ def score(candidate: ScoutInput) -> ScoutScore:
         return ScoutScore(rejected=True, reject_reason=RejectReason.LOW_SHOP_RATING)
     if candidate.commission_rate < 0.03 and candidate.aov_thb < 300:
         return ScoutScore(rejected=True, reject_reason=RejectReason.LOW_COMMISSION_AND_AOV)
+
+    breakeven_views = _breakeven_views(
+        commission_rate=candidate.commission_rate,
+        aov_thb=candidate.aov_thb,
+        category=candidate.category,
+        production_cost_thb=production_cost_thb,
+    )
+    if breakeven_views > max_breakeven_views:
+        return ScoutScore(rejected=True, reject_reason=RejectReason.UNVIABLE_ECONOMICS)
 
     # --- weighted sub-scores ------------------------------------------- #
     commission_ev = _commission_ev(candidate.commission_rate, candidate.aov_thb)
@@ -202,5 +258,6 @@ def score(candidate: ScoutInput) -> ScoutScore:
             "return_penalty": return_penalty,
             "cookie_utilisation": cookie_util,
             "raw_weighted_sum": raw,
+            "breakeven_views": breakeven_views,
         },
     )

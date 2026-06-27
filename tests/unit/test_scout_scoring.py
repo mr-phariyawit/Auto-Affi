@@ -42,6 +42,7 @@ def test_strong_beauty_candidate_scores_high() -> None:
         "return_penalty",
         "cookie_utilisation",
         "raw_weighted_sum",
+        "breakeven_views",
     }
 
 
@@ -100,6 +101,74 @@ def test_low_commission_high_aov_passes_filter() -> None:
     )
     result = score(candidate)
     assert result.rejected is False
+
+
+@pytest.mark.unit
+def test_unviable_economics_rejected() -> None:
+    """A product whose commission-EV cannot pay back production cost within a
+    plausible view ceiling is rejected before any paid pipeline run.
+
+    Driver: 2026-06-27 successful-operator research finding #1 — vet the
+    economics (THB earned per conversion), not the commission *rate* alone,
+    BEFORE spending on production. home category has the lowest CR prior; a
+    tiny commission-EV on it needs an implausible number of views to break even.
+    """
+    # home CR prior 0.006; 0.05 x 30 THB = 1.5 THB/conversion -> needs ~11.7k
+    # views to recoup ~105 THB, above the 10k ceiling. Passes the older
+    # commission/AOV filter (rate ≥ 0.03) so it isolates the economics gate.
+    candidate = ScoutInput(
+        category="home",
+        commission_rate=0.05,
+        aov_thb=30.0,
+        shop_rating=4.9,
+        review_count=2_000,
+    )
+    result = score(candidate)
+    assert result.rejected is True
+    assert result.reject_reason is RejectReason.UNVIABLE_ECONOMICS
+
+
+@pytest.mark.unit
+def test_low_rate_high_aov_survives_economics_gate() -> None:
+    """Guard: the economics gate must NOT reject a low-RATE product when AOV
+    makes the per-conversion money real (the existing high-AOV principle).
+    """
+    candidate = ScoutInput(
+        category="beauty_skincare",
+        commission_rate=0.025,
+        aov_thb=2_500.0,
+        shop_rating=4.7,
+        review_count=800,
+    )
+    result = score(candidate)
+    assert result.rejected is False
+
+
+@pytest.mark.unit
+def test_breakeven_views_exposed_and_finite() -> None:
+    result = score(_strong_beauty())
+    assert result.rejected is False
+    be = result.breakdown["breakeven_views"]
+    assert be > 0.0
+    assert be < 50_000.0  # a strong candidate breaks even easily
+
+
+@pytest.mark.unit
+def test_economics_gate_threshold_is_tunable() -> None:
+    """A borderline product passes the default ceiling but can be rejected by a
+    stricter (lower) max_breakeven_views — so a niche pilot can tighten the bar.
+    """
+    candidate = ScoutInput(
+        category="home",
+        commission_rate=0.05,
+        aov_thb=120.0,
+        shop_rating=4.8,
+        review_count=500,
+    )
+    assert score(candidate).rejected is False
+    strict = score(candidate, max_breakeven_views=100.0)
+    assert strict.rejected is True
+    assert strict.reject_reason is RejectReason.UNVIABLE_ECONOMICS
 
 
 @pytest.mark.unit
