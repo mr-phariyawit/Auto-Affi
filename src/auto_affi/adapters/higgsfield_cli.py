@@ -43,7 +43,9 @@ _DRY_RUN_PLACEHOLDER = Path("/tmp/higgsfield_dryrun_placeholder.mp4")  # noqa: S
 # (656 credits ≈ $3.28 ⇒ ~$0.005/credit). Treat as estimates; callers may override
 # via estimated_credits / estimated_cost_usd. Used for verify-before-spend only.
 _VIDEO_CREDITS_PER_SECOND: float = 20.5
-_IMAGE_CREDITS_DEFAULT: float = 20.0
+# ~$0.03/still, matching SPEC Appendix C ("8 scenes x image = 0.25"); keeps a
+# multi-still run under the $0.25 image_gen node cap.
+_IMAGE_CREDITS_DEFAULT: float = 6.0
 _USD_PER_CREDIT: float = 0.005
 _CREDIT_SAFETY_MARGIN: float = 1.2
 
