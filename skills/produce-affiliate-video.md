@@ -70,6 +70,13 @@ For each stage `cast_sheet → objects_sheet → storyboard → contact_sheet �
 5. **Pre-video pre-flight (stage 5):** vision-compare each contact frame vs the cast sheet ("same
    person?") BEFORE the paid Veo call; the mandatory budget breaker is the hard spend cap.
 
+### Step 4.5 — STORYBOARD review page (MANDATORY before any paid Veo)
+NEVER jump from frames straight to Veo. Assemble a self-contained `runs/<run>/storyboard.html` shot
+TABLE — columns: No · เวลา/timecode · First frame (the generated starting frame, embedded) · เนื้อหา·motion ·
+Prompt → Veo · เสียง/VO (Thai) · กล้อง/camera · Transition — plus the full VO, total duration, and the next
+Veo cost. Present it for explicit human approval; only after `approve storyboard` do paid Veo clips run.
+(Format: a per-shot table like the AetherFlow storyboards.)
+
 ### Step 5 — Edit → Compliance → Master
 Concat shots → editor (captions, hook punch-in, brand overlay, CTA endcard) → `run_compliance`:
 cleanroom (1 video + 1 audio), 9:16, Thai VO 1.0–1.15×, disclosure `#โฆษณา/#affiliate`, caption/VO sync.
