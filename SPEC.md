@@ -442,7 +442,7 @@ GET  /metrics/dashboard
 5. **Env Secrets** — no provider call before `.env` is loaded and required key NAMES are present; never print secret values.
 6. **Caption/VO Sync** — final render blocked unless captions match the approved voice-segment report.
 7. **Learning Closeout** — every run records successes, failures, user-caught issues, and any workflow rule changed.
-8. **Seedance-Only Visual** — generated visual video uses `seedance_2_0` only (via Higgsfield, §19.3); no visual-video fallback model.
+8. **Gemini-Only Visual (ADR-009, 2026-06-28)** — generated stills use **Nano Banana Pro** (`gemini-3-pro-image`, with reference-image consistency); generated video uses **Veo 3** only. Higgsfield/Seedance is retired. Thai-no-lipsync still applies (Veo for B-roll/product/action; Thai dialogue is VO muxed separately, no native Veo audio).
 9. **Human-Visible Storyboard** — no paid visual-video provider call before a 3×3 storyboard/contact sheet is shown and approval is recorded in `pre_generation_user_review.json`.
 10. **Pre-Generation Audit (PGA)** — before EVERY image OR video generation (free or paid, draft or final), the prompt + references MUST pass the PGA checklist (`docs/principles/2026-06-27-pre-generation-audit-and-approval-gate.md`). Audit fails → generation is blocked, no exception.
 11. **Reference-Sheet Consistency Lock** — character/cast sheet + objects/props sheet are authored and human-approved FIRST and become the single canonical reference for every downstream prompt. Same approved inputs ⇒ same locked prompt (recorded to the run manifest); any input change invalidates prior approval and forces re-audit + re-approval. soul-id / seed locked for cross-shot consistency.
@@ -661,6 +661,7 @@ Roadmap reported **100% complete**; truth was **code-complete, outcome-zero**. T
 | 006 | Never persist vendor URLs (Phaya/Supabase); download bytes → own GCS → reference GCS URI downstream | Accepted | Keep the principle for ANY vendor (now Higgsfield) |
 | 007 | Studio-grade 10-stage gated flow (`auto_affi.ops.produce`): Brief→Script→Storyboard→Visual refs→Animatics→VO→Music→Final cut→Compliance→Publish; each schema'd + human-gated + revisable + persisted | Accepted (built S7–9) | The gates ARE the product for agency-grade work |
 | 008 | Dual modes on the same 10-stage flow: **MANUAL** (board approves every gate; default first ~50 videos/niche + regulated content) vs **AUTONOMOUS** (AutonomousDecider via Wiki+kill-switch+cost-model for Phase-3 scale) | Proposed | Mode set at run start, immutable for run lifetime |
+| 009 | **Provider pivot: Higgsfield → Gemini-only** (human directive 2026-06-28). Stills = Nano Banana Pro (`gemini-3-pro-image`, reference-image consistency, available now via MCP — verified). Video = **Veo 3** only. Higgsfield/Seedance retired. | Accepted | Nano Banana Pro replaces soul-id with native reference-image consistency (better character/object lock). **Veo 3 has NO API key/endpoint in `.env` yet — video stage is blocked until access is provisioned.** Thai-no-lipsync unchanged (Veo for B-roll; Thai VO muxed separately). Code: needs a `GeminiProvider` adapter + provider-agnostic `GatedProducer`; the PGA gate is provider-agnostic and stays. |
 
 ## 19. Creative Method — the hard-won part (folded from learnings)
 
