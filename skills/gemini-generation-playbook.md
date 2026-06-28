@@ -79,6 +79,17 @@ labelled `[PRODUCED: est cost]`. The **production** run records spend + enforces
 | clip (4s) | veo-3.0-fast | ~$1.60 |
 | clip (8s) | veo-3.0-fast | ~$3.20 → DENIED ($1.80 cap) |
 
+
+## Reference-image technical rules (VERIFIED on the umbrella run)
+For character + product consistency across frames (gemini-3-pro-image / Nano Banana Pro):
+1. **Images FIRST, then text** (reference-then-describe). Putting text first degrades ref usage.
+2. **Order: character refs → product refs → style refs.** Max 14 total (5 char, 6 object, 3 style).
+3. **Label each ref in the prompt:** "REFERENCE 1 is the CHARACTER (same face/hair/wardrobe)...
+   REFERENCE 2-3 are the PRODUCT (same item)". Say "the SAME person" / "the SAME product".
+4. Give the character ref MULTIPLE angles (a 4-view turnaround sheet) — locks the face hard.
+5. parts order in REST: `[charImg, prodImg1, prodImg2, {text}]`. Verified: held face + outfit +
+   product (even the ID-card photo) across all 6 BTS shots.
+
 ## Integration
 - **From** `produce-affiliate-video` Step 4 (the gated stages call this).
 - **Uses** `gemini_provider` / `gen_provider` (the verified payloads live there).
