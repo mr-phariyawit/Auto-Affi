@@ -116,6 +116,16 @@ H2/H5, hardened across four adversarial BLOCK rounds):
    tokens. Claim "tamper-evident against JSON edits and stale replay", NOT "human-verified" or
    "tamper-proof".
 
+## Live-path bypass requires a preceding audit (intentional, fails closed)
+
+On the LIVE (paid) path the adapter requires a manifest, and the gate binds it to the
+hash recorded for the stage. A `bypass <stage>` records the hash from the stage's prior
+audit — so to bypass a stage AND generate live, an audit of that exact artifact must run
+first (it seeds the bound hash). A pure no-audit bypass leaves the bound hash empty and can
+never satisfy a live call's hash check — it **fails closed** (over-blocks, never over-spends).
+This is intentional: a live bypass still binds to ONE specific artifact, not "any content".
+Dry-run bypass is unaffected (no manifest required there).
+
 ## Agent operating procedure (until a code gate lands)
 
 The pipeline is partly agent-driven, so the agent IS the enforcement point:
