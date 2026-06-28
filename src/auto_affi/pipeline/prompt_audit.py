@@ -20,6 +20,7 @@ import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -77,6 +78,11 @@ class ReferenceManifest(BaseModel):
 
     prompt: str
     identity_string: str
+    # What the stage produces — selects which person-specific checks apply.
+    # character: identity=person + exactly one face + Thai-no-lipsync.
+    # product:   identity=product descriptor; no face / no lipsync check.
+    # scene:     no identity / face / lipsync requirement (B-roll, no subject).
+    stage_kind: Literal["character", "product", "scene"] = "character"
     cast_sheet_approved: bool
     objects_sheet_approved: bool
     declared_objects: list[str] = Field(default_factory=list)
@@ -157,6 +163,7 @@ def prompt_hash(manifest: ReferenceManifest) -> str:
         "soul_id": manifest.soul_id,
         "face_reference_count": manifest.face_reference_count,
         "reference_uris": sorted(manifest.reference_uris),
+        "stage_kind": manifest.stage_kind,
     }
     canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -174,23 +181,31 @@ def audit(manifest: ReferenceManifest) -> AuditResult:
     def fail(code: AuditCode, section: str, detail: str) -> None:
         failures.append(AuditFailure(code=code, section=section, detail=detail))
 
+    # stage_kind selects which person-specific checks apply.
+    needs_identity = manifest.stage_kind in ("character", "product")
+    needs_face = manifest.stage_kind == "character"
+    needs_lipsync_check = manifest.stage_kind == "character"
+
     # --- A. Reference lock --------------------------------------------- #
     if not manifest.cast_sheet_approved:
         fail(AuditCode.CAST_SHEET_NOT_APPROVED, "A", "cast/character sheet not approved")
     if not manifest.objects_sheet_approved:
         fail(AuditCode.OBJECTS_SHEET_NOT_APPROVED, "A", "objects/props sheet not approved")
-    if not manifest.identity_string or manifest.identity_string not in manifest.prompt:
+    if needs_identity and (
+        not manifest.identity_string or manifest.identity_string not in manifest.prompt
+    ):
+        subject = "product" if manifest.stage_kind == "product" else "canonical identity"
         fail(
             AuditCode.IDENTITY_STRING_MISSING,
             "A",
-            "canonical identity string not injected verbatim into the prompt",
+            f"{subject} string not injected verbatim into the prompt",
         )
 
     # --- B. Prompt standard -------------------------------------------- #
     stray = sorted(set(manifest.scene_objects) - set(manifest.declared_objects))
     if stray:
         fail(AuditCode.STRAY_OBJECT, "B", f"objects not on the approved objects sheet: {stray}")
-    if manifest.face_reference_count != 1:
+    if needs_face and manifest.face_reference_count != 1:
         fail(
             AuditCode.FACE_REFERENCE_NOT_SINGLE,
             "B",
@@ -212,7 +227,7 @@ def audit(manifest: ReferenceManifest) -> AuditResult:
             "B",
             "no seed or soul_id locked for cross-shot determinism",
         )
-    if manifest.thai_no_lipsync and manifest.visibly_speaking_thai_mouth:
+    if needs_lipsync_check and manifest.thai_no_lipsync and manifest.visibly_speaking_thai_mouth:
         fail(
             AuditCode.THAI_LIPSYNC_VIOLATION,
             "B",
