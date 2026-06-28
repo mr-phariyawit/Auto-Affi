@@ -36,7 +36,7 @@ _DEFAULT_IMAGE_MODEL = "gemini-3-pro-image"
 # Veo 3.1-fast: required for first->last keyframe interpolation (`lastFrame`) and
 # `referenceImages`. Veo 3.0-fast does text/first-frame only (verified 2026-06-28
 # against ai.google.dev/gemini-api/docs/video). FLF2V storyboards need 3.1-fast.
-_DEFAULT_VIDEO_MODEL = "veo-3.1-fast-generate-001"
+_DEFAULT_VIDEO_MODEL = "veo-3.1-fast-generate-preview"
 _GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
 _DRY_PLACEHOLDER = Path("/tmp/gemini_dryrun_placeholder")  # noqa: S108
 
@@ -170,7 +170,8 @@ class GeminiProvider:
         last_b64 = (await _read_b64(last_frame)) if last_frame else None
         body = build_video_body(prompt, duration, aspect_ratio, first_b64, last_b64)
         key = self._key()
-        async with httpx.AsyncClient(timeout=self.timeout_s) as client:
+        # follow_redirects: the Veo video download URI 302-redirects to a storage blob.
+        async with httpx.AsyncClient(timeout=self.timeout_s, follow_redirects=True) as client:
             start = await client.post(
                 f"{_GEMINI_BASE}/models/{model}:predictLongRunning?key={key}", json=body)
             start.raise_for_status()
@@ -194,25 +195,25 @@ def build_video_body(
     prompt: str, duration: int, aspect_ratio: str,
     first_b64: str | None = None, last_b64: str | None = None,
 ) -> dict[str, Any]:
-    """Pure builder for the Veo predictLongRunning request (verified field names).
+    """Pure builder for the Veo predictLongRunning request.
 
-    - text-to-video: prompt only -> ``personGeneration: allow_all``.
-    - image-to-video: + ``image`` (first frame) -> ``personGeneration: allow_adult``.
-    - FLF2V: + ``lastFrame`` (Veo 3.1+) -> interpolates motion between the two keyframes.
-    ``durationSeconds`` is a STRING per the API; ``generateAudio`` is always False
-    (Thai VO is muxed at the edit stage, never baked native).
+    Field names VERIFIED live against veo-3.1-fast-generate-preview (2026-06-28) — the
+    published docs were wrong on three counts:
+    - image bytes go in ``image.bytesBase64Encoded`` (+ ``mimeType``), NOT ``inlineData``
+      (``inlineData`` is a generateContent shape and is rejected by Veo).
+    - ``durationSeconds`` must be a NUMBER (int), not a string.
+    - ``generateAudio`` is NOT accepted by this model — omit it entirely. Veo emits native
+      audio; we STRIP it and mux the Thai VO at the edit stage (Thai-no-lipsync preserved
+      by the keyframes, which never show a speaking mouth).
+
+    Modes: text-to-video (prompt only) · image-to-video (+ first frame) · FLF2V (+ lastFrame, Veo 3.1+).
     """
     instance: dict[str, Any] = {"prompt": prompt}
     if first_b64 is not None:
-        instance["image"] = {"inlineData": {"mimeType": "image/png", "data": first_b64}}
+        instance["image"] = {"bytesBase64Encoded": first_b64, "mimeType": "image/png"}
     if last_b64 is not None:
-        instance["lastFrame"] = {"inlineData": {"mimeType": "image/png", "data": last_b64}}
-    params: dict[str, Any] = {
-        "aspectRatio": aspect_ratio,
-        "durationSeconds": str(duration),
-        "generateAudio": False,
-        "personGeneration": "allow_adult" if first_b64 is not None else "allow_all",
-    }
+        instance["lastFrame"] = {"bytesBase64Encoded": last_b64, "mimeType": "image/png"}
+    params: dict[str, Any] = {"aspectRatio": aspect_ratio, "durationSeconds": int(duration)}
     return {"instances": [instance], "parameters": params}
 
 

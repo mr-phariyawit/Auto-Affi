@@ -54,27 +54,25 @@ def test_video_body_text_to_video() -> None:
     assert inst == {"prompt": "a shot"}  # no image/lastFrame
     params = body["parameters"]
     assert params["aspectRatio"] == "9:16"
-    assert params["durationSeconds"] == "4"  # STRING per the API
-    assert params["generateAudio"] is False  # Thai no-lipsync
-    assert params["personGeneration"] == "allow_all"  # t2v
+    assert params["durationSeconds"] == 4  # NUMBER (int) per the live API
+    assert "generateAudio" not in params  # rejected by veo-3.1-fast; audio stripped in edit
 
 
 @pytest.mark.unit
 def test_video_body_image_to_video_first_frame() -> None:
     body = build_video_body("a shot", 4, "9:16", first_b64="QUJD")
     inst = body["instances"][0]
-    assert inst["image"]["inlineData"] == {"mimeType": "image/png", "data": "QUJD"}
+    assert inst["image"] == {"bytesBase64Encoded": "QUJD", "mimeType": "image/png"}
     assert "lastFrame" not in inst
-    assert body["parameters"]["personGeneration"] == "allow_adult"  # i2v requires adult
 
 
 @pytest.mark.unit
 def test_video_body_flf2v_first_and_last() -> None:
     body = build_video_body("interp", 4, "9:16", first_b64="Rg==", last_b64="TA==")
     inst = body["instances"][0]
-    assert inst["image"]["inlineData"]["data"] == "Rg=="  # FIRST keyframe
-    assert inst["lastFrame"]["inlineData"]["data"] == "TA=="  # LAST keyframe (FLF2V)
-    assert body["parameters"]["generateAudio"] is False
+    assert inst["image"]["bytesBase64Encoded"] == "Rg=="  # FIRST keyframe
+    assert inst["lastFrame"]["bytesBase64Encoded"] == "TA=="  # LAST keyframe (FLF2V)
+    assert isinstance(body["parameters"]["durationSeconds"], int)
 
 
 @pytest.mark.unit

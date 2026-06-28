@@ -60,28 +60,25 @@ Mirrors `gemini_provider.py::_image_api`.
 ```
 POST .../models/<MODEL>:predictLongRunning?key=$GEMINI_API_KEY
 ```
-**Text / first-frame only (Veo 3.0 fast):**
+**Image-to-video (first frame) — VERIFIED LIVE on `veo-3.1-fast-generate-preview`, 2026-06-28, produced a real 4s/720×1280/h264 clip:**
 ```json
-{ "instances": [{ "prompt": "<shot 9:16>",
-    "image": { "inlineData": { "mimeType":"image/png", "data":"<first frame b64>" } } }],
-  "parameters": { "aspectRatio":"9:16", "durationSeconds":"4", "generateAudio":false, "personGeneration":"allow_adult" } }
-```
-**FLF2V — first→last keyframe interpolation (Veo 3.1 / 3.1-fast ONLY) `[VERIFIED structure 2026-06-28]`:**
-```json
-{ "instances": [{ "prompt":"Animate the transition between the first and last frame. ...",
-    "image":     { "inlineData": { "mimeType":"image/png", "data":"<FIRST b64>" } },
-    "lastFrame": { "inlineData": { "mimeType":"image/png", "data":"<LAST b64>" } } }],
-  "parameters": { "aspectRatio":"9:16", "durationSeconds":"4", "generateAudio":false, "personGeneration":"allow_adult" } }
+{ "instances": [{ "prompt": "<shot, 9:16, cinematic motion>",
+    "image": { "bytesBase64Encoded": "<first frame b64>", "mimeType": "image/png" } }],
+  "parameters": { "aspectRatio":"9:16", "durationSeconds":4 } }
 ```
 Then **poll** `GET .../{operation.name}` until `{"done":true}`, **download**
-`response.generateVideoResponse.generatedSamples[0].video.uri`. Mirrors `gemini_provider.py::_video_api`.
+`response.generateVideoResponse.generatedSamples[0].video.uri` **with `follow_redirects=True`** (the download URI
+302-redirects to a files blob). Mirrors `gemini_provider.py::_video_api` + `build_video_body`.
 
-**Hard-won facts (verified against ai.google.dev/gemini-api/docs/video):**
-- `lastFrame` + `referenceImages` exist ONLY on **veo-3.1 / veo-3.1-fast** — `veo-3.0-fast` does text/first-frame only.
-  Doing FLF2V requires switching the video model to 3.1-fast.
-- `referenceImages` (pass character/product as assets, ≤3) **forces `durationSeconds:"8"`** (≈$3.20) → exceeds the
-  $1.80 breaker → DENIED. So carry consistency in the FIRST/LAST keyframes instead (they already lock identity), not referenceImages.
-- `personGeneration:"allow_adult"` is required for image-to-video / interpolation (vs `allow_all` for text-to-video).
+**Hard-won facts — the published docs (ai.google.dev/gemini-api/docs/video) were WRONG on 4 counts; these are verified by live 200s:**
+- Image bytes go in **`image.bytesBase64Encoded` + `mimeType`**, NOT `inlineData` (which is a generateContent shape → Veo 400s `inlineData isn't supported`).
+- **`durationSeconds` must be a NUMBER (int)**, not a string (string → 400 `needs to be a number`).
+- **`generateAudio` is rejected by this model** — omit it (400 `generateAudio isn't supported`). Veo emits native audio; STRIP it and mux the Thai VO in edit.
+- The download is a **302 redirect** → the httpx client MUST `follow_redirects=True` or you get a confusing `302 Unknown Error` AFTER the (billable) op already completed.
+- **FLF2V (`lastFrame`) + `referenceImages` are NOT available on the Gemini API** for this model — sending `lastFrame` → 400 `use case is currently not supported` (those are Vertex-AI Veo features). On the Gemini API, motion comes from the **first frame + the prompt only**; the storyboard's LAST keyframe is intent-documentation, not an API input.
+- `personGeneration` is NOT required (omit); the bare i2v payload above is the minimal working request.
+
+⚠️ **Billing trap:** a 400 at the predict step is free (no op). But once predict returns 200 an op is created and **billed even if the download later fails** — so the `follow_redirects` bug cost one wasted ~$1.60 clip before it was caught. Always fix the download path before firing at scale.
 
 ## Production note (gate integrity)
 Cheap **preview** drafts (to enable the human review gate) may be generated via Channel 2 directly and
