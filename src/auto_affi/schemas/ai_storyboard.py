@@ -8,8 +8,8 @@ HeyGen Avatar IV workflow. See:
 Key invariants this schema enforces that the v1 schema didn't:
 
 1. **Generator routing is a first-class field.** Every shot declares which
-   model owns it (higgsfield_cli / seedance_2kf / seedance_t2v / veo /
-   hold). The orchestrator dispatches based on this, not on prose.
+   model owns it (nano_banana_pro / veo_3 / hold — ADR-009 Gemini-only).
+   The orchestrator dispatches based on this, not on prose.
 
 2. **Duration buckets** match the AI consistency floor (3-6s per shot).
    A shot that wants > 6s is split into sub-shots with the same
@@ -43,15 +43,11 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class Generator(StrEnum):
-    """Which model owns rendering of this shot."""
+    """Which model owns rendering of this shot (ADR-009: Gemini-only)."""
 
-    HIGGSFIELD_CLI = "higgsfield_cli"  # routes through `higgsfield generate create <model>`
-    SEEDANCE_2KF = "seedance_2kf"  # two-keyframe i2v — Seedance 1.5 Pro via Phaya
-    SEEDANCE_2_FAST = "seedance_2_fast"  # Seedance 2.0 Fast via PiAPI ($0.08/s) — fallback path
-    SEEDANCE_2_PRO = "seedance_2_pro"  # Seedance 2.0 full quality via PiAPI ($0.10/s) — fallback path
-    SEEDANCE_T2V = "seedance_t2v"  # text-to-video (no start frame)
-    VEO = "veo"  # Gemini Veo 3.1 (premium)
-    HOLD = "hold"  # static image held for the shot duration
+    NANO_BANANA_PRO = "nano_banana_pro"  # Gemini Nano Banana Pro still (gemini-3-pro-image)
+    VEO_3 = "veo_3"  # Gemini Veo 3 video (veo-3.0 / veo-3.1)
+    HOLD = "hold"  # static image held for the shot duration (ffmpeg loop, free)
 
 
 class NarrativeRole(StrEnum):
@@ -108,14 +104,7 @@ class AiShot(BaseModel):
     dialogue_th: str | None = None
     subtitle: Subtitle | None = None
     keyframes: Keyframes | None = None
-    # Optional generator-specific knobs
-    motion_prompt: str | None = None  # HeyGen Avatar IV body/head motion
-    expressiveness: Literal["low", "medium", "high"] | None = None  # HeyGen
     aspect_ratio: Literal["9:16", "16:9"] = "9:16"
-    # Higgsfield CLI knobs — only meaningful when generator=HIGGSFIELD_CLI
-    higgsfield_model: str | None = None  # e.g. "seedance_2_0", "cinematic_studio_3_0", "veo3_1"
-    higgsfield_mode: str | None = None  # e.g. "fast" / "std" for Seedance, "pro" / "std" for Kling
-    higgsfield_resolution: Literal["480p", "720p", "1080p"] | None = None
 
     @field_validator("shot_id")
     @classmethod
@@ -127,24 +116,6 @@ class AiShot(BaseModel):
 
     @model_validator(mode="after")
     def _enforce_generator_invariants(self) -> AiShot:
-        # Two-keyframe Seedance must declare keyframes (1.5 Pro AND 2.0)
-        if self.generator in (
-            Generator.SEEDANCE_2KF,
-            Generator.SEEDANCE_2_FAST,
-            Generator.SEEDANCE_2_PRO,
-        ) and self.keyframes is None:
-            raise ValueError(
-                f"shot {self.shot_id}: {self.generator.value} requires keyframes block"
-            )
-
-        # Higgsfield CLI shots must name which underlying model to dispatch
-        if self.generator is Generator.HIGGSFIELD_CLI and not self.higgsfield_model:
-            raise ValueError(
-                f"shot {self.shot_id}: higgsfield_cli requires "
-                f"higgsfield_model (e.g. 'seedance_2_0', "
-                f"'cinematic_studio_3_0', 'veo3_1')"
-            )
-
         # phaya_tts requires dialogue_th
         if self.audio_source is AudioSource.PHAYA_TTS and not self.dialogue_th:
             raise ValueError(

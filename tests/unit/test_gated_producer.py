@@ -1,19 +1,20 @@
-"""Integration: the gated producer spends THROUGH the guard (Audit Lead GAP-B).
+"""Integration: the gated producer spends THROUGH the guard (GAP-B, on Gemini).
 
-Proves that a (mocked) live run drives image + video generation via the gate:
-each stage calls assert_may_generate, the credit check runs, and non-zero
-estimated cost reaches the budget breaker — not the old hardcoded 0.0.
+Proves a (mocked) live run drives image + video generation via the gate: each stage
+calls assert_may_generate, and non-zero estimated cost reaches the budget breaker —
+not 0.0. Provider is GeminiProvider; the live API methods are patched (no network).
 """
 
 from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from auto_affi.adapters.higgsfield_cli import HiggsfieldCli, HiggsfieldImage, HiggsfieldVideo
+from auto_affi.adapters.gemini_provider import GeminiProvider
+from auto_affi.adapters.gen_provider import GenAsset
 from auto_affi.ops.produce import GatedProducer, StageKind, StagePlan
 from auto_affi.pipeline.prompt_audit import (
     GenerationBlocked,
@@ -25,58 +26,51 @@ from auto_affi.pipeline.prompt_audit import (
 from auto_affi.workflows.budget import BudgetCircuitBreaker
 
 _IDENTITY = "JIAP02, lean athletic Southeast Asian male"
-
-_STAGE_MODELS = {
-    "cast_sheet": ("nano_banana_2", StageKind.IMAGE),
-    "objects_sheet": ("nano_banana_2", StageKind.IMAGE),
-    "storyboard": ("nano_banana_2", StageKind.IMAGE),
-    "contact_sheet": ("nano_banana_2", StageKind.IMAGE),
-    "video": ("seedance_2_0", StageKind.VIDEO),
-}
+_STAGES = [
+    ("cast_sheet", StageKind.IMAGE),
+    ("objects_sheet", StageKind.IMAGE),
+    ("storyboard", StageKind.IMAGE),
+    ("contact_sheet", StageKind.IMAGE),
+    ("video", StageKind.VIDEO),
+]
 
 
 def _manifest(stage: str) -> ReferenceManifest:
     return ReferenceManifest(
         prompt=f"{_IDENTITY}. {stage} of a purple product, sunlit.",
         identity_string=_IDENTITY,
-        cast_sheet_approved=True,
-        objects_sheet_approved=True,
-        declared_objects=["purple product"],
-        scene_objects=["purple product"],
+        cast_sheet_approved=True, objects_sheet_approved=True,
+        declared_objects=["purple product"], scene_objects=["purple product"],
         face_reference_count=1,
         negative_prompt="different person, wrong face, extra limbs, watermark",
-        aspect="9:16",
-        resolution="720p",
-        duration_s=8.0,
-        soul_id="soul-jiap02",
+        aspect="9:16", resolution="720p", duration_s=4.0, soul_id="soul-x",
     )
 
 
 def _plans() -> list[StagePlan]:
-    plans: list[StagePlan] = []
-    for stage, (model, kind) in _STAGE_MODELS.items():
-        plans.append(StagePlan(stage=stage, kind=kind, model=model, manifest=_manifest(stage)))
-    return plans
+    return [
+        StagePlan(stage=s, kind=k, manifest=_manifest(s), duration=4)
+        for s, k in _STAGES
+    ]
 
 
 def _approve_all(run_dir: Path, plans: list[StagePlan]) -> None:
-    """Human-approve every stage (audit recorded + approved, both logged)."""
     for plan in plans:
         record_audit(run_dir, plan.stage, audit(plan.manifest))
         record_approval(run_dir, plan.stage, approved_by="operator:alice")
 
 
-def _live_cli_patches(stdout: str = "https://cdn.example.com/asset\n"):
-    async def fake_create(prog: str, *args: str, **kw: object) -> MagicMock:
-        proc = MagicMock()
-        proc.returncode = 0
-        proc.communicate = AsyncMock(return_value=(stdout.encode(), b""))
-        return proc
+def _live_provider_patches(tmp_path: Path):
+    """Patch the GeminiProvider live API methods so no network is hit."""
+    async def fake_image(self, model, prompt, refs, aspect, run_dir, stage):
+        return (run_dir or tmp_path) / f"{stage}.png"
 
-    import auto_affi.adapters.higgsfield_cli as _mod
+    async def fake_video(self, model, prompt, duration, aspect, run_dir, stage):
+        return (run_dir or tmp_path) / f"{stage}.mp4"
+
     return (
-        patch.object(_mod.shutil, "which", return_value="/x/hf"),
-        patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
+        patch.object(GeminiProvider, "_image_api", fake_image),
+        patch.object(GeminiProvider, "_video_api", fake_video),
     )
 
 
@@ -85,52 +79,38 @@ def test_live_run_spends_through_the_guard(tmp_path: Path) -> None:
     plans = _plans()
     _approve_all(tmp_path, plans)
     breaker = BudgetCircuitBreaker()
-    which, sub = _live_cli_patches()
-    credits = AsyncMock(return_value=99999.0)
 
-    import auto_affi.adapters.higgsfield_cli as _mod
-    real_amg = _mod.assert_may_generate
+    import auto_affi.adapters.gen_provider as _gp
+    real_amg = _gp.assert_may_generate
     gate_calls: list[str] = []
 
     def _spy(stage: str, run_dir: Path, *, manifest: object = None) -> None:
         gate_calls.append(stage)
         real_amg(stage, run_dir, manifest=manifest)  # type: ignore[arg-type]
 
-    with (
-        which,
-        sub,
-        patch.object(HiggsfieldCli, "account_credits", credits),
-        patch.object(_mod, "assert_may_generate", side_effect=_spy),
-    ):
-        cli = HiggsfieldCli(dry_run=False)
-        producer = GatedProducer(cli=cli, run_dir=tmp_path, budget=breaker)
+    img, vid = _live_provider_patches(tmp_path)
+    with img, vid, patch.object(_gp, "assert_may_generate", side_effect=_spy):
+        provider = GeminiProvider(dry_run=False, api_key="test-key")
+        producer = GatedProducer(provider=provider, run_dir=tmp_path, budget=breaker)
         results = asyncio.run(producer.produce_all(plans))
 
-    # The gate was invoked literally once per stage, for the right stages.
     assert gate_calls == ["cast_sheet", "objects_sheet", "storyboard", "contact_sheet", "video"]
     assert len(results) == 5
-    images = [r for r in results if isinstance(r, HiggsfieldImage)]
-    videos = [r for r in results if isinstance(r, HiggsfieldVideo)]
-    assert len(images) == 4 and len(videos) == 1
-    # Real (estimated) cost reached the results AND the breaker — not 0.0.
+    assert all(isinstance(r, GenAsset) for r in results)
     assert all(r.cost_usd > 0.0 and r.cost_estimated for r in results)
     assert breaker.node_spent("image_gen") > 0.0
     assert breaker.node_spent("video_gen") > 0.0
-    # The credit check ran for every paid call (verify-before-spend).
-    assert credits.await_count == 5
 
 
 @pytest.mark.unit
 def test_producer_blocks_unapproved_stage(tmp_path: Path) -> None:
     plans = _plans()
-    # Approve only the first stage; the second is un-approved.
     record_audit(tmp_path, "cast_sheet", audit(plans[0].manifest))
-    record_approval(tmp_path, "cast_sheet", approved_by="op")
-    breaker = BudgetCircuitBreaker()
-    which, sub = _live_cli_patches()
-    with which, sub, patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)):
-        cli = HiggsfieldCli(dry_run=False)
-        producer = GatedProducer(cli=cli, run_dir=tmp_path, budget=breaker)
+    record_approval(tmp_path, "cast_sheet", approved_by="op")  # only first approved
+    img, vid = _live_provider_patches(tmp_path)
+    with img, vid, patch.object(GeminiProvider, "_image_api", AsyncMock()):
+        provider = GeminiProvider(dry_run=False, api_key="test-key")
+        producer = GatedProducer(provider=provider, run_dir=tmp_path, budget=BudgetCircuitBreaker())
         with pytest.raises(GenerationBlocked):
             asyncio.run(producer.produce_all(plans))
 
@@ -140,19 +120,19 @@ def test_dry_run_producer_is_offline_and_free_but_still_gated(tmp_path: Path) ->
     plans = _plans()
     _approve_all(tmp_path, plans)
     breaker = BudgetCircuitBreaker()
-    cli = HiggsfieldCli(dry_run=True)  # default offline
-    producer = GatedProducer(cli=cli, run_dir=tmp_path, budget=breaker)
+    provider = GeminiProvider(dry_run=True)
+    producer = GatedProducer(provider=provider, run_dir=tmp_path, budget=breaker)
     results = asyncio.run(producer.produce_all(plans))
     assert len(results) == 5
-    assert all(r.cost_usd == 0.0 for r in results)  # dry-run free
+    assert all(r.cost_usd == 0.0 for r in results)
     assert breaker.node_spent("video_gen") == 0.0
 
 
 @pytest.mark.unit
 def test_dry_run_producer_still_blocks_unapproved_stage(tmp_path: Path) -> None:
     plans = _plans()  # nothing approved
-    cli = HiggsfieldCli(dry_run=True)
-    producer = GatedProducer(cli=cli, run_dir=tmp_path, budget=BudgetCircuitBreaker())
+    provider = GeminiProvider(dry_run=True)
+    producer = GatedProducer(provider=provider, run_dir=tmp_path, budget=BudgetCircuitBreaker())
     with pytest.raises(GenerationBlocked):
         asyncio.run(producer.produce_stage(plans[0]))
 
@@ -161,6 +141,6 @@ def test_dry_run_producer_still_blocks_unapproved_stage(tmp_path: Path) -> None:
 def test_stageplan_rejects_kind_stage_mismatch() -> None:
     m = _manifest("video")
     with pytest.raises(ValueError, match="VIDEO kind"):
-        StagePlan(stage="cast_sheet", kind=StageKind.VIDEO, model="seedance_2_0", manifest=m)
+        StagePlan(stage="cast_sheet", kind=StageKind.VIDEO, manifest=m)
     with pytest.raises(ValueError, match="VIDEO kind"):
-        StagePlan(stage="video", kind=StageKind.IMAGE, model="nano_banana_2", manifest=m)
+        StagePlan(stage="video", kind=StageKind.IMAGE, manifest=m)

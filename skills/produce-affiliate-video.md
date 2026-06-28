@@ -59,16 +59,16 @@ findings; the main thread synthesises and presents to the human at each gate.
 ### Step 4 — The 5 PGA-gated stages (in order)
 For each stage `cast_sheet → objects_sheet → storyboard → contact_sheet → video`:
 1. **Fill the template** (`docs/templates/pipeline-step-templates.md`) with this product's values; inject
-   `{IDENTITY}` verbatim, `{NEG}`, one face ref, `{SOUL_ID}`/`{SEED}`, 9:16, Thai-no-lipsync.
+   `{IDENTITY}` verbatim, `{NEG}`, one face ref, `REF_IMAGES` (cast+objects sheets) + `{SEED}`, 9:16, Thai-no-lipsync.
 2. **PGA audit** — `prompt_audit.audit(manifest)` → record to `runs/<run>/approvals.json` (+ event log).
    Any fail → **block, report the failing item, do NOT generate.** Hard-compliance (banned/restricted/
    economics) can never be cleared, not even by bypass.
 3. **Show the review panel** (stage · prompt_hash · checklist ✓/✗) and **WAIT**.
-4. **Human approves** (`go`/`approve`) → generate via `GatedProducer` (adapter enforces the gate +
-   credit balance + budget). Or **`bypass <stage>`** (logged; live bypass needs a preceding audit).
+4. **Human approves** (`go`/`approve`) → generate via `GatedProducer` (GeminiProvider enforces the gate +
+   mandatory budget breaker; Gemini has no pre-call balance API). Or **`bypass <stage>`** (logged; live bypass needs a preceding audit).
    No input → never generate speculatively.
 5. **Pre-video pre-flight (stage 5):** vision-compare each contact frame vs the cast sheet ("same
-   person?") AND assert provider credit balance ≥ batch cost × margin BEFORE the paid call.
+   person?") BEFORE the paid Veo call; the mandatory budget breaker is the hard spend cap.
 
 ### Step 5 — Edit → Compliance → Master
 Concat shots → editor (captions, hook punch-in, brand overlay, CTA endcard) → `run_compliance`:
@@ -114,7 +114,7 @@ runs/<YYYY-MM-DD>-<slug>/
 
 ## Hard rules (non-negotiable)
 1. No image/video generation without a passing PGA audit AND a recorded human approval (or explicit bypass).
-2. Verify-before-spend: economics gate (Step 1) + provider credit balance (Step 5) before any paid call.
-3. One canonical identity string + one soul-id/seed per run; exactly one face ref; only the intended
+2. Verify-before-spend: economics gate (Step 1) + mandatory budget breaker (every paid Gemini/Veo call).
+3. One canonical identity string + Nano Banana Pro reference images (cast+objects sheets) + one seed per run; exactly one face ref; only the intended
    product in frame (hula-hoop pitfalls #1/#2/#8).
 4. Honesty: never report PRODUCED work as VERIFIED. The only Auto-Affi number measured is live outcome.

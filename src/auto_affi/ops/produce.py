@@ -1,34 +1,22 @@
 """Gated producer — drives real image/video generation THROUGH the PGA gate.
 
-Closes Audit Lead GAP-B (reports/2026-06-27_crew-review-findings.md): the
-spend-safety guard in :mod:`auto_affi.adapters.higgsfield_cli` was dead code —
-``ops/produce_slice.py`` runs the offline ``dry_render`` and hardcodes every cost
-to ``0.0``, so image-stage gating and verify-before-spend never executed in any
-real run.
-
-This producer calls :meth:`HiggsfieldCli.generate_image` (cast/objects/storyboard/
-contact stills) and :meth:`HiggsfieldCli.generate_video` (video) for each PGA
-stage, passing ``run_dir`` + the stage's :class:`ReferenceManifest` (so the
-prompt-hash binding is exercised) + a shared :class:`BudgetCircuitBreaker`. The
-adapter enforces the gate: a stage that is not human-approved (or explicitly
-bypassed) raises ``GenerationBlocked`` before any spend.
-
-``dry_run=True`` (the default ``HiggsfieldCli``) keeps this offline and free — the
-gate still runs, but no credit/budget checks and zero cost. A ``dry_run=False``
-producer performs verify-before-spend and records the real (estimated) cost.
+Closes Audit Lead GAP-B and ADR-009: the spend-safety guard is no longer dead code,
+and the producer depends on the provider-agnostic `GenProvider` Protocol (Gemini today),
+not a concrete adapter. For each PGA stage it calls the provider's generate_image
+(cast/objects/storyboard/contact stills) or generate_video, passing run_dir + the stage
+`ReferenceManifest` (so the prompt-hash binding is exercised) + a shared
+`BudgetCircuitBreaker`. The provider enforces the gate at the shared chokepoint: a stage
+that is not human-approved (or explicitly bypassed) raises before any spend.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 
-from auto_affi.adapters.higgsfield_cli import (
-    HiggsfieldCli,
-    HiggsfieldImage,
-    HiggsfieldVideo,
-)
+from auto_affi.adapters.gen_provider import GenAsset, GenProvider
 from auto_affi.pipeline.prompt_audit import STAGES, ReferenceManifest
 from auto_affi.workflows.budget import BudgetCircuitBreaker
 
@@ -46,9 +34,9 @@ class StagePlan:
 
     stage: str
     kind: StageKind
-    model: str
     manifest: ReferenceManifest
-    images: dict[str, Path | str] | None = None
+    model: str | None = None
+    reference_images: tuple[Path | str, ...] = ()
     duration: int = 8
 
     def __post_init__(self) -> None:
@@ -62,44 +50,42 @@ class StagePlan:
 
 @dataclass
 class GatedProducer:
-    """Runs each :class:`StagePlan` through the gated Higgsfield adapter.
+    """Runs each :class:`StagePlan` through a gated :class:`GenProvider`.
 
-    Generation, gating and spend are all funnelled through the adapter chokepoint;
+    Generation, gating and spend all funnel through the provider's shared chokepoint;
     this producer never touches ``approvals.json`` or records cost itself — it only
     requests generation, and the gate decides whether it may proceed.
     """
 
-    cli: HiggsfieldCli
+    provider: GenProvider
     run_dir: Path
-    budget: BudgetCircuitBreaker
+    budget: BudgetCircuitBreaker = field(default_factory=BudgetCircuitBreaker)
 
-    async def produce_stage(self, plan: StagePlan) -> HiggsfieldImage | HiggsfieldVideo:
+    async def produce_stage(self, plan: StagePlan) -> GenAsset:
         if plan.kind is StageKind.IMAGE:
-            return await self.cli.generate_image(
-                model=plan.model,
-                prompt=plan.manifest.prompt,
+            return await self.provider.generate_image(
                 stage=plan.stage,
-                images=plan.images,
+                prompt=plan.manifest.prompt,
                 run_dir=self.run_dir,
                 manifest=plan.manifest,
                 budget=self.budget,
+                reference_images=plan.reference_images,
+                model=plan.model,
             )
-        return await self.cli.generate_video(
-            model=plan.model,
+        return await self.provider.generate_video(
+            stage=plan.stage,
             prompt=plan.manifest.prompt,
-            duration=plan.duration,
-            images=plan.images,
             run_dir=self.run_dir,
             manifest=plan.manifest,
             budget=self.budget,
-            stage=plan.stage,
+            reference_images=plan.reference_images,
+            model=plan.model,
+            duration=plan.duration,
         )
 
-    async def produce_all(
-        self, plans: list[StagePlan]
-    ) -> list[HiggsfieldImage | HiggsfieldVideo]:
+    async def produce_all(self, plans: Iterable[StagePlan]) -> list[GenAsset]:
         """Produce every stage in order. Stops at the first gate block (raises)."""
-        results: list[HiggsfieldImage | HiggsfieldVideo] = []
+        results: list[GenAsset] = []
         for plan in plans:
             results.append(await self.produce_stage(plan))
         return results

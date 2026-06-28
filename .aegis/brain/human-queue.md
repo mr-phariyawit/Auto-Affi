@@ -54,6 +54,11 @@
 - **Blocks**: deploy, 24/7-operation
 - **Raised**: 2026-06-08T12:50:00Z
 - **Resolved**: _(pending)_
+<!-- PENDING_END -->
+
+## Resolved
+
+<!-- RESOLVED_START -->
 
 ### [2026-06-09] EXPLICIT — Place pyproject.toml (agents guard-blocked from quality configs) / วาง pyproject.toml (guard กัน agent เขียน config คุณภาพ)
 
@@ -63,13 +68,7 @@
 - **Raised by**: claude
 - **Blocks**: AFFI-S1-01 then all of Sprint-1 (every task needs the test runner)
 - **Raised**: 2026-06-09T13:26:52Z
-- **Resolved**: _(pending)_
-<!-- PENDING_END -->
-
-## Resolved
-
-<!-- RESOLVED_START -->
-
+- **Resolved**: 2026-06-10T14:42:47Z — Satisfied by reality at handoff 2026-06-10: pyproject.toml is committed (d93ff46d 'feat(s1-01): build infra'), uv.lock present, and the test runner works — VERIFIED ruff 'All checks passed' + pytest '264 passed, 86% cov'. The Sprint-1 blocker (no test runner) is gone; all of S1-01..S1-08 landed on top.
 ### [2026-06-08] IRREVERSIBLE — Resolve mid-hard-reset working tree (finalize vs restore)
 
 - **EN**: Human chose **Path A (finalize the reset)**. Executed: committed as `82c7fe5c` (504 files; src/ + tests/ + old brain wiped from tree). Working tree clean; prior implementation fully recoverable at `5602e53c`; `.venv/` + `runs/` added to `.gitignore`; `SPEC.md` + `.env.example` preserved on disk. Not pushed (commit-only per request).
@@ -133,3 +132,21 @@
 - **Category**: External access
 - **Resolved**: 2026-05-13T09:35:51Z — key in .env.
 <!-- RESOLVED_END -->
+
+### [2026-06-28] EXTERNAL — UV umbrella run · product image + Higgsfield credits
+
+- **EN**: Run `runs/2026-06-28-uv-auto-umbrella-335` reached the gated visual stages. Need (1) the **product image** of the umbrella (Shopee link given, no image file) — required for the objects_sheet + contact frames; (2) **Higgsfield credits** (§20 G3) for any paid generation; (3) confirm **commission %** + **shop rating ★** for the economics record. Workflow ran Step 0–2 + cast_sheet PGA audit (passed, awaiting approval).
+- **TH**: รัน UV umbrella ถึง stage ที่ต้องเจนภาพแล้ว ต้องการ (1) รูปสินค้าจริง (ให้แต่ลิงก์ ยังไม่มีไฟล์รูป) สำหรับ objects/contact, (2) Higgsfield credits สำหรับเจน paid, (3) ยืนยัน commission % + rating ★
+- **Category**: External access
+- **Blocks**: objects_sheet, contact_sheet, video (paid stages)
+- **Raised**: 2026-06-28
+- **Resolved**: _(pending)_
+
+### [2026-06-28] EXTERNAL — Veo 3 video access (provider pivot ADR-009)
+
+- **EN**: Pivot to Gemini-only confirmed. Stills via Nano Banana Pro are AVAILABLE (MCP, verified). **Veo 3 video has NO key/endpoint in `.env`** (no Veo MCP tool; no GEMINI/Veo key) → the video stage cannot run. Provision a Veo 3 access path (Google/Gemini API key with Veo access, or a Veo-capable endpoint). Until then: image stages run on Nano Banana Pro; video stays blocked. Higgsfield (HF_API_ID/HF_API_SECRET) is retired per ADR-009.
+- **TH**: เปลี่ยนเป็น Gemini-only แล้ว รูปผ่าน Nano Banana Pro ใช้ได้จริง แต่ **Veo 3 ยังไม่มี key/endpoint ใน `.env`** → stage วิดีโอรันไม่ได้ ต้องขอ access Veo 3 (Google/Gemini API key ที่เปิด Veo) ก่อน
+- **Category**: External access
+- **Blocks**: video stage (all runs), incl. runs/2026-06-28-uv-auto-umbrella-335
+- **Raised**: 2026-06-28
+- **Resolved**: 2026-06-28 — GEMINI_API_KEY added to .env; verified HTTP 200 with Veo 2/3/3.1 + image model access.

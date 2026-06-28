@@ -14,7 +14,10 @@ IDENTITY  = "JIAP02, a fit lean athletic Southeast Asian male, late 20s, V-line 
              jawline, dark brown eyes, medium tan skin tone, confident relaxed smile"
 NEG       = "deformed face, different person, wrong face, blurry face, extra limbs,
              multiple people, bad anatomy, text, watermark"
-SOUL_ID   = "soul-jiap02"     SEED = <one locked int for the whole run>
+REF_IMAGES = [cast_sheet.png, objects_sheet.png]   # ADR-009: Nano Banana Pro
+             # reference-image consistency (replaces soul-id). Pass these to EVERY
+             # downstream stage so character + product stay locked.
+SEED      = <one locked int for the whole run>
 ASPECT    = "9:16"
 ```
 Rule: exactly ONE face reference per gen; NEVER a second conflicting face ref (hula-hoop pitfall #2).
@@ -32,7 +35,7 @@ The input frame must contain ONLY the intended subject/product — no stray prop
 full-body views; wardrobe A ({wardrobe_a}) and wardrobe B ({wardrobe_b}); neutral
 grey studio background, even lighting, consistent face across all panels. {NEG}
 ```
-**Result template:** `cast_sheet.png` → registers `identity_string` (verbatim string above) + `soul_id`.
+**Result template:** `cast_sheet.png` → registers `identity_string` (verbatim) and becomes a reference_image for every downstream Nano Banana Pro call (ADR-009 consistency lock).
 This is locked reference #1; its `prompt_hash` is bound at approval.
 
 ---
@@ -74,8 +77,8 @@ Ad style: {framework e.g. problem->demo->CTA}. {NEG}
 
 **Prompt template (per shot `fNN`):**
 ```
-{IDENTITY} starting frame for shot {shot_id}: {scene}. Single face reference, soul-id
-{SOUL_ID}, seed {SEED}, 9:16. ONLY {sku_name} present in the frame. {NEG}
+{IDENTITY} starting frame for shot {shot_id}: {scene}. Single face reference, REF_IMAGES (cast+objects sheets),
+seed {SEED}, 9:16. ONLY {sku_name} present in the frame. {NEG}
 ```
 **Pre-flight (verify-before-spend):** vision-compare each frame vs the cast sheet → "same person"
 must be confirmed BEFORE the paid video call.
@@ -84,7 +87,7 @@ the human approval (SPEC §10.5 gate 9).
 
 ---
 
-## STEP 5 — Video  (stage `video`, PAID — Higgsfield Seedance)
+## STEP 5 — Video  (stage `video`, PAID — Veo 3)
 
 **Layout:** 9:16 clip per shot → concat to master.
 
@@ -93,7 +96,7 @@ the human approval (SPEC §10.5 gate 9).
 {IDENTITY}. {action}. Ad style: {framework}. Thai dialogue is VOICE-OVER over B-roll —
 the mouth is NOT visibly speaking Thai (no lip-sync). 9:16, {palette_grade}. {NEG}
 ```
-**Result template:** `shotNN.mp4` (720p, ≤8s) → concat + edit (captions, hook punch-in, brand
+**Result template:** `shotNN.mp4` (Veo 3, 9:16, keep ≤4s to stay under the $1.80 video cap) → concat + edit (captions, hook punch-in, brand
 overlay, CTA endcard) → **master**: cleanroom (exactly 1 video + 1 audio stream), 9:16, ≤60s,
 Thai VO 1.0–1.15×, disclosure `#โฆษณา/#affiliate`.
 
@@ -104,7 +107,7 @@ Thai VO 1.0–1.15×, disclosure `#โฆษณา/#affiliate`.
 ```
 STAGE: <stage>                         prompt_hash: <sha256[:8]>
 PGA checklist:  A identity-verbatim ✓ · A cast+objects approved ✓ · B single-subject/no-stray ✓
-                B 1-face-ref ✓ · B negative-present ✓ · B 9:16 ✓ · B seed/soul-id ✓ · B Thai-no-lipsync ✓
+                B 1-face-ref ✓ · B negative-present ✓ · B 9:16 ✓ · B seed/ref-images ✓ · B Thai-no-lipsync ✓
                 C no-banned-claims ✓ · C economics-passed ✓
 [ approve / go ]   [ bypass <stage> ]      ← no input = NO generation
 ```
