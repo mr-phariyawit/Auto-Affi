@@ -30,7 +30,7 @@ Key invariants this schema enforces that the v1 schema didn't:
 6. **Audio source is declared** — phaya_tts / seedance_diegetic /
    music_only / silence. HeyGen Avatar IV requires phaya_tts.
 
-7. **Keyframes block** is only present when generator = seedance_2kf,
+7. **Keyframes block** is optional shot metadata (start+end reference),
    and names the start + end refs explicitly.
 """
 
