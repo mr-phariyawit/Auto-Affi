@@ -57,6 +57,12 @@ Production generates → **Audit Lead reviews EVERY artifact at EVERY gate**. Cr
 findings; the main thread synthesises and presents to the human at each gate.
 
 ### Step 4 — The 5 PGA-gated stages (in order)
+**REFERENCE-SHEET BATCH FIRST (gate 11):** generate ALL reference/character sheets — every
+`cast_sheet` (character/hero, incl. a product as the "character" for product-demos) + `objects_sheet`
+— SHOW them together and get them approved as a SET **before** the `storyboard` stage. Never start a
+storyboard on an un-approved reference sheet. (Like the AetherFlow `*-charsheet.jpg` that precedes every
+storyboard.) Only after the sheet set is approved do storyboard → contact → video proceed.
+
 For each stage `cast_sheet → objects_sheet → storyboard → contact_sheet → video`:
 1. **Fill the template** (`docs/templates/pipeline-step-templates.md`) with this product's values; inject
    `{IDENTITY}` verbatim, `{NEG}`, one face ref, `REF_IMAGES` (cast+objects sheets) + `{SEED}`, 9:16, Thai-no-lipsync.
