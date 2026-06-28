@@ -56,16 +56,32 @@ POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:
 We read local refs ourselves (full FS access), base64-inline them — bypasses the MCP sandbox entirely.
 Mirrors `gemini_provider.py::_image_api`.
 
-## Channel 3 — Video via REST (Veo 3, long-running) `[PRODUCED: not yet verified live]`
+## Channel 3 — Video via REST (Veo, long-running) `[PRODUCED: not yet verified live]`
 ```
-POST .../models/veo-3.0-fast-generate-001:predictLongRunning?key=$GEMINI_API_KEY
+POST .../models/<MODEL>:predictLongRunning?key=$GEMINI_API_KEY
 ```
+**Text / first-frame only (Veo 3.0 fast):**
 ```json
-{ "instances": [{ "prompt": "<shot 9:16>" }],
-  "parameters": { "aspectRatio": "9:16", "durationSeconds": 4, "generateAudio": false } }
+{ "instances": [{ "prompt": "<shot 9:16>",
+    "image": { "inlineData": { "mimeType":"image/png", "data":"<first frame b64>" } } }],
+  "parameters": { "aspectRatio":"9:16", "durationSeconds":"4", "generateAudio":false, "personGeneration":"allow_adult" } }
 ```
-Then **poll** `GET .../{operation.name}?key=$KEY` until `{"done": true}`, then **download**
-`response.generatedSamples[0].video.uri`. Mirrors `gemini_provider.py::_video_api`.
+**FLF2V — first→last keyframe interpolation (Veo 3.1 / 3.1-fast ONLY) `[VERIFIED structure 2026-06-28]`:**
+```json
+{ "instances": [{ "prompt":"Animate the transition between the first and last frame. ...",
+    "image":     { "inlineData": { "mimeType":"image/png", "data":"<FIRST b64>" } },
+    "lastFrame": { "inlineData": { "mimeType":"image/png", "data":"<LAST b64>" } } }],
+  "parameters": { "aspectRatio":"9:16", "durationSeconds":"4", "generateAudio":false, "personGeneration":"allow_adult" } }
+```
+Then **poll** `GET .../{operation.name}` until `{"done":true}`, **download**
+`response.generateVideoResponse.generatedSamples[0].video.uri`. Mirrors `gemini_provider.py::_video_api`.
+
+**Hard-won facts (verified against ai.google.dev/gemini-api/docs/video):**
+- `lastFrame` + `referenceImages` exist ONLY on **veo-3.1 / veo-3.1-fast** — `veo-3.0-fast` does text/first-frame only.
+  Doing FLF2V requires switching the video model to 3.1-fast.
+- `referenceImages` (pass character/product as assets, ≤3) **forces `durationSeconds:"8"`** (≈$3.20) → exceeds the
+  $1.80 breaker → DENIED. So carry consistency in the FIRST/LAST keyframes instead (they already lock identity), not referenceImages.
+- `personGeneration:"allow_adult"` is required for image-to-video / interpolation (vs `allow_all` for text-to-video).
 
 ## Production note (gate integrity)
 Cheap **preview** drafts (to enable the human review gate) may be generated via Channel 2 directly and
