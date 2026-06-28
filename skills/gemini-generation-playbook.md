@@ -80,6 +80,17 @@ Then **poll** `GET .../{operation.name}` until `{"done":true}`, **download**
 
 ⚠️ **Billing trap:** a 400 at the predict step is free (no op). But once predict returns 200 an op is created and **billed even if the download later fails** — so the `follow_redirects` bug cost one wasted ~$1.60 clip before it was caught. Always fix the download path before firing at scale.
 
+🚨 **PROMPT-MODE MUST MATCH GEN-MODE (cost a wasted $9.60 batch).** An i2v call has ONLY a first frame —
+do NOT feed it an FLF2V prompt. Prompts authored for first→last interpolation begin "Animate the
+transition between the first and last frame… It opens on…". Sent to i2v (no `lastFrame`), Veo is told to
+interpolate toward a frame that does not exist → it improvises **garbage motion in every clip**. The first
+frame still conditions the scene (so it *looks* right in a thumbnail) but the MOTION is junk.
+- **i2v prompt =** one continuous action + camera move described FROM the start frame, no "between frames",
+  no "last frame", no "transition". e.g. "Ton holds the wet umbrella as it drips to the floor; slow
+  downward camera tilt." Keep a separate `i2v_prompt` field; never reuse the FLF2V `veo_cinematic_prompt`.
+- Always **sample mid+end frames of the FIRST test clip and actually look** before firing the batch —
+  a coherent thumbnail of frame-0 does NOT prove the motion is right.
+
 ## Production note (gate integrity)
 Cheap **preview** drafts (to enable the human review gate) may be generated via Channel 2 directly and
 labelled `[PRODUCED: est cost]`. The **production** run records spend + enforces the PGA gate through
