@@ -126,6 +126,27 @@ def test_live_video_blocked_when_over_budget(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_live_image_blocked_when_over_budget(tmp_path: Path) -> None:
+    """Mirror of the video over-budget test for the image_gen node (Audit follow-up)."""
+    _cleared(tmp_path)
+    breaker = BudgetCircuitBreaker()
+    breaker.record_spend("image_gen", breaker.node_caps["image_gen"])  # at the node cap
+    which, sub = _live_subprocess("https://cdn.example.com/still.png\n")
+    with which, sub, patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=9999.0)):
+        cli = HiggsfieldCli(dry_run=False)
+        with pytest.raises(HiggsfieldCliError, match="budget breaker DENY"):
+            asyncio.run(
+                cli.generate_image(
+                    model="nano_banana_2",
+                    prompt="x",
+                    stage="cast_sheet",
+                    run_dir=tmp_path,
+                    budget=breaker,
+                )
+            )
+
+
+@pytest.mark.unit
 def test_generate_image_blocked_without_approval(tmp_path: Path) -> None:
     cli = HiggsfieldCli(dry_run=True)
     with pytest.raises(GenerationBlocked):

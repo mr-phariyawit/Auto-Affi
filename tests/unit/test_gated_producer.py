@@ -87,11 +87,27 @@ def test_live_run_spends_through_the_guard(tmp_path: Path) -> None:
     breaker = BudgetCircuitBreaker()
     which, sub = _live_cli_patches()
     credits = AsyncMock(return_value=99999.0)
-    with which, sub, patch.object(HiggsfieldCli, "account_credits", credits):
+
+    import auto_affi.adapters.higgsfield_cli as _mod
+    real_amg = _mod.assert_may_generate
+    gate_calls: list[str] = []
+
+    def _spy(stage: str, run_dir: Path, *, manifest: object = None) -> None:
+        gate_calls.append(stage)
+        real_amg(stage, run_dir, manifest=manifest)  # type: ignore[arg-type]
+
+    with (
+        which,
+        sub,
+        patch.object(HiggsfieldCli, "account_credits", credits),
+        patch.object(_mod, "assert_may_generate", side_effect=_spy),
+    ):
         cli = HiggsfieldCli(dry_run=False)
         producer = GatedProducer(cli=cli, run_dir=tmp_path, budget=breaker)
         results = asyncio.run(producer.produce_all(plans))
 
+    # The gate was invoked literally once per stage, for the right stages.
+    assert gate_calls == ["cast_sheet", "objects_sheet", "storyboard", "contact_sheet", "video"]
     assert len(results) == 5
     images = [r for r in results if isinstance(r, HiggsfieldImage)]
     videos = [r for r in results if isinstance(r, HiggsfieldVideo)]
