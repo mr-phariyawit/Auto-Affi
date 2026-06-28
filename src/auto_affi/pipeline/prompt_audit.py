@@ -55,6 +55,26 @@ class AuditCode(StrEnum):
     BANNED_CLAIMS = "banned_claims"
     CATEGORY_RESTRICTED = "category_restricted"
     ECONOMICS_NOT_PASSED = "economics_not_passed"
+    PROMPT_MODE_MISMATCH = "prompt_mode_mismatch"
+
+
+# FLF2V / interpolation phrases that must NOT appear in an image-to-video prompt.
+# (Hollywood-standards upgrade do-now #1: an i2v call has only a first frame; a prompt that
+# tells the model to interpolate toward a "last frame" that does not exist yields garbled
+# motion in every clip — the 2026-06-29 wasted-batch bug.)
+_FLF2V_PHRASES: tuple[str, ...] = (
+    "first and last frame",
+    "between the first",
+    "last frame",
+    "interpolate",
+    "transition between",
+    "animate the transition",
+)
+
+
+def _has_flf2v_language(prompt: str) -> bool:
+    low = prompt.lower()
+    return any(p in low for p in _FLF2V_PHRASES)
 
 
 # Failures that a human `bypass` may NEVER override — bypass is for trusting a
@@ -83,6 +103,10 @@ class ReferenceManifest(BaseModel):
     # product:   identity=product descriptor; no face / no lipsync check.
     # scene:     no identity / face / lipsync requirement (B-roll, no subject).
     stage_kind: Literal["character", "product", "scene"] = "character"
+    # How this prompt will be generated — locks prompt-craft to the generator.
+    # image_to_video: ONE start frame + motion prompt (no FLF2V "last frame" language).
+    # first_last_frame: two keyframes (FLF2V); video_gen: text-to-video; image: a still.
+    prompt_mode: Literal["image", "image_to_video", "first_last_frame", "video_gen"] = "image"
     cast_sheet_approved: bool
     objects_sheet_approved: bool
     declared_objects: list[str] = Field(default_factory=list)
@@ -164,6 +188,7 @@ def prompt_hash(manifest: ReferenceManifest) -> str:
         "face_reference_count": manifest.face_reference_count,
         "reference_uris": sorted(manifest.reference_uris),
         "stage_kind": manifest.stage_kind,
+        "prompt_mode": manifest.prompt_mode,
     }
     canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -213,6 +238,13 @@ def audit(manifest: ReferenceManifest) -> AuditResult:
         )
     if not manifest.negative_prompt.strip():
         fail(AuditCode.NEGATIVE_PROMPT_MISSING, "B", "negative prompt is empty")
+    if manifest.prompt_mode == "image_to_video" and _has_flf2v_language(manifest.prompt):
+        fail(
+            AuditCode.PROMPT_MODE_MISMATCH,
+            "B",
+            "image_to_video prompt contains first/last-frame interpolation language "
+            "(FLF2V); an i2v call has only a start frame — rewrite as a single motion prompt",
+        )
     if manifest.aspect != ALLOWED_ASPECT:
         fail(AuditCode.ASPECT_INVALID, "B", f"aspect must be {ALLOWED_ASPECT}, got {manifest.aspect}")
     if not 0.0 < manifest.duration_s <= manifest.max_duration_s:

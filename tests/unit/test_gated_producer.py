@@ -65,7 +65,8 @@ def _live_provider_patches(tmp_path: Path):
     async def fake_image(self, model, prompt, refs, aspect, run_dir, stage):
         return (run_dir or tmp_path) / f"{stage}.png"
 
-    async def fake_video(self, model, prompt, duration, aspect, run_dir, stage):
+    async def fake_video(self, model, prompt, duration, aspect, run_dir, stage,
+                         first_frame=None, last_frame=None):
         return (run_dir or tmp_path) / f"{stage}.mp4"
 
     return (
