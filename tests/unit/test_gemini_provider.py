@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
-from auto_affi.adapters.gemini_provider import GeminiProvider
+from auto_affi.adapters.gemini_provider import GeminiProvider, build_video_body
 from auto_affi.adapters.gen_provider import GenAsset, ProviderSpendError
 from auto_affi.pipeline.prompt_audit import (
     STAGES,
@@ -44,11 +44,53 @@ def _clear(run_dir: Path, stage: str, manifest: ReferenceManifest) -> None:
     record_approval(run_dir, stage, approved_by="op")
 
 
+# --------------------------- build_video_body (verified field names) --------- #
+
+
+@pytest.mark.unit
+def test_video_body_text_to_video() -> None:
+    body = build_video_body("a shot", 4, "9:16")
+    inst = body["instances"][0]
+    assert inst == {"prompt": "a shot"}  # no image/lastFrame
+    params = body["parameters"]
+    assert params["aspectRatio"] == "9:16"
+    assert params["durationSeconds"] == "4"  # STRING per the API
+    assert params["generateAudio"] is False  # Thai no-lipsync
+    assert params["personGeneration"] == "allow_all"  # t2v
+
+
+@pytest.mark.unit
+def test_video_body_image_to_video_first_frame() -> None:
+    body = build_video_body("a shot", 4, "9:16", first_b64="QUJD")
+    inst = body["instances"][0]
+    assert inst["image"]["inlineData"] == {"mimeType": "image/png", "data": "QUJD"}
+    assert "lastFrame" not in inst
+    assert body["parameters"]["personGeneration"] == "allow_adult"  # i2v requires adult
+
+
+@pytest.mark.unit
+def test_video_body_flf2v_first_and_last() -> None:
+    body = build_video_body("interp", 4, "9:16", first_b64="Rg==", last_b64="TA==")
+    inst = body["instances"][0]
+    assert inst["image"]["inlineData"]["data"] == "Rg=="  # FIRST keyframe
+    assert inst["lastFrame"]["inlineData"]["data"] == "TA=="  # LAST keyframe (FLF2V)
+    assert body["parameters"]["generateAudio"] is False
+
+
+@pytest.mark.unit
+def test_veo_uri_nested_generate_video_response() -> None:
+    from auto_affi.adapters.gemini_provider import _veo_video_uri
+
+    op = {"response": {"generateVideoResponse": {"generatedSamples": [{"video": {"uri": "https://x/v.mp4"}}]}}}
+    assert _veo_video_uri(op) == "https://x/v.mp4"
+
+
 def _patch_apis(tmp_path: Path):
     async def fake_image(self, model, prompt, refs, aspect, run_dir, stage):
         return (run_dir or tmp_path) / f"{stage}.png"
 
-    async def fake_video(self, model, prompt, duration, aspect, run_dir, stage):
+    async def fake_video(self, model, prompt, duration, aspect, run_dir, stage,
+                         first_frame=None, last_frame=None):
         return (run_dir or tmp_path) / f"{stage}.mp4"
 
     return (

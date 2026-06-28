@@ -33,7 +33,10 @@ from auto_affi.pipeline.prompt_audit import ReferenceManifest
 from auto_affi.workflows.budget import BudgetCircuitBreaker
 
 _DEFAULT_IMAGE_MODEL = "gemini-3-pro-image"
-_DEFAULT_VIDEO_MODEL = "veo-3.0-fast-generate-001"
+# Veo 3.1-fast: required for first->last keyframe interpolation (`lastFrame`) and
+# `referenceImages`. Veo 3.0-fast does text/first-frame only (verified 2026-06-28
+# against ai.google.dev/gemini-api/docs/video). FLF2V storyboards need 3.1-fast.
+_DEFAULT_VIDEO_MODEL = "veo-3.1-fast-generate-001"
 _GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
 _DRY_PLACEHOLDER = Path("/tmp/gemini_dryrun_placeholder")  # noqa: S108
 
@@ -55,6 +58,7 @@ class GeminiProvider:
     image_model: str = _DEFAULT_IMAGE_MODEL
     video_model: str = _DEFAULT_VIDEO_MODEL
     timeout_s: float = field(default=120.0)
+    poll_interval_s: float = field(default=10.0)
 
     def __post_init__(self) -> None:
         if not self.dry_run and not self._key():
@@ -107,6 +111,8 @@ class GeminiProvider:
         duration: int = 8,
         aspect_ratio: str = "9:16",
         estimated_cost_usd: float | None = None,
+        first_frame: Path | str | None = None,
+        last_frame: Path | str | None = None,
     ) -> GenAsset:
         est = _VEO_COST_PER_SECOND * duration if estimated_cost_usd is None else estimated_cost_usd
         await enforce_spend_gate(
@@ -114,9 +120,11 @@ class GeminiProvider:
             node="video_gen", estimated_cost_usd=est, budget=budget,
         )
         if self.dry_run:
+            mode = "flf2v" if last_frame else ("i2v" if first_frame else "t2v")
             return GenAsset(kind="video", url="", local_path=_DRY_PLACEHOLDER, cost_usd=0.0,
-                            raw=f"[DRY-RUN] video {model or self.video_model} stage={stage} {duration}s")
-        path = await self._video_api(model or self.video_model, prompt, duration, aspect_ratio, run_dir, stage)
+                            raw=f"[DRY-RUN] video {model or self.video_model} stage={stage} {duration}s {mode}")
+        path = await self._video_api(model or self.video_model, prompt, duration, aspect_ratio,
+                                     run_dir, stage, first_frame, last_frame)
         if budget is not None:
             budget.record_spend("video_gen", est)
         return GenAsset(kind="video", local_path=path, cost_usd=est, cost_estimated=True)
@@ -150,13 +158,17 @@ class GeminiProvider:
     async def _video_api(
         self, model: str, prompt: str, duration: int, aspect_ratio: str,
         run_dir: Path | None, stage: str,
+        first_frame: Path | str | None = None, last_frame: Path | str | None = None,
     ) -> Path:
-        """Live Veo 3 call (long-running op) -> saved mp4. Not exercised in CI (mocked).
+        """Live Veo call (long-running op) -> saved mp4. Not exercised in CI (mocked).
 
+        Supports text-to-video, image-to-video (``first_frame`` -> ``instances[].image``)
+        and FLF2V interpolation (``last_frame`` -> ``instances[].lastFrame``; Veo 3.1+ only).
         Thai-no-lipsync: no native Veo audio is requested; Thai VO is muxed separately.
         """
-        body = {"instances": [{"prompt": prompt}],
-                "parameters": {"aspectRatio": aspect_ratio, "durationSeconds": duration, "generateAudio": False}}
+        first_b64 = (await _read_b64(first_frame)) if first_frame else None
+        last_b64 = (await _read_b64(last_frame)) if last_frame else None
+        body = build_video_body(prompt, duration, aspect_ratio, first_b64, last_b64)
         key = self._key()
         async with httpx.AsyncClient(timeout=self.timeout_s) as client:
             start = await client.post(
@@ -169,12 +181,44 @@ class GeminiProvider:
                 op = poll.json()
                 if op.get("done"):
                     break
+                await asyncio.sleep(self.poll_interval_s)
             uri = _veo_video_uri(op)
             dl = await client.get(uri if "key=" in uri else f"{uri}&key={key}")
             dl.raise_for_status()
             out = (run_dir or Path(".")) / f"{stage}.mp4"
             await asyncio.to_thread(out.write_bytes, dl.content)
             return out
+
+
+def build_video_body(
+    prompt: str, duration: int, aspect_ratio: str,
+    first_b64: str | None = None, last_b64: str | None = None,
+) -> dict[str, Any]:
+    """Pure builder for the Veo predictLongRunning request (verified field names).
+
+    - text-to-video: prompt only -> ``personGeneration: allow_all``.
+    - image-to-video: + ``image`` (first frame) -> ``personGeneration: allow_adult``.
+    - FLF2V: + ``lastFrame`` (Veo 3.1+) -> interpolates motion between the two keyframes.
+    ``durationSeconds`` is a STRING per the API; ``generateAudio`` is always False
+    (Thai VO is muxed at the edit stage, never baked native).
+    """
+    instance: dict[str, Any] = {"prompt": prompt}
+    if first_b64 is not None:
+        instance["image"] = {"inlineData": {"mimeType": "image/png", "data": first_b64}}
+    if last_b64 is not None:
+        instance["lastFrame"] = {"inlineData": {"mimeType": "image/png", "data": last_b64}}
+    params: dict[str, Any] = {
+        "aspectRatio": aspect_ratio,
+        "durationSeconds": str(duration),
+        "generateAudio": False,
+        "personGeneration": "allow_adult" if first_b64 is not None else "allow_all",
+    }
+    return {"instances": [instance], "parameters": params}
+
+
+async def _read_b64(p: Path | str) -> str:
+    raw = await asyncio.to_thread(Path(p).read_bytes)
+    return base64.b64encode(raw).decode()
 
 
 def _first_inline_image(payload: Any) -> str:
@@ -188,7 +232,10 @@ def _first_inline_image(payload: Any) -> str:
 
 def _veo_video_uri(op: Any) -> str:
     resp = op.get("response", {})
-    samples = resp.get("generatedSamples") or resp.get("generated_samples") or []
+    # Veo nests samples under generateVideoResponse (verified); older shape is flat.
+    gvr = resp.get("generateVideoResponse") or resp.get("generate_video_response") or {}
+    samples = (gvr.get("generatedSamples") or gvr.get("generated_samples")
+               or resp.get("generatedSamples") or resp.get("generated_samples") or [])
     if samples:
         video = samples[0].get("video", {})
         uri = video.get("uri") or video.get("url")
