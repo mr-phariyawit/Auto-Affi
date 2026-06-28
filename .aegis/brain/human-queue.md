@@ -150,3 +150,12 @@
 - **Blocks**: video stage (all runs), incl. runs/2026-06-28-uv-auto-umbrella-335
 - **Raised**: 2026-06-28
 - **Resolved**: 2026-06-28 — GEMINI_API_KEY added to .env; verified HTTP 200 with Veo 2/3/3.1 + image model access.
+
+### [2026-06-28] APPROVAL-GATE — UV umbrella run · 2 sheets awaiting approval
+
+- **EN**: `runs/2026-06-28-uv-auto-umbrella-335` — cast_sheet (hash 09ea56fd) + objects_sheet (hash fe5d847d) PGA-audited PASS, awaiting human approval before Nano Banana Pro generation. Reply `approve cast_sheet` / `approve objects_sheet` (or `go`). Color locked black/yellow. Also confirm commission % + shop rating ★ (rating <4.5 = scout reject; currently assumed 4.8).
+- **TH**: 2 sheet audit ผ่านแล้ว รอ approve ก่อนเจน · ยืนยัน commission% + rating ด้วย
+- **Category**: Explicit-approval-gate + External access
+- **Blocks**: objects_sheet/cast_sheet generation, storyboard, contact, video
+- **Raised**: 2026-06-28
+- **Resolved**: _(pending)_
