@@ -51,6 +51,14 @@ pivot. Only a viable product proceeds. (This is the #1 successful-operator rule:
 Produce a `CampaignBrief`: angle + hook ≤1.0s + **problem→demo→CTA (PAS/BAB/UGC)** + single CTA +
 persona + disclosure plan. Conversion-first for sub-5000 THB; peer-authority Thai VO, not narrated poetry.
 
+### Step 2.5 — CREATIVE TREATMENT (character / cast / story / location) — BEFORE any sheet
+NEVER jump from brief to product/reference sheets. First define the creative foundation and get it
+approved: **CHARACTER** (who — a real person, name/age/persona/look, even for product demos), **CAST**
+(everyone on screen), **STORY arc** (hook→build→payoff→cta as a narrative, not just product shots),
+**LOCATIONS**, and a SHOT LIST (id · location · who · action · Thai VO · transition). Write
+`runs/<run>/CREATIVE_TREATMENT.md`, present it, and get `approve treatment` before generating any sheet.
+(This is what the AetherFlow charsheet + verse/chorus/bridge storyboards encode — character & story first.)
+
 ### Step 3 — Dispatch the crew (parallel where independent)
 Research feeds verified signals → Marketing owns the brief → Creative builds the sheets/storyboard →
 Production generates → **Audit Lead reviews EVERY artifact at EVERY gate**. Crew returns structured
