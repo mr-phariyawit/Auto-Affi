@@ -18,6 +18,7 @@ from auto_affi.adapters.higgsfield_cli import (
     HiggsfieldCliError,
     HiggsfieldVideo,
 )
+from auto_affi.pipeline.prompt_audit import ReferenceManifest
 from auto_affi.workflows.budget import BudgetCircuitBreaker
 
 # ---------------------------------------------------------------------------
@@ -140,12 +141,44 @@ def _fake_proc(stdout: str, returncode: int = 0) -> MagicMock:
     return proc
 
 
-def _approved_run(run_dir: Path) -> None:
-    """Clear every PGA stage so a live generate_video() call passes the gate."""
-    from auto_affi.pipeline.prompt_audit import STAGES, record_bypass
+def _video_manifest() -> ReferenceManifest:
+    return ReferenceManifest(
+        prompt="JIAP02 product orbit, sunlit",
+        identity_string="JIAP02",
+        cast_sheet_approved=True,
+        objects_sheet_approved=True,
+        declared_objects=["product"],
+        scene_objects=["product"],
+        face_reference_count=1,
+        negative_prompt="different person, extra limbs, watermark",
+        aspect="9:16",
+        resolution="720p",
+        duration_s=8.0,
+        soul_id="soul-x",
+    )
 
-    for stage in STAGES:
-        record_bypass(run_dir, stage, reason="test fixture: gate pre-cleared")
+
+def _approved_run(run_dir: Path, manifest: ReferenceManifest | None = None) -> None:
+    """Clear every PGA stage so a live generate_video() call passes the gate.
+
+    Priors are bypassed; the ``video`` stage is audited + approved bound to
+    ``manifest`` (live calls now require a manifest matching the approved hash).
+    """
+    from auto_affi.pipeline.prompt_audit import (
+        STAGES,
+        audit,
+        record_approval,
+        record_audit,
+        record_bypass,
+    )
+
+    for stage in STAGES[:-1]:  # cast/objects/storyboard/contact
+        record_bypass(run_dir, stage, reason="test fixture: prior pre-cleared")
+    if manifest is not None:
+        record_audit(run_dir, "video", audit(manifest))
+        record_approval(run_dir, "video", approved_by="op")
+    else:
+        record_bypass(run_dir, "video", reason="test fixture: gate pre-cleared")
 
 
 @pytest.mark.unit
@@ -175,7 +208,8 @@ def test_live_mode_parses_url_from_stdout(tmp_path: Path) -> None:
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
         patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)),
     ):
-        _approved_run(tmp_path)
+        m = _video_manifest()
+        _approved_run(tmp_path, m)
         cli = HiggsfieldCli(dry_run=False)
         result = asyncio.run(
             cli.generate_video(
@@ -185,6 +219,7 @@ def test_live_mode_parses_url_from_stdout(tmp_path: Path) -> None:
                 duration=5,
                 mode="fast",
                 run_dir=tmp_path,
+                manifest=m,
                 budget=BudgetCircuitBreaker(),
             )
         )
@@ -207,12 +242,17 @@ def test_live_mode_raises_on_nonzero_exit(tmp_path: Path) -> None:
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
         patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)),
     ):
-        _approved_run(tmp_path)
+        m = _video_manifest()
+        _approved_run(tmp_path, m)
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="exit 1"):
             asyncio.run(
                 cli.generate_video(
-                    model="seedance_2_0", prompt="x", run_dir=tmp_path, budget=BudgetCircuitBreaker()
+                    model="seedance_2_0",
+                    prompt="x",
+                    run_dir=tmp_path,
+                    manifest=m,
+                    budget=BudgetCircuitBreaker(),
                 )
             )
 
@@ -228,12 +268,17 @@ def test_live_mode_raises_when_no_url_in_output(tmp_path: Path) -> None:
         patch.object(_mod.asyncio, "create_subprocess_exec", side_effect=fake_create),
         patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=99999.0)),
     ):
-        _approved_run(tmp_path)
+        m = _video_manifest()
+        _approved_run(tmp_path, m)
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="could not parse video URL"):
             asyncio.run(
                 cli.generate_video(
-                    model="seedance_2_0", prompt="x", run_dir=tmp_path, budget=BudgetCircuitBreaker()
+                    model="seedance_2_0",
+                    prompt="x",
+                    run_dir=tmp_path,
+                    manifest=m,
+                    budget=BudgetCircuitBreaker(),
                 )
             )
 

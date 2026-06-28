@@ -42,6 +42,33 @@ def _cleared(run_dir: Path) -> None:
         record_bypass(run_dir, stage, reason="test fixture: gate pre-cleared")
 
 
+def _m() -> ReferenceManifest:
+    """A clean, audit-passing manifest for live calls (manifest is now mandatory)."""
+    return ReferenceManifest(
+        prompt="JIAP02 product orbit, sunlit",
+        identity_string="JIAP02",
+        cast_sheet_approved=True,
+        objects_sheet_approved=True,
+        declared_objects=["product"],
+        scene_objects=["product"],
+        face_reference_count=1,
+        negative_prompt="different person, extra limbs, watermark",
+        aspect="9:16",
+        resolution="720p",
+        duration_s=8.0,
+        soul_id="soul-x",
+    )
+
+
+def _clear_for(run_dir: Path, stage: str, manifest: ReferenceManifest) -> None:
+    """Bypass prior stages and audit+approve the target bound to ``manifest``'s hash."""
+    idx = STAGES.index(stage)
+    for prior in STAGES[:idx]:
+        record_bypass(run_dir, prior, reason="prior")
+    record_audit(run_dir, stage, audit(manifest))
+    record_approval(run_dir, stage, approved_by="op")
+
+
 def _live_subprocess(stdout: str = "https://cdn.example.com/out.mp4\n"):
     async def fake_create(prog: str, *args: str, **kw: object) -> MagicMock:
         return _fake_proc(stdout)
@@ -58,28 +85,40 @@ def _live_subprocess(stdout: str = "https://cdn.example.com/out.mp4\n"):
 
 @pytest.mark.unit
 def test_live_video_blocked_on_insufficient_credits(tmp_path: Path) -> None:
-    _cleared(tmp_path)
+    m = _m()
+    _clear_for(tmp_path, "video", m)
     which, sub = _live_subprocess()
     with which, sub, patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=10.0)):
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="insufficient Higgsfield credits"):
             asyncio.run(
                 cli.generate_video(
-                    model="seedance_2_0", prompt="x", duration=8, run_dir=tmp_path
+                    model="seedance_2_0",
+                    prompt=m.prompt,
+                    duration=8,
+                    run_dir=tmp_path,
+                    manifest=m,
+                    budget=BudgetCircuitBreaker(),
                 )
             )  # 8s ~= 164 credits required, only 10 available
 
 
 @pytest.mark.unit
 def test_live_video_proceeds_when_credits_sufficient(tmp_path: Path) -> None:
-    _cleared(tmp_path)
+    m = _m()
+    _clear_for(tmp_path, "video", m)
     which, sub = _live_subprocess()
     breaker = BudgetCircuitBreaker()
     with which, sub, patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=9999.0)):
         cli = HiggsfieldCli(dry_run=False)
         result = asyncio.run(
             cli.generate_video(
-                model="seedance_2_0", prompt="x", duration=8, run_dir=tmp_path, budget=breaker
+                model="seedance_2_0",
+                prompt=m.prompt,
+                duration=8,
+                run_dir=tmp_path,
+                manifest=m,
+                budget=breaker,
             )
         )
     assert result.video_url == "https://cdn.example.com/out.mp4"
@@ -92,13 +131,16 @@ def test_live_video_proceeds_when_credits_sufficient(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_live_requires_budget_fail_closed(tmp_path: Path) -> None:
     """The budget breaker is mandatory on the live path (Audit Lead GAP-C)."""
-    _cleared(tmp_path)
+    m = _m()
+    _clear_for(tmp_path, "video", m)
     which, sub = _live_subprocess()
     with which, sub, patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=9999.0)):
         cli = HiggsfieldCli(dry_run=False)
         with pytest.raises(HiggsfieldCliError, match="requires a BudgetCircuitBreaker"):
             asyncio.run(
-                cli.generate_video(model="seedance_2_0", prompt="x", duration=8, run_dir=tmp_path)
+                cli.generate_video(
+                    model="seedance_2_0", prompt=m.prompt, duration=8, run_dir=tmp_path, manifest=m
+                )
             )
 
 
@@ -107,7 +149,8 @@ def test_live_requires_budget_fail_closed(tmp_path: Path) -> None:
 
 @pytest.mark.unit
 def test_live_video_blocked_when_over_budget(tmp_path: Path) -> None:
-    _cleared(tmp_path)
+    m = _m()
+    _clear_for(tmp_path, "video", m)
     breaker = BudgetCircuitBreaker()
     # Drive daily spend to the cap so the next job is DENY.
     breaker.record_spend("video_gen", breaker.daily_cap * 1.1)
@@ -117,7 +160,12 @@ def test_live_video_blocked_when_over_budget(tmp_path: Path) -> None:
         with pytest.raises(HiggsfieldCliError, match="budget breaker DENY"):
             asyncio.run(
                 cli.generate_video(
-                    model="seedance_2_0", prompt="x", duration=8, run_dir=tmp_path, budget=breaker
+                    model="seedance_2_0",
+                    prompt=m.prompt,
+                    duration=8,
+                    run_dir=tmp_path,
+                    manifest=m,
+                    budget=breaker,
                 )
             )
 
@@ -128,7 +176,8 @@ def test_live_video_blocked_when_over_budget(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_live_image_blocked_when_over_budget(tmp_path: Path) -> None:
     """Mirror of the video over-budget test for the image_gen node (Audit follow-up)."""
-    _cleared(tmp_path)
+    m = _m()
+    _clear_for(tmp_path, "cast_sheet", m)
     breaker = BudgetCircuitBreaker()
     breaker.record_spend("image_gen", breaker.node_caps["image_gen"])  # at the node cap
     which, sub = _live_subprocess("https://cdn.example.com/still.png\n")
@@ -138,10 +187,32 @@ def test_live_image_blocked_when_over_budget(tmp_path: Path) -> None:
             asyncio.run(
                 cli.generate_image(
                     model="nano_banana_2",
-                    prompt="x",
+                    prompt=m.prompt,
                     stage="cast_sheet",
                     run_dir=tmp_path,
+                    manifest=m,
                     budget=breaker,
+                )
+            )
+
+
+@pytest.mark.unit
+def test_live_requires_manifest_fail_closed(tmp_path: Path) -> None:
+    """A live (paid) call without a manifest is blocked — the approval-to-content
+    hash binding cannot be skipped (Audit Lead GAP-E)."""
+    m = _m()
+    _clear_for(tmp_path, "video", m)
+    which, sub = _live_subprocess()
+    with which, sub, patch.object(HiggsfieldCli, "account_credits", AsyncMock(return_value=9999.0)):
+        cli = HiggsfieldCli(dry_run=False)
+        with pytest.raises(GenerationBlocked, match="requires a manifest"):
+            asyncio.run(
+                cli.generate_video(
+                    model="seedance_2_0",
+                    prompt=m.prompt,
+                    duration=8,
+                    run_dir=tmp_path,
+                    budget=BudgetCircuitBreaker(),
                 )
             )
 

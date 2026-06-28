@@ -193,10 +193,18 @@ class HiggsfieldCli:
            provider credit balance covers the job, and consult the budget breaker.
         Dry-run performs only the gate (no balance/budget checks, no spend).
         """
-        if not self._dry_run and run_dir is None:
-            raise GenerationBlocked(
-                stage, "live generation requires run_dir — the PGA gate cannot be skipped"
-            )
+        if not self._dry_run:
+            if run_dir is None:
+                raise GenerationBlocked(
+                    stage, "live generation requires run_dir — the PGA gate cannot be skipped"
+                )
+            if manifest is None:
+                # GAP-1/GAP-E: a live paid call must bind the approval to the exact
+                # content via the prompt hash; manifest=None would clear the gate
+                # with no binding. Fail closed, mirroring the run_dir rule.
+                raise GenerationBlocked(
+                    stage, "live generation requires a manifest (hash binding cannot be skipped)"
+                )
         if run_dir is not None:
             assert_may_generate(stage, run_dir, manifest=manifest)
 
