@@ -5,7 +5,7 @@ profile: standard
 triggers:
   en: ["new product", "produce affiliate video", "make a video for this product", "start production", "product intake", "affiliate video"]
   th: ["สินค้าใหม่", "รับสินค้าใหม่", "ทำวิดีโอ affiliate", "เริ่มผลิต", "ผลิตวิดีโอ", "ทำคลิปสินค้า"]
-reads: ["docs/templates/pipeline-step-templates.md", "docs/team/auto-affi-crew.md", "docs/principles/2026-06-27-pre-generation-audit-and-approval-gate.md", "SPEC.md"]
+reads: ["docs/reference/short-form-format-v2.md", "docs/reference/storytelling-frameworks.md", "docs/reference/hyperframes-capability-map.md", "docs/reference/hyperframes-caption-compose.md", "docs/reference/kie-elevenlabs-vo.md", "docs/templates/pipeline-step-templates.md", "docs/team/auto-affi-crew.md", "docs/principles/2026-06-27-pre-generation-audit-and-approval-gate.md", "SPEC.md"]
 writes: ["runs/<run-id>/"]
 wires: ["scout_scoring", "prompt_audit", "produce", "compliance_gate"]
 tests: []
@@ -91,10 +91,20 @@ Prompt → Veo · เสียง/VO (Thai) · กล้อง/camera · Transit
 Veo cost. Present it for explicit human approval; only after `approve storyboard` do paid Veo clips run.
 (Format: a per-shot table like the AetherFlow storyboards.)
 
-### Step 5 — Edit → Compliance → Master
-Concat shots → editor (captions, hook punch-in, brand overlay, CTA endcard) → `run_compliance`:
-cleanroom (1 video + 1 audio), 9:16, Thai VO 1.0–1.15×, disclosure `#โฆษณา/#affiliate`, caption/VO sync.
-Block the render if any gate fails. Output `runs/<run>/master.mp4`.
+### Step 5 — Edit (HyperFrames) → Compliance → Master
+**Default format = `docs/reference/short-form-format-v2.md`**: 15s, 3-beat HOOK(≤2s)→DEMO→CTA, built to
+Veo3 strengths (Veo SHOWS a state, never PROVES — proof = still cut-in + caption; the gate blocks
+i2v "no-drip" prompts). Post-production is **HyperFrames ONLY** (HTML→deterministic, local, FREE — NOT
+ffmpeg-PNG; this ffmpeg has no drawtext):
+1. **VO = ElevenLabs v3 via kie.ai** (`docs/reference/kie-elevenlabs-vo.md`) — `[excited]`+stability 0, Thai;
+   the ONLY VO engine. Mix VO/BGM(ducked ~30%)/SFX via HyperFrames `producer`.
+2. **Compose** (`docs/reference/hyperframes-caption-compose.md` + `hyperframes-short-skeleton.html`):
+   `hyperframes init --video … --resolution portrait` → author Veo clips as scenes (hard cuts; shader only
+   at 1-2 meaning moments) + `caption-highlight` word-synced via `hyperframes transcribe` + `lt-dark-card`
+   price + custom CTA endcard + persistent `#โฆษณา`; **embed Noto Sans Thai via `@font-face`** (system
+   fallback is unreliable — lint enforces it); `snapshot`-verify Thai tone marks → `hyperframes render`.
+3. **Compliance:** `verify_master` cleanroom (1 video + 1 audio, **1080×1920** — upscale Veo 720p), disclosure
+   present. Block the render if any gate fails. Output `runs/<run>/master.mp4`.
 
 ### Step 6 — Publish (gated)
 Publishing needs SPEC §20 external blockers cleared (Meta token G2, etc.) + a recorded human approval.
