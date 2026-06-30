@@ -75,3 +75,31 @@ def test_prompt_mode_is_part_of_the_hash() -> None:
     a = _m(prompt_mode="image_to_video")
     b = _m(prompt_mode="first_last_frame")
     assert prompt_hash(a) != prompt_hash(b)
+
+
+# --------------------- anti-message / prove-the-negative (do-now #2) ---------- #
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "phrase",
+    ["not a single drop falls", "the paper stays dry", "no water comes out",
+     "น้ำไม่หยดสักหยด", "ปลอกไม่เปียก", "แห้งสนิท"],
+)
+def test_i2v_blocks_prove_the_negative(phrase: str) -> None:
+    bad = _m(prompt=f"Macro of the {_PROD}; {phrase}.")
+    assert AuditCode.VEO_PROVE_NEGATIVE in {f.code for f in audit(bad).failures}
+
+
+@pytest.mark.unit
+def test_neutral_action_prompt_passes() -> None:
+    ok = _m(prompt=f"Calm slow push-in: hands slide the {_PROD} into its sleeve and zip it.")
+    assert AuditCode.VEO_PROVE_NEGATIVE not in {f.code for f in audit(ok).failures}
+
+
+@pytest.mark.unit
+def test_prove_negative_only_applies_to_i2v() -> None:
+    # a still image proof beat may legitimately depict the dry result
+    still = _m(prompt=f"Studio still: the {_PROD}, not a single drop on the dry paper.",
+               prompt_mode="image")
+    assert AuditCode.VEO_PROVE_NEGATIVE not in {f.code for f in audit(still).failures}

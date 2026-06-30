@@ -56,6 +56,7 @@ class AuditCode(StrEnum):
     CATEGORY_RESTRICTED = "category_restricted"
     ECONOMICS_NOT_PASSED = "economics_not_passed"
     PROMPT_MODE_MISMATCH = "prompt_mode_mismatch"
+    VEO_PROVE_NEGATIVE = "veo_prove_negative"
 
 
 # FLF2V / interpolation phrases that must NOT appear in an image-to-video prompt.
@@ -75,6 +76,22 @@ _FLF2V_PHRASES: tuple[str, ...] = (
 def _has_flf2v_language(prompt: str) -> bool:
     low = prompt.lower()
     return any(p in low for p in _FLF2V_PHRASES)
+
+
+# "Prove the negative" phrases — claims that an effect does NOT happen. Veo (i2v) cannot
+# animate the ABSENCE of something: asked to show "no water drips", on a wet scene it renders
+# water POURING OUT (anti-message) — the 2026-06-28 S4 failure. The proof must come from a
+# controllable still cut-in + caption, never from Veo motion. (Hollywood-standards do-now #2.)
+_PROVE_NEGATIVE_PHRASES: tuple[str, ...] = (
+    "not a single drop", "no drip", "doesn't drip", "does not drip", "stays dry",
+    "remains dry", "no water", "won't leak", "does not leak", "doesn't leak",
+    "ไม่หยด", "ไม่เปียก", "ไม่รั่ว", "แห้งสนิท",
+)
+
+
+def _asks_veo_to_prove_a_negative(prompt: str) -> bool:
+    low = prompt.lower()
+    return any(p in low for p in _PROVE_NEGATIVE_PHRASES)
 
 
 # Failures that a human `bypass` may NEVER override — bypass is for trusting a
@@ -244,6 +261,14 @@ def audit(manifest: ReferenceManifest) -> AuditResult:
             "B",
             "image_to_video prompt contains first/last-frame interpolation language "
             "(FLF2V); an i2v call has only a start frame — rewrite as a single motion prompt",
+        )
+    if manifest.prompt_mode == "image_to_video" and _asks_veo_to_prove_a_negative(manifest.prompt):
+        fail(
+            AuditCode.VEO_PROVE_NEGATIVE,
+            "B",
+            "i2v prompt asks Veo to animate the ABSENCE of an effect (e.g. 'no drip'/'ไม่หยด'); "
+            "Veo renders the opposite (water pouring out). Carry the proof in a still cut-in + caption, "
+            "and keep the Veo motion to a neutral action.",
         )
     if manifest.aspect != ALLOWED_ASPECT:
         fail(AuditCode.ASPECT_INVALID, "B", f"aspect must be {ALLOWED_ASPECT}, got {manifest.aspect}")
