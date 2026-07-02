@@ -118,3 +118,15 @@ For character + product consistency across frames (gemini-3-pro-image / Nano Ban
 - **From** `produce-affiliate-video` Step 4 (the gated stages call this).
 - **Uses** `gemini_provider` / `gen_provider` (the verified payloads live there).
 - Keys in `.env` (`GEMINI_API_KEY`); never echo the value; rotate if pasted in chat.
+
+## Thai VO QA — ElevenLabs-only (verified method 2026-07-02)
+kie ElevenLabs v3 is English-trained → mispronounces some Thai words unpredictably. Since the operator
+often can't audition by ear, VERIFY every generated line objectively:
+1. **STT round-trip:** send the generated mp3 to Gemini (`gemini-2.5-flash` generateContent, inline_data
+   `audio/mpeg`, prompt "Transcribe this Thai speech exactly") → compare transcription to the intended text.
+   Mismatch = mispronounced → reword and regen.
+2. **Known ElevenLabs-Thai failure words** (reword to a synonym): คว่ำ→พลิกกลับ · หยด→ไม่ไหลออก ·
+   trailing ได้ often heard as ดี → end the line on a different word. Prefer common mid-tone words; avoid
+   ไม้ตรี / rare clusters.
+3. **stability ∈ {0, 0.5, 1.0} ONLY** (kie rejects other values with HTTP 500). Use 1.0 for max clarity.
+4. **No truncation:** set the HyperFrames audio clip `data-duration` >= the actual mp3 duration.
