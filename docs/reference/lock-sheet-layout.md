@@ -13,7 +13,11 @@ inspired_by: NOVA beauty sheet (layout) + AetherFlow 113-ลอยกระท�
 > (`cast_sheet` + `objects_sheet` + `storyboard.html`) with a single reviewable page — so the
 > operator sees the whole locked plan (identity, product, story, gate, economics) at one glance
 > before any paid pixel. Template: [lock-sheet-template.html](../templates/lock-sheet-template.html).
-> Rendered example: ![preview](lock-sheet-preview.png)
+> Rendered template (wireframe slots): ![preview](lock-sheet-preview.png)
+>
+> **Fully populated example** (real umbrella-335 assets — cast composites, product refs, keyframes):
+> ![filled](lock-sheet-filled-example.png) — produced from `runs/2026-06-30-umbrella-335/lock-sheet.html`
+> (the run dir is git-ignored; this rendered PNG is the committed proof).
 
 ## Why it exists
 The NOVA reference sheet proved the value of a **single-page production bible**. Our pipeline had the
