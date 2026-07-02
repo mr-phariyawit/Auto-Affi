@@ -256,3 +256,56 @@ def test_forged_bypass_without_event_is_rejected(tmp_path: Path) -> None:
     # no event log written
     with pytest.raises(GenerationBlocked, match=r"no matching .*event|tamper"):
         assert_may_generate("cast_sheet", tmp_path)
+
+
+# ---- GAP-1 hash-laundering: the content-binding hash must be log-authoritative ---- #
+
+
+@pytest.mark.unit
+def test_forged_prompt_hash_cannot_launder_approve_event(tmp_path: Path) -> None:
+    """GAP-1 laundering: the gate binds generation to the AUDITED content hash.
+
+    Attacker audits a clean manifest (real), then — controlling the forgeable
+    approvals.json — swaps ``prompt_hash`` to an *unaudited* evil manifest's hash
+    BEFORE the approval is recorded. If ``record_approval`` echoed that forged
+    hash into the append-only approve event, ``assert_may_generate`` would then
+    clear the evil manifest (approve-event hash == evil hash). The approve
+    event's hash MUST come from the log's audit event, not approvals.json, so the
+    evil manifest is rejected on the content-binding check.
+    """
+    real = _manifest(prompt=f"{_IDENTITY}. Clean audited scene.")
+    evil = _manifest(prompt=f"{_IDENTITY}. UNAUDITED evil scene, never reviewed.")
+    assert prompt_hash(real) != prompt_hash(evil)
+
+    record_audit(tmp_path, "cast_sheet", audit(real))  # only `real` is ever audited
+
+    # Attacker forges the hash in approvals.json to the evil content's hash.
+    approvals = load_approvals(tmp_path)
+    approvals["cast_sheet"].prompt_hash = prompt_hash(evil)
+    save_approvals(tmp_path, approvals)
+
+    record_approval(tmp_path, "cast_sheet", approved_by="operator:alice")
+
+    with pytest.raises(GenerationBlocked, match=r"hash mismatch|tamper|superseded"):
+        assert_may_generate("cast_sheet", tmp_path, manifest=evil)
+
+
+@pytest.mark.unit
+def test_forged_prompt_hash_cannot_launder_bypass_event(tmp_path: Path) -> None:
+    """Bypass mirror of the laundering attack: a forged approvals.json hash must
+    not be echoed into the bypass event and let an unaudited manifest ride the
+    bypass. The bypass event's hash comes from the log's audit event."""
+    real = _manifest(prompt=f"{_IDENTITY}. Trusted hand-made A.", aspect="16:9")
+    evil = _manifest(prompt=f"{_IDENTITY}. UNAUDITED evil B.", aspect="16:9")
+    assert prompt_hash(real) != prompt_hash(evil)
+
+    record_audit(tmp_path, "cast_sheet", audit(real))  # soft-fail, bypassable
+
+    approvals = load_approvals(tmp_path)
+    approvals["cast_sheet"].prompt_hash = prompt_hash(evil)  # forge
+    save_approvals(tmp_path, approvals)
+
+    record_bypass(tmp_path, "cast_sheet", reason="trust A")
+
+    with pytest.raises(GenerationBlocked, match=r"hash mismatch|tamper|superseded"):
+        assert_may_generate("cast_sheet", tmp_path, manifest=evil)

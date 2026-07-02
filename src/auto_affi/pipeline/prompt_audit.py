@@ -394,6 +394,19 @@ def _audit_passed_in_log(run_dir: Path, stage: str) -> bool:
     return ev is not None and ev.get("audit_pass") == "true"
 
 
+def _audit_hash_in_log(run_dir: Path, stage: str) -> str | None:
+    """The prompt_hash recorded by the latest audit event in the append-only log.
+
+    This is the ONLY hash the gate trusts for content-binding (GAP-1). It is
+    written by :func:`record_audit` straight from the audited ``AuditResult`` —
+    never copied from the mutable approvals.json — so a forged ``prompt_hash`` in
+    the JSON cannot be laundered into an approve/bypass event or slip a different
+    (unaudited) manifest past the hash-mismatch check.
+    """
+    ev = _latest_event(run_dir, event="audit", stage=stage)
+    return ev.get("prompt_hash") if ev is not None else None
+
+
 def _bypass_is_current(run_dir: Path, stage: str) -> bool:
     """True only if a bypass event post-dates the latest audit event for the stage.
 
@@ -496,8 +509,10 @@ def record_approval(
         run_dir,
         {
             "event": "approve",
+            # Bind to the AUDITED hash from the log, not the forgeable approvals.json
+            # (a forged st.prompt_hash must not be launderable into the approve event).
             "stage": stage,
-            "prompt_hash": st.prompt_hash or "",
+            "prompt_hash": _audit_hash_in_log(run_dir, stage) or "",
             "by": approved_by,
             "token": approval_token or "",
             "at": _now_iso(),
@@ -535,7 +550,9 @@ def record_bypass(
             "stage": stage,
             "reason": reason,
             "by": by,
-            "prompt_hash": st.prompt_hash or "",
+            # Bind to the AUDITED hash from the log (never the forgeable JSON), so a
+            # forged st.prompt_hash cannot ride an unaudited manifest past the bypass.
+            "prompt_hash": _audit_hash_in_log(run_dir, stage) or "",
             "at": _now_iso(),
         },
     )
@@ -581,7 +598,7 @@ def assert_may_generate(
             )
         prev = approvals[prior]
         prior_cleared = (prev.bypassed and _bypass_is_current(run_dir, prior)) or (
-            prev.approved and _approval_is_current(run_dir, prior, prev.prompt_hash)
+            prev.approved and _approval_is_current(run_dir, prior, _audit_hash_in_log(run_dir, prior))
         )
         if not prior_cleared:
             raise GenerationBlocked(stage, f"prior stage '{prior}' not validly approved/bypassed")
@@ -605,16 +622,18 @@ def assert_may_generate(
         raise GenerationBlocked(stage, "stage not audited or audit failed (per audit log)")
     if not st.approved:
         raise GenerationBlocked(stage, "stage not approved by human")
-    # Tamper-evidence: an approve event for this exact hash must POST-DATE the
-    # latest audit event — defeats both the JSON-only forge and stale-event
-    # replay after a hash revert (H2/H5).
-    if not _approval_is_current(run_dir, stage, st.prompt_hash):
+    # Tamper-evidence: an approve event for the AUDITED hash must POST-DATE the
+    # latest audit event — defeats the JSON-only forge, stale-event replay after a
+    # hash revert (H2/H5), AND laundering a forged approvals.json hash (GAP-1). The
+    # binding hash is read from the append-only log, never from approvals.json.
+    log_hash = _audit_hash_in_log(run_dir, stage)
+    if not _approval_is_current(run_dir, stage, log_hash):
         raise GenerationBlocked(
             stage,
             "no matching current approve event in the audit log "
             "(tamper / forged or superseded approval)",
         )
-    if manifest is not None and prompt_hash(manifest) != st.prompt_hash:
+    if manifest is not None and prompt_hash(manifest) != log_hash:
         raise GenerationBlocked(
             stage,
             "prompt/reference changed since approval (hash mismatch) — re-audit and re-approve",
