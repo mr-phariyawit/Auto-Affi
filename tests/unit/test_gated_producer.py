@@ -145,3 +145,8 @@ def test_stageplan_rejects_kind_stage_mismatch() -> None:
         StagePlan(stage="cast_sheet", kind=StageKind.VIDEO, manifest=m)
     with pytest.raises(ValueError, match="VIDEO kind"):
         StagePlan(stage="video", kind=StageKind.IMAGE, manifest=m)
+
+
+def test_stageplan_rejects_unknown_stage() -> None:
+    with pytest.raises(ValueError, match="unknown stage"):
+        StagePlan(stage="not_a_stage", kind=StageKind.IMAGE, manifest=_manifest("cast_sheet"))
