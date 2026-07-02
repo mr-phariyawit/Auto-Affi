@@ -116,7 +116,5 @@ class ConversionReport(BaseModel):
     @model_validator(mode="after")
     def _compute_rate(self) -> ConversionReport:
         if self.clicks > 0 and self.conversion_rate == 0.0:
-            object.__setattr__(
-                self, "conversion_rate", self.conversions / self.clicks
-            )
+            self.conversion_rate = self.conversions / self.clicks
         return self

@@ -345,10 +345,9 @@ def main() -> int:
         print()
         print("PASS — compliance OK, cost $0.00")
         return 0
-    else:
-        print()
-        print("FAIL — compliance not OK")
-        return 1
+    print()
+    print("FAIL — compliance not OK")
+    return 1
 
 
 if __name__ == "__main__":

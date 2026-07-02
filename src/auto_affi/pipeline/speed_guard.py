@@ -80,8 +80,7 @@ def check_speed(segments: list[VoSegment]) -> SpeedGuardReport:
             continue
 
         factor = seg.raw_audio_s / seg.slot_s
-        if factor > max_factor:
-            max_factor = factor
+        max_factor = max(max_factor, factor)
 
         label = f"segment[{idx}] factor={factor:.3f}x (raw={seg.raw_audio_s}s, slot={seg.slot_s}s)"
 

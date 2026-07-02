@@ -147,20 +147,29 @@ _BEAUTY_KEYWORDS = ("ครีม", "serum", "เซรั่ม", "SPF", "sunsc
 _GADGET_KEYWORDS = ("ซอง", "กระเป๋า", "พก", "สาย", "อุปกรณ์", "gadget", "pouch", "bag", "2-in-1", "กันน้ำ", "UV")
 
 
+def _name_bucket(name: str) -> str | None:
+    """Classify a product name into a keyword bucket (rain/beauty/gadget) or None.
+
+    Order matters and is shared by :func:`_detect_bucket` and :func:`_build_persona`.
+    """
+    if any(kw in name for kw in _RAIN_KEYWORDS):
+        return "rain"
+    if any(kw in name for kw in _BEAUTY_KEYWORDS):
+        return "beauty"
+    if any(kw in name for kw in _GADGET_KEYWORDS):
+        return "gadget"
+    return None
+
+
 def _detect_bucket(product: ShopeeProduct) -> _HookTemplate:
     """Pick the hook template that best fits the product name + price signals."""
-    name = product.name
+    bucket = _name_bucket(product.name)
 
-    # Rain / waterproof / umbrella
-    if any(kw in name for kw in _RAIN_KEYWORDS):
+    if bucket == "rain":
         return _TEMPLATES[0]  # rainy-season-must-have
-
-    # Skincare / beauty result-reveal
-    if any(kw in name for kw in _BEAUTY_KEYWORDS):
+    if bucket == "beauty":
         return _TEMPLATES[3]  # beauty-result-reveal
-
-    # Gadget / accessory everyday hero
-    if any(kw in name for kw in _GADGET_KEYWORDS):
+    if bucket == "gadget":
         return _TEMPLATES[4]  # everyday-hero-gadget
 
     # High sales volume → social proof
@@ -181,9 +190,9 @@ def _detect_bucket(product: ShopeeProduct) -> _HookTemplate:
 
 def _build_persona(product: ShopeeProduct, template: _HookTemplate) -> Persona:
     """Derive a deterministic Persona from the product + template bucket."""
-    name = product.name
+    bucket = _name_bucket(product.name)
 
-    if any(kw in name for kw in _RAIN_KEYWORDS):
+    if bucket == "rain":
         return Persona(
             label="สาวออฟฟิศไทยที่เดินทางด้วยระบบขนส่งสาธารณะ",
             age_range="22-35",
@@ -195,7 +204,7 @@ def _build_persona(product: ShopeeProduct, template: _HookTemplate) -> Persona:
             daily_context="เดินทางด้วย BTS/MRT ทุกวัน อยู่กลางแดดกลางฝน",
         )
 
-    if any(kw in name for kw in _BEAUTY_KEYWORDS):
+    if bucket == "beauty":
         return Persona(
             label="สาวไทยรักผิวที่ใส่ใจสกินแคร์",
             age_range="18-35",
@@ -207,7 +216,7 @@ def _build_persona(product: ShopeeProduct, template: _HookTemplate) -> Persona:
             daily_context="ดูสกินแคร์รีวิวใน IG Reels และ TikTok ทุกวัน",
         )
 
-    if any(kw in name for kw in _GADGET_KEYWORDS):
+    if bucket == "gadget":
         return Persona(
             label="คนทำงานที่ใช้สมาร์ตโฟนเป็นหลักทุกวัน",
             age_range="20-38",

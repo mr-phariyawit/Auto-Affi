@@ -15,12 +15,13 @@ Verification Gate for the full policy.
 from __future__ import annotations
 
 import json
-import shutil
 import subprocess
 from pathlib import Path
 from typing import Any, cast
 
 from pydantic import BaseModel, Field
+
+from auto_affi.pipeline._fftools import require_binary
 
 # ---------------------------------------------------------------------------
 # Report model
@@ -44,19 +45,9 @@ class CleanroomReport(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _require_ffprobe() -> str:
-    binary = shutil.which("ffprobe")
-    if binary is None:
-        raise RuntimeError(
-            "ffprobe is not installed or not on PATH. "
-            "Install ffmpeg (which includes ffprobe) and retry."
-        )
-    return binary
-
-
 def _probe_streams(path: Path) -> list[dict[str, Any]]:
     """Run ffprobe on *path* and return the list of stream dicts."""
-    ffprobe = _require_ffprobe()
+    ffprobe = require_binary("ffprobe", "Install ffmpeg (which includes ffprobe) and retry.")
     cmd = [
         ffprobe,
         "-v", "quiet",

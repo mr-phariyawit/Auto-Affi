@@ -18,12 +18,14 @@ ports across: each JSONL row maps 1:1 to a Sheet row.
 from __future__ import annotations
 
 import contextlib
-import json  # noqa: F401 — kept for future use / clarity
 import os
 import tempfile
+from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
 
 from auto_affi.registry.models import (
     ProductEntry,
@@ -31,6 +33,8 @@ from auto_affi.registry.models import (
     RunEntry,
     StoryboardSceneOverride,
 )
+
+_ModelT = TypeVar("_ModelT", bound=BaseModel)
 
 
 def _atomic_write(path: Path, content: str) -> None:
@@ -60,16 +64,20 @@ class LocalJsonlRegistry:
             if not p.exists():
                 p.write_text("", encoding="utf-8")
 
-    # ---- product reads ------------------------------------------------ #
+    # ---- generic JSONL reader ----------------------------------------- #
 
-    def _iter_products(self) -> list[ProductEntry]:
-        out: list[ProductEntry] = []
-        for line in self.products_path.read_text(encoding="utf-8").splitlines():
+    def _read_jsonl(self, path: Path, model: type[_ModelT]) -> Iterator[_ModelT]:
+        """Yield each non-blank line of *path* parsed as *model* (append-only JSONL)."""
+        for line in path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if not line:
                 continue
-            out.append(ProductEntry.model_validate_json(line))
-        return out
+            yield model.model_validate_json(line)
+
+    # ---- product reads ------------------------------------------------ #
+
+    def _iter_products(self) -> list[ProductEntry]:
+        return list(self._read_jsonl(self.products_path, ProductEntry))
 
     def find_product_by_item_id(self, item_id: int) -> ProductEntry | None:
         for p in self._iter_products():
@@ -140,12 +148,7 @@ class LocalJsonlRegistry:
     # ---- run lifecycle ------------------------------------------------ #
 
     def _iter_runs(self) -> list[RunEntry]:
-        rows = []
-        for line in self.runs_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            rows.append(RunEntry.model_validate_json(line))
+        rows = list(self._read_jsonl(self.runs_path, RunEntry))
         # Last-write-wins on (order_no, run_no)
         latest: dict[tuple[int, int], RunEntry] = {}
         for r in rows:
@@ -212,13 +215,10 @@ class LocalJsonlRegistry:
     # ---- storyboard overrides ----------------------------------------- #
 
     def get_storyboard_overrides(self, order_no: int) -> list[StoryboardSceneOverride]:
-        out = []
-        for line in self.storyboards_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            row = StoryboardSceneOverride.model_validate_json(line)
-            if row.order_no == order_no:
-                out.append(row)
+        out = [
+            row
+            for row in self._read_jsonl(self.storyboards_path, StoryboardSceneOverride)
+            if row.order_no == order_no
+        ]
         out.sort(key=lambda r: r.scene_idx)
         return out

@@ -73,21 +73,18 @@ class ComplianceReport(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+def _shot_dialogue(shot: Any) -> str | None:
+    """Return a shot's non-empty ``dialogue_th`` as a str, else None (dict or object)."""
+    d = shot.get("dialogue_th") if isinstance(shot, dict) else getattr(shot, "dialogue_th", None)
+    return str(d) if d else None
+
+
 def _extract_dialogue(storyboard: Any) -> list[str]:
     """Pull all non-empty dialogue_th strings from storyboard shots.
 
     Supports both ``AiStoryboard`` (with ``.shots``) and plain dicts.
     """
-    texts: list[str] = []
-    shots = _get_shots(storyboard)
-    for shot in shots:
-        if isinstance(shot, dict):
-            d = shot.get("dialogue_th")
-        else:
-            d = getattr(shot, "dialogue_th", None)
-        if d:
-            texts.append(str(d))
-    return texts
+    return [t for shot in _get_shots(storyboard) if (t := _shot_dialogue(shot)) is not None]
 
 
 def _get_shots(storyboard: Any) -> list[Any]:
@@ -99,15 +96,7 @@ def _get_shots(storyboard: Any) -> list[Any]:
 
 def _count_dialogue_shots(storyboard: Any) -> int:
     """Count shots that have non-empty dialogue_th."""
-    count = 0
-    for shot in _get_shots(storyboard):
-        if isinstance(shot, dict):
-            d = shot.get("dialogue_th")
-        else:
-            d = getattr(shot, "dialogue_th", None)
-        if d:
-            count += 1
-    return count
+    return sum(1 for shot in _get_shots(storyboard) if _shot_dialogue(shot) is not None)
 
 
 # ---------------------------------------------------------------------------

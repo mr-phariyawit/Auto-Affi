@@ -15,10 +15,11 @@ Cost: 0.0 USD (no paid API calls).
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+
+from auto_affi.pipeline._fftools import require_binary
 
 # Canonical resolution for 9:16 short-form video
 _WIDTH = 1080
@@ -32,24 +33,7 @@ _PRESET = "ultrafast"
 
 def _require_ffmpeg() -> str:
     """Return the path to ffmpeg, or raise RuntimeError if missing."""
-    binary = shutil.which("ffmpeg")
-    if binary is None:
-        raise RuntimeError(
-            "ffmpeg is not installed or not on PATH. "
-            "Install ffmpeg (e.g. `brew install ffmpeg`) and retry."
-        )
-    return binary
-
-
-def _require_ffprobe() -> str:
-    """Return the path to ffprobe, or raise RuntimeError if missing."""
-    binary = shutil.which("ffprobe")
-    if binary is None:
-        raise RuntimeError(
-            "ffprobe is not installed or not on PATH. "
-            "Install ffmpeg (which includes ffprobe) and retry."
-        )
-    return binary
+    return require_binary("ffmpeg", "Install ffmpeg (e.g. `brew install ffmpeg`) and retry.")
 
 
 def render_shot(shot: object, dest: Path) -> Path:
