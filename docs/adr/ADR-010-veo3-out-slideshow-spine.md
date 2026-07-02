@@ -74,3 +74,29 @@ Audio: VO 100% / Suno BGM ~30% ducked. Captions phrase-level (Thai whisper word-
 **Bottom line:** Veo3 out of the spine → **Ken Burns slideshow** in, on tools already verified working, at ~฿20-45/spot with +30% ROAS backing. Avatar (Kling on kie.ai) is the one upgrade to unlock as fallback #2. First action gated only by the Gemini spend cap for Nano Banana stills.
 
 Files referenced: `/Users/phariyawit.jiap/Documents/Auto-Affi/runs/2026-06-30-umbrella-335/` (BRIEF.md, STORYBOARD.md), `docs/reference/short-form-format-v2.md`, `docs/reference/hyperframes-*.md`, `docs/reference/kie-elevenlabs-vo.md`, `docs/templates/hyperframes-short-skeleton.html`, `.aegis/brain/handoffs/2026-06-30-umbrella-handoff.md`.
+---
+
+## ADDENDUM (2026-07-02) — Veo IS viable with the RIGHT method: LOCKED CHAR-SHEET + referenceImages
+
+User insight ("สร้างตัวละครแล้ว lock ด้วย") resolved the whole Veo problem. Two method errors, both fixed:
+
+1. **Use `referenceImages`, NOT image-to-video (i2v).** i2v locks the exact first frame → Veo can only gently
+   nudge a static frame (why every clip looked stiff). `referenceImages` (Veo 3.1/3.1-fast, "asset" type, up to 3,
+   **forces durationSeconds=8 ≈ $3.20**) lets Veo generate FRESH cinematic motion (orbit/rotate/rack-focus).
+2. **Feed a LOCKED product CHAR-SHEET, not raw source photos.** Raw Shopee photos (text overlays, mixed
+   states/variants) made Veo drift to a generic umbrella (lost the hard-case mechanism). A clean, consistent
+   3-view studio char-sheet (Nano Banana: open · cased · hero, neutral bg, no text, same variant) LOCKS the
+   identity → Veo keeps the exact product (ribbed hard-case tube + yellow + crook handle) AND moves dynamically.
+
+**Verified live 2026-07-02** (runs/2026-06-30-umbrella-335/05-shots/reftest/): raw-refs = big motion but wrong
+product; locked-char-sheet refs = faithful product + premium rain-rotation. Char-sheet fidelity slightly calms
+motion (Veo stays near refs) — acceptable tradeoff for a hero shot.
+
+### Revised pipeline (hybrid, one lock feeds everything)
+1. **Always build a LOCKED CHAR-SHEET first** (Nano Banana, clean studio, 3 consistent views) — the master identity lock.
+2. **Veo `referenceImages` (8s, ~$3.20)** off the char-sheet → 1 premium HERO/hook shot (dynamic + faithful). NOT i2v.
+3. **Char-sheet stills → HyperFrames Ken-Burns slideshow** for the exact demo/proof/CTA beats (cheap, pixel-exact).
+4. kie ElevenLabs VO + Suno BGM + HyperFrames compose → master.
+
+New gate rule to add: if `prompt_mode == "referenceImages"` require a char-sheet ref set (not raw photos) + duration==8.
+i2v remains allowed but flagged "static-motion; prefer referenceImages for hero shots."
