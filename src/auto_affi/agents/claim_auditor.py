@@ -172,8 +172,14 @@ _PATTERNS: tuple[_Pattern, ...] = (
 # Disclosure detector (checks PRESENCE, not absence)
 # ---------------------------------------------------------------------------
 # Returns True if the text contains a recognisable disclosure marker.
+# The English tokens are word-bounded so a bare "ad" only matches the standalone
+# word / hashtag — NOT the substring in "made", "gadget", "ready", "thailand",
+# which previously made the disclosure check trivially (and silently) pass.
 _DISCLOSURE_PATTERNS: tuple[re.Pattern[str], ...] = (
-    _compile(r"(?:โฆษณา|affiliate|ad|sponsored|#ad|#sponsored|สปอนเซอร์)"),
+    _compile(r"โฆษณา"),  # Thai "advertisement"
+    _compile(r"สปอนเซอร์"),  # Thai "sponsor"
+    _compile(r"#(?:ad|ads|pr|sponsored|โฆษณา)\b"),  # hashtag disclosure forms
+    _compile(r"\b(?:ad|ads|affiliate|sponsored)\b"),  # standalone English tokens
 )
 
 

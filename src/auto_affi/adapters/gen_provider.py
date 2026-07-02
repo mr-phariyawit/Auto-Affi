@@ -8,7 +8,7 @@ the `GenProvider` Protocol, not on any concrete adapter.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, runtime_checkable
@@ -46,20 +46,17 @@ async def enforce_spend_gate(
     node: str,
     estimated_cost_usd: float,
     budget: BudgetCircuitBreaker | None,
-    balance_fn: Callable[[], Awaitable[float]] | None = None,
-    estimated_units: float = 0.0,
-    unit_margin: float = 1.2,
 ) -> None:
     """The single chokepoint before ANY generation (any provider).
 
     1. Generation Lock (fail-closed): live calls require run_dir AND manifest; the
        PGA gate + hash binding is enforced via assert_may_generate.
     2. Verify-before-spend: for live calls the budget circuit-breaker is MANDATORY
-       (daily + per-node USD caps). When the provider can report a pre-call balance
-       (``balance_fn``), it is also asserted to cover the job; providers without a
-       balance API (e.g. Gemini, billed per-use to a GCP project) pass ``None`` —
-       the budget breaker remains the hard spend cap and is never skipped.
-    Dry-run performs only the gate (no balance/budget checks, no spend).
+       (daily + per-node USD caps). Gemini is billed per-use to a GCP project and
+       exposes no pre-call balance API, so the budget breaker is the hard spend cap
+       and is never skipped. (Higgsfield, the only provider with a balance API, was
+       retired in ADR-009; the balance-check path was removed with it.)
+    Dry-run performs only the gate (no budget check, no spend).
     """
     if not dry_run:
         if run_dir is None:
@@ -75,15 +72,6 @@ async def enforce_spend_gate(
 
     if dry_run:
         return
-
-    # Optional provider balance (only when the provider exposes one).
-    if balance_fn is not None:
-        balance = await balance_fn()
-        required = estimated_units * unit_margin
-        if balance < required:
-            raise ProviderSpendError(
-                f"insufficient provider balance for {node}: {balance:.1f} < {required:.1f}"
-            )
 
     # Budget circuit-breaker is MANDATORY on the live path — the hard spend cap.
     if budget is None:

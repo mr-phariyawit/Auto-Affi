@@ -163,6 +163,18 @@ def test_has_disclosure_false_for_no_marker() -> None:
     assert has_disclosure("สินค้าดี ราคาดี") is False
 
 
+@pytest.mark.unit
+def test_has_disclosure_ignores_ad_substring() -> None:
+    # "ad" inside unrelated words must NOT count as a disclosure marker,
+    # otherwise the (advisory) missing-disclosure warning is silently suppressed.
+    assert has_disclosure("made in thailand") is False
+    assert has_disclosure("gadget review ready now") is False
+    assert has_disclosure("read the full details") is False
+    # …but a standalone "ad" / hashtag still counts.
+    assert has_disclosure("this is an ad") is True
+    assert has_disclosure("#ads below") is True
+
+
 # ---------------------------------------------------------------------------
 # check_claims() (safety_gate wrapper)
 # ---------------------------------------------------------------------------
