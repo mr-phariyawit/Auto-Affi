@@ -1,0 +1,430 @@
+<!doctype html>
+<!--
+  Auto-Affi LOCK SHEET — single-page production bible (v1, 2026-07-02)
+  ─────────────────────────────────────────────────────────────────────────────
+  Unifies what used to be 3 separate artifacts (cast_sheet + objects_sheet +
+  storyboard) into ONE approve-before-spend "bible", modelled on the NOVA beauty
+  sheet + the AetherFlow 10-column storyboard standard, wired to the REAL
+  Auto-Affi pipeline (PGA gate, Scout economics, Veo 3.1-fast, HyperFrames).
+
+  HOW TO REUSE:
+    • Every {{TOKEN}} is a fill-in slot. Text below is the umbrella-335 EXAMPLE.
+    • Image slots are <div class="slot">…</div>. Replace with <img src="…"> when
+      the real generated PNGs exist (03-charsheet/ref_*.png, 02-cast/cast_sheet_*.png,
+      04-contact/fNN.png). Aspect classes: .p (3:4 portrait) .s (9:16) .sq (1:1) .w (16:9).
+    • Section order & fields are the STANDARD — do not drop the Auto-Affi-only
+      panels (Economics, Gate Status, Compliance & Cost) NOVA lacks.
+  RENDER: Chrome headless → PNG (Thai shaped correctly). Font = Noto Sans Thai.
+-->
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1040, initial-scale=1">
+<title>Auto-Affi Lock Sheet — No-Drip Umbrella (example)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --ink:#1d1a24; --paper:#ffffff; --bg:#efecf5; --card:#ffffff;
+    --tab:#8b7cc0; --tab2:#a99bd6; --accent:#d9a2c4; --gold:#c9a24b;
+    --line:#e7e2f0; --muted:#8c8797; --chip:#f4f0fb; --chipink:#6b5fa0;
+    --ok:#3f9b6e; --warn:#c98a2b; --live:#e0455f;
+    --pf:'Noto Sans Thai','Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--pf);
+    font-size:11px;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .sheet{width:1040px;margin:0 auto;background:var(--bg);padding:14px}
+
+  /* ── HEADER BAR ─────────────────────────────────────────── */
+  .hdr{background:linear-gradient(100deg,#241f30,#37304a);color:#fff;border-radius:10px;
+    padding:12px 18px;display:flex;align-items:center;gap:0;justify-content:space-between}
+  .hdr .title{font-size:19px;font-weight:800;letter-spacing:.5px}
+  .hdr .title b{color:var(--tab2)}
+  .hdr .title .brand{color:var(--gold);font-weight:700;font-size:12px;letter-spacing:2px;display:block;margin-top:1px}
+  .hdr .meta{display:flex;gap:22px}
+  .hdr .meta div{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#b7afce}
+  .hdr .meta b{display:block;color:#fff;font-size:13px;letter-spacing:.3px;margin-top:2px}
+
+  /* ── META STRIP ─────────────────────────────────────────── */
+  .strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px}
+  .strip .m{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:7px 9px}
+  .strip .m span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:600}
+  .strip .m b{font-size:10px;font-weight:600;color:var(--ink);margin-top:2px;display:block}
+  .strip .m.disc b{color:var(--accent)}
+
+  /* ── GRID + CARDS ───────────────────────────────────────── */
+  .grid{display:grid;gap:10px;margin-top:10px}
+  .g2{grid-template-columns:1.15fr .85fr}
+  .g2b{grid-template-columns:1fr 1fr}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 12px 12px}
+  .tab{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(90deg,var(--tab),var(--tab2));
+    color:#fff;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
+    padding:5px 12px;border-radius:0 0 9px 9px;margin:0 0 10px -1px}
+  .tab .n{background:rgba(255,255,255,.28);width:16px;height:16px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:9px}
+
+  /* identity fields */
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:10px}
+  .kv dt{color:var(--muted);text-transform:uppercase;font-size:8px;letter-spacing:.5px;font-weight:600;padding-top:2px}
+  .kv dd{font-weight:600}
+  .sub{font-size:8.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--chipink);font-weight:700;margin:9px 0 5px}
+
+  /* image slots */
+  .row{display:flex;gap:6px}
+  .slot{flex:1;background:repeating-linear-gradient(45deg,#f7f4fc,#f7f4fc 8px,#f2edfa 8px,#f2edfa 16px);
+    border:1px dashed #c9bfe4;border-radius:6px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;color:var(--chipink);text-align:center;gap:3px;position:relative;min-height:42px}
+  .slot.p{aspect-ratio:3/4}.slot.s{aspect-ratio:9/16}.slot.sq{aspect-ratio:1/1}.slot.w{aspect-ratio:16/9}
+  .slot .lab{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .slot .tag{font-size:6.5px;background:var(--chipink);color:#fff;padding:1px 4px;border-radius:3px;opacity:.75}
+  .slot img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+  .cap{font-size:7.5px;text-align:center;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:3px;font-weight:600}
+
+  .swatches{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+  .sw{width:22px;height:22px;border-radius:5px;border:1px solid rgba(0,0,0,.08)}
+
+  ul.bul{list-style:none;font-size:9.5px}
+  ul.bul li{padding:2px 0 2px 12px;position:relative}
+  ul.bul li:before{content:'▸';position:absolute;left:0;color:var(--tab)}
+  .anchor h5{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--chipink);margin:6px 0 3px;font-weight:800}
+
+  /* storyboard cards */
+  .sb{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .shot{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+  .shot .top{display:flex;align-items:center;gap:5px;padding:4px 6px;font-size:8px;color:var(--muted)}
+  .shot .num{background:var(--tab);color:#fff;font-weight:800;width:16px;height:16px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px}
+  .shot .live{color:var(--live);font-weight:800;display:flex;align-items:center;gap:3px}
+  .shot .live:before{content:'';width:5px;height:5px;border-radius:50%;background:var(--live)}
+  .shot .views{margin-left:auto;font-weight:600}
+  .shot .frame{aspect-ratio:9/16;max-height:150px}
+  .shot .frame .slot{height:100%;border:0;border-radius:0}
+  .shot .body{padding:6px}
+  .fld{display:grid;grid-template-columns:auto 1fr;gap:1px 6px;font-size:8px}
+  .fld dt{color:var(--muted);text-transform:uppercase;font-size:7px;letter-spacing:.3px;font-weight:700}
+  .fld dd{font-weight:600}
+  .fld dd.th{color:#4b4356}
+  .modechip{display:inline-block;font-size:6.5px;font-weight:800;padding:1px 4px;border-radius:3px;background:#eef7f1;color:var(--ok);text-transform:uppercase}
+  .modechip.ref{background:#f6efdf;color:var(--gold)}
+
+  /* economics / gate / compliance panels */
+  .stat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .stat .s{background:var(--chip);border-radius:6px;padding:6px 8px;text-align:center}
+  .stat .s span{display:block;font-size:7.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+  .stat .s b{font-size:14px;font-weight:800;color:var(--chipink)}
+  .stat .s small{font-size:7px;color:var(--muted)}
+  .verdict{margin-top:6px;background:#eef7f1;border:1px solid #cfe9db;color:var(--ok);
+    font-weight:800;font-size:9px;border-radius:6px;padding:5px 8px;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+
+  .gate{display:flex;flex-direction:column;gap:4px}
+  .gate .stg{display:flex;align-items:center;gap:6px;font-size:9px;background:var(--chip);border-radius:6px;padding:4px 7px}
+  .gate .stg .name{font-weight:700;text-transform:capitalize;flex:0 0 84px}
+  .gate .stg .st{font-size:7px;font-weight:800;padding:1px 5px;border-radius:3px}
+  .gate .stg .st.ok{background:#e5f5ec;color:var(--ok)}
+  .gate .stg .st.pend{background:#fbf1de;color:var(--warn)}
+  .gate .stg .hash{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:7px;color:var(--muted)}
+
+  .costtbl{width:100%;border-collapse:collapse;font-size:8.5px;margin-top:2px}
+  .costtbl td{padding:2px 4px;border-bottom:1px solid var(--line)}
+  .costtbl td:last-child{text-align:right;font-weight:700}
+  .costtbl tr.tot td{border-top:2px solid var(--chipink);border-bottom:0;font-weight:800;color:var(--chipink);padding-top:4px}
+
+  .foot{text-align:center;font-size:8px;color:var(--muted);margin-top:10px;font-style:italic;letter-spacing:.3px}
+  .note{font-size:8px;color:var(--muted);margin-top:5px}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <div class="hdr">
+    <div class="title">PROJECT: <b>NO-DRIP UMBRELLA</b> — ร่มกันฝนเก็บน้ำในตัว
+      <span class="brand">JIAP DEALS · ฿335</span>
+    </div>
+    <div class="meta">
+      <div>GENRE<b>UGC demo</b></div>
+      <div>TOTAL SHOTS<b>4</b></div>
+      <div>RUNTIME<b>15s</b></div>
+      <div>COMMISSION<b>7%</b></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ META STRIP (7) ═══════════════ -->
+  <div class="strip">
+    <div class="m"><span>Visual Style</span><b>Hyper-real UGC / cinematic demo</b></div>
+    <div class="m"><span>Color Palette</span><b>Rain-grey · navy · JIAP gold</b></div>
+    <div class="m"><span>Lighting</span><b>Overcast daylight · wet reflect</b></div>
+    <div class="m"><span>Mood</span><b>Trustworthy · problem→relief</b></div>
+    <div class="m"><span>Camera</span><b>Vertical 9:16 · 85mm shallow</b></div>
+    <div class="m"><span>Platform</span><b>TikTok · Reels · Shorts</b></div>
+    <div class="m disc"><span>Disclosure</span><b>#โฆษณา (persistent)</b></div>
+  </div>
+
+  <!-- ═══════════════ ROW 1: CHARACTER + PRODUCT ═══════════════ -->
+  <div class="grid g2">
+
+    <!-- §1 CHARACTER / CAST -->
+    <div class="card">
+      <div class="tab"><span class="n">1</span> Character / Cast Reference</div>
+      <dl class="kv">
+        <dt>Name</dt><dd>“Ton” · ธนกฤต</dd>
+        <dt>Alias</dt><dd>JIAP DEALS presenter</dd>
+        <dt>Role</dt><dd>Male UGC presenter (peer-authority)</dd>
+        <dt>Age</dt><dd>27</dd>
+        <dt>Persona</dt><dd>Friendly · credible · Thai commuter</dd>
+        <dt>Core theme</dt><dd>“ผมใช้ตัวนี้” real-use proof</dd>
+        <dt>Voice</dt><dd>Thai, ตื่นเต้น/เสียงดัง (ElevenLabs v3)</dd>
+      </dl>
+      <div class="swatches">
+        <div class="sw" style="background:#5b6470"></div><div class="sw" style="background:#26324a"></div>
+        <div class="sw" style="background:#c9a24b"></div><div class="sw" style="background:#e9e4d8"></div>
+        <div class="sw" style="background:#2f2a26"></div><div class="sw" style="background:#ffffff"></div>
+      </div>
+
+      <div class="sub">Body turnaround (4)</div>
+      <div class="row">
+        <div class="slot p"><span class="lab">Front</span><span class="tag">02-cast</span></div>
+        <div class="slot p"><span class="lab">Hero pose</span></div>
+        <div class="slot p"><span class="lab">Side</span></div>
+        <div class="slot p"><span class="lab">Back</span></div>
+      </div>
+
+      <div class="sub">Expression progression (5)</div>
+      <div class="row">
+        <div class="slot sq"><span class="lab">Neutral</span></div>
+        <div class="slot sq"><span class="lab">Happy</span></div>
+        <div class="slot sq"><span class="lab">Focused</span></div>
+        <div class="slot sq"><span class="lab">Surprised</span></div>
+        <div class="slot sq"><span class="lab">Confident</span></div>
+      </div>
+
+      <div class="sub">Product-action gestures (5)</div>
+      <div class="row">
+        <div class="slot sq"><span class="lab">Hold case</span></div>
+        <div class="slot sq"><span class="lab">Insert wet</span></div>
+        <div class="slot sq"><span class="lab">Seal / cap</span></div>
+        <div class="slot sq"><span class="lab">Hang it</span></div>
+        <div class="slot sq"><span class="lab">Reveal</span></div>
+      </div>
+    </div>
+
+    <!-- §2 PRODUCT -->
+    <div class="card">
+      <div class="tab"><span class="n">2</span> Product Reference</div>
+      <div class="note" style="margin-top:0"><b>Parts (study REAL photos):</b> crook handle · integrated ribbed HARD-CASE tube (locks water in — <b>NOT</b> a sleeve) · canopy · UV coating.</div>
+
+      <div class="sub">Product lock — 3 studio views</div>
+      <div class="row">
+        <div class="slot p"><span class="lab">Open</span><span class="tag">03-charsheet</span></div>
+        <div class="slot p"><span class="lab">Cased</span></div>
+        <div class="slot p"><span class="lab">Hero</span></div>
+      </div>
+
+      <div class="sub">Details &amp; closeups (6)</div>
+      <div class="row">
+        <div class="slot sq"><span class="lab">Crook handle</span></div>
+        <div class="slot sq"><span class="lab">Ribbed tube</span></div>
+        <div class="slot sq"><span class="lab">Seal / cap</span></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div class="slot sq"><span class="lab">Canopy</span></div>
+        <div class="slot sq"><span class="lab">UV coating</span></div>
+        <div class="slot sq"><span class="lab">Hang loop</span></div>
+      </div>
+
+      <div class="sub">Proof-still (no-prove-negative rule)</div>
+      <div class="row">
+        <div class="slot w"><span class="lab">Dry floor + caption “ไม่มีน้ำหยด”</span><span class="tag">still + text ≠ Veo motion</span></div>
+      </div>
+      <div class="note">Veo cannot PROVE a negative → prove “no drip” with a still cut-in + caption, never an i2v prompt (gate: <code>veo_prove_negative</code>).</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ROW 2: ENVIRONMENT + ECONOMICS ═══════════════ -->
+  <div class="grid g2b">
+    <!-- §3 ENVIRONMENT -->
+    <div class="card">
+      <div class="tab"><span class="n">3</span> Environment / Set</div>
+      <div class="row"><div class="slot w"><span class="lab">Set / location plate</span></div></div>
+      <dl class="kv" style="margin-top:8px">
+        <dt>Location</dt><dd>BTS/MRT platform · rainy street · condo entry</dd>
+        <dt>Time</dt><dd>Overcast morning commute</dd>
+        <dt>Lighting</dt><dd>Soft overcast, wet-surface reflections</dd>
+        <dt>Mood</dt><dd>Everyday Bangkok, relatable</dd>
+        <dt>Style</dt><dd>Handheld UGC → clean product macro</dd>
+        <dt>Camera style</dt><dd>9:16 · 85mm · shallow DoF</dd>
+      </dl>
+    </div>
+
+    <!-- §9 ECONOMICS (Auto-Affi only) -->
+    <div class="card">
+      <div class="tab" style="background:linear-gradient(90deg,#3f9b6e,#6cbf97)"><span class="n">$</span> Economics &amp; Viability — Scout Gate</div>
+      <div class="stat">
+        <div class="s"><span>Category</span><b style="font-size:11px">gadget</b><small>CR prior 1.15%</small></div>
+        <div class="s"><span>Commission</span><b>7%</b><small>cap ฿200/order</small></div>
+        <div class="s"><span>AOV</span><b>฿335</b></div>
+        <div class="s"><span>Shop rating</span><b>4.8★</b></div>
+        <div class="s"><span>Breakeven</span><b>~8.2k</b><small>views (≤10k cap)</small></div>
+        <div class="s"><span>Est. cost</span><b>~$9</b><small>/ad</small></div>
+      </div>
+      <div class="verdict">✓ VIABLE — passes economics gate (breakeven under ceiling)</div>
+      <div class="note">Restricted-category check: <b>clear</b>. Hard-compliance codes (banned_claims / category_restricted / economics_not_passed) can never be bypassed.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ROW 3: STORYBOARD ═══════════════ -->
+  <div class="card">
+    <div class="tab"><span class="n">4</span> Storyboard — 4 shots · timeline &amp; shot breakdown</div>
+    <div class="sb">
+      <!-- SHOT CARD — repeat per shot. VEO MODE chip: i2v (4s) or refImg (8s). -->
+      <div class="shot">
+        <div class="top"><span class="num">1</span><span class="live">LIVE</span><span class="views">7.2k</span> ♥</div>
+        <div class="frame"><div class="slot"><span class="lab">Hook frame</span><span class="tag">04-contact/f01</span></div></div>
+        <div class="body"><dl class="fld">
+          <dt>Time</dt><dd>0.0–2.0s</dd>
+          <dt>Action</dt><dd>Ton ยกร่มเปียกเข้าห้าง</dd>
+          <dt>Camera</dt><dd>Medium · handheld</dd>
+          <dt>Veo</dt><dd><span class="modechip">i2v 4s</span></dd>
+          <dt>VO</dt><dd class="th">“ร่มเปียกทำพื้นแฉะทุกที?”</dd>
+          <dt>Trans</dt><dd>whip-pan</dd>
+        </dl></div>
+      </div>
+
+      <div class="shot">
+        <div class="top"><span class="num">2</span><span class="live">LIVE</span><span class="views">9.1k</span> ♥</div>
+        <div class="frame"><div class="slot"><span class="lab">Demo frame</span></div></div>
+        <div class="body"><dl class="fld">
+          <dt>Time</dt><dd>2.0–7.0s</dd>
+          <dt>Action</dt><dd>สอดร่มลงหลอด · ปิดฝา</dd>
+          <dt>Camera</dt><dd>Macro close-up</dd>
+          <dt>Veo</dt><dd><span class="modechip">i2v 4s</span></dd>
+          <dt>VO</dt><dd class="th">“สอดลงหลอด ล็อกน้ำไว้ในตัว”</dd>
+          <dt>Trans</dt><dd>hard cut</dd>
+        </dl></div>
+      </div>
+
+      <div class="shot">
+        <div class="top"><span class="num">3</span><span class="live">LIVE</span><span class="views">12.6k</span> ♥</div>
+        <div class="frame"><div class="slot"><span class="lab">Hero orbit</span></div></div>
+        <div class="body"><dl class="fld">
+          <dt>Time</dt><dd>7.0–11.0s</dd>
+          <dt>Action</dt><dd>Hero orbit รอบตัวร่ม</dd>
+          <dt>Camera</dt><dd>Orbit · shallow</dd>
+          <dt>Veo</dt><dd><span class="modechip ref">refImg 8s</span></dd>
+          <dt>VO</dt><dd class="th">“พกได้เลย ไม่เลอะกระเป๋า”</dd>
+          <dt>Trans</dt><dd>zoom</dd>
+        </dl></div>
+      </div>
+
+      <div class="shot">
+        <div class="top"><span class="num">4</span><span class="live">LIVE</span><span class="views">15.3k</span> ♥</div>
+        <div class="frame"><div class="slot"><span class="lab">CTA endcard</span></div></div>
+        <div class="body"><dl class="fld">
+          <dt>Time</dt><dd>11.0–15.0s</dd>
+          <dt>Action</dt><dd>ถือร่ม + ราคา + CTA</dd>
+          <dt>Camera</dt><dd>Medium hero</dd>
+          <dt>Veo</dt><dd><span class="modechip">i2v 4s</span></dd>
+          <dt>VO</dt><dd class="th">“กดลิงก์ใต้คลิปเลย ฿335”</dd>
+          <dt>Trans</dt><dd>endcard</dd>
+        </dl></div>
+      </div>
+    </div>
+    <div class="note">Column standard (AetherFlow): No · timecode · first-frame · action·motion · Prompt→Veo (mode-matched) · Thai VO (STT-verified) · camera · transition. Composition ≥ VO length.</div>
+  </div>
+
+  <!-- ═══════════════ ROW 4: NOTES / TECH / ANCHORS / GATE ═══════════════ -->
+  <div class="grid g4">
+    <!-- §5 ANIMATION -->
+    <div class="card">
+      <div class="tab"><span class="n">5</span> Animation &amp; Perf</div>
+      <ul class="bul">
+        <li>Gentle handheld realism</li>
+        <li>Real product mechanics (insert/seal/hang)</li>
+        <li>Eye contact on hook + CTA</li>
+        <li>Peer-authority delivery</li>
+        <li>Ken-Burns on stills only</li>
+        <li>Cuts snapped to BGM beats</li>
+      </ul>
+    </div>
+
+    <!-- §6 TECHNICAL -->
+    <div class="card">
+      <div class="tab"><span class="n">6</span> Technical Notes</div>
+      <dl class="kv">
+        <dt>Model</dt><dd>veo-3.1-fast-generate-preview</dd>
+        <dt>Modes</dt><dd>i2v 4s · refImg 8s</dd>
+        <dt>Audio</dt><dd>generateAudio OFF (mux VO)</dd>
+        <dt>Master</dt><dd>1080×1920 · 30fps</dd>
+        <dt>Compose</dt><dd>HyperFrames (local)</dd>
+        <dt>VO</dt><dd>kie ElevenLabs v3, stab∈{0,.5,1}</dd>
+        <dt>BGM</dt><dd>kie Suno · ducked ~0.17</dd>
+      </dl>
+    </div>
+
+    <!-- §7 CONSISTENCY ANCHORS -->
+    <div class="card anchor">
+      <div class="tab"><span class="n">7</span> Consistency Anchors</div>
+      <h5>Character</h5><ul class="bul"><li>Same face / wardrobe</li><li>cast_sheet.png ref, all shots</li></ul>
+      <h5>Product</h5><ul class="bul"><li>LOCKED char-sheet ref</li><li>NOT raw photos (drift)</li></ul>
+      <h5>Gate</h5><ul class="bul"><li>prompt-mode = gen-mode</li><li>STT-verified Thai VO</li><li>#โฆษณา persistent</li></ul>
+    </div>
+
+    <!-- §10 PGA GATE STATUS (Auto-Affi only) -->
+    <div class="card">
+      <div class="tab" style="background:linear-gradient(90deg,#c98a2b,#e0b060)"><span class="n">⚑</span> PGA Gate Status</div>
+      <div class="gate">
+        <div class="stg"><span class="name">cast_sheet</span><span class="st ok">audit✓</span><span class="st ok">appr✓</span><span class="hash">a1b2c3</span></div>
+        <div class="stg"><span class="name">objects</span><span class="st ok">audit✓</span><span class="st ok">appr✓</span><span class="hash">d4e5f6</span></div>
+        <div class="stg"><span class="name">storyboard</span><span class="st ok">audit✓</span><span class="st pend">await</span><span class="hash">—</span></div>
+        <div class="stg"><span class="name">contact</span><span class="st pend">—</span><span class="st pend">—</span><span class="hash">—</span></div>
+        <div class="stg"><span class="name">video</span><span class="st pend">—</span><span class="st pend">—</span><span class="hash">—</span></div>
+      </div>
+      <div class="note">Source of truth = audit_events.jsonl (append-only). No paid pixel before audit✓ + appr✓ + balance.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ROW 5: PALETTE + COMPLIANCE/COST ═══════════════ -->
+  <div class="grid g2b">
+    <!-- §8 PALETTE & MOOD -->
+    <div class="card">
+      <div class="tab"><span class="n">8</span> Color Palette &amp; Mood</div>
+      <div class="sub" style="margin-top:2px">Primary</div>
+      <div class="swatches">
+        <div class="sw" style="width:38px;height:30px;background:#5b6470"></div>
+        <div class="sw" style="width:38px;height:30px;background:#26324a"></div>
+        <div class="sw" style="width:38px;height:30px;background:#c9a24b"></div>
+        <div class="sw" style="width:38px;height:30px;background:#e9e4d8"></div>
+        <div class="sw" style="width:38px;height:30px;background:#ffffff"></div>
+      </div>
+      <div class="sub">Mood references</div>
+      <div class="row">
+        <div class="slot w"><span class="lab">Rainy commute</span></div>
+        <div class="slot w"><span class="lab">Clean macro</span></div>
+        <div class="slot w"><span class="lab">CTA endcard</span></div>
+      </div>
+    </div>
+
+    <!-- §11 COMPLIANCE & COST (Auto-Affi only) -->
+    <div class="card">
+      <div class="tab" style="background:linear-gradient(90deg,#3f9b6e,#6cbf97)"><span class="n">✓</span> Compliance &amp; Cost</div>
+      <ul class="bul">
+        <li>Disclosure <b>#โฆษณา</b> present every caption</li>
+        <li>Restricted category: <b>clear</b></li>
+        <li>Banned claims: <b>none</b> (no cure/guarantee)</li>
+        <li>Cleanroom: 1 video + 1 audio, source 0-audio</li>
+      </ul>
+      <table class="costtbl">
+        <tr><td>Char-sheets (cast + product)</td><td>$0.20</td></tr>
+        <tr><td>Presenter / contact stills</td><td>$0.30</td></tr>
+        <tr><td>Veo — 1 hero 8s + 3× i2v 4s</td><td>$8.00</td></tr>
+        <tr><td>kie VO + Suno BGM</td><td>$0.50</td></tr>
+        <tr class="tot"><td>Estimated total</td><td>~$9.00 / ad</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="foot">Auto-Affi Lock Sheet Standard v1 · unifies cast + product + storyboard + gate into one approve-before-spend bible · JIAP DEALS · example: 2026-06-30-umbrella-335</div>
+</div>
+</body>
+</html>

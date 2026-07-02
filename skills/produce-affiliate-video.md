@@ -5,7 +5,7 @@ profile: standard
 triggers:
   en: ["new product", "produce affiliate video", "make a video for this product", "start production", "product intake", "affiliate video"]
   th: ["สินค้าใหม่", "รับสินค้าใหม่", "ทำวิดีโอ affiliate", "เริ่มผลิต", "ผลิตวิดีโอ", "ทำคลิปสินค้า"]
-reads: ["docs/reference/short-form-format-v2.md", "docs/reference/storytelling-frameworks.md", "docs/reference/hyperframes-capability-map.md", "docs/reference/hyperframes-caption-compose.md", "docs/reference/kie-elevenlabs-vo.md", "docs/templates/pipeline-step-templates.md", "docs/team/auto-affi-crew.md", "docs/principles/2026-06-27-pre-generation-audit-and-approval-gate.md", "SPEC.md"]
+reads: ["docs/reference/short-form-format-v2.md", "docs/reference/storytelling-frameworks.md", "docs/reference/lock-sheet-layout.md", "docs/reference/hyperframes-capability-map.md", "docs/reference/hyperframes-caption-compose.md", "docs/reference/kie-elevenlabs-vo.md", "docs/templates/lock-sheet-template.html", "docs/templates/pipeline-step-templates.md", "docs/team/auto-affi-crew.md", "docs/principles/2026-06-27-pre-generation-audit-and-approval-gate.md", "SPEC.md"]
 writes: ["runs/<run-id>/"]
 wires: ["scout_scoring", "prompt_audit", "produce", "compliance_gate"]
 tests: []
@@ -84,12 +84,16 @@ For each stage `cast_sheet → objects_sheet → storyboard → contact_sheet �
 5. **Pre-video pre-flight (stage 5):** vision-compare each contact frame vs the cast sheet ("same
    person?") BEFORE the paid Veo call; the mandatory budget breaker is the hard spend cap.
 
-### Step 4.5 — STORYBOARD review page (MANDATORY before any paid Veo)
-NEVER jump from frames straight to Veo. Assemble a self-contained `runs/<run>/storyboard.html` shot
-TABLE — columns: No · เวลา/timecode · First frame (the generated starting frame, embedded) · เนื้อหา·motion ·
-Prompt → Veo · เสียง/VO (Thai) · กล้อง/camera · Transition — plus the full VO, total duration, and the next
-Veo cost. Present it for explicit human approval; only after `approve storyboard` do paid Veo clips run.
-(Format: a per-shot table like the AetherFlow storyboards.)
+### Step 4.5 — LOCK SHEET review page (MANDATORY before any paid Veo)
+NEVER jump from frames straight to Veo. Assemble the unified **LOCK SHEET** — one page that carries the
+cast, product, storyboard, gate status, economics, and compliance together (the review artifact). Copy
+`docs/templates/lock-sheet-template.html` → `runs/<run>/lock-sheet.html`, fill the slots, render to PNG,
+and present it for explicit human approval; only after `approve storyboard` do paid Veo clips run.
+Standard + section list: [`docs/reference/lock-sheet-layout.md`](../docs/reference/lock-sheet-layout.md).
+Storyboard block keeps the AetherFlow columns — No · เวลา/timecode · First frame · เนื้อหา·motion ·
+Prompt → Veo (**mode chip i2v 4s / refImg 8s** — guards prompt_mode_mismatch) · เสียง/VO (Thai) ·
+กล้อง/camera · Transition — plus full VO, total duration, next Veo cost. Never drop the Auto-Affi-only
+panels (Economics / PGA Gate Status / Compliance & Cost).
 
 ### Step 5 — Edit (HyperFrames) → Compliance → Master
 **Default format = `docs/reference/short-form-format-v2.md`**: 15s, 3-beat HOOK(≤2s)→DEMO→CTA, built to
