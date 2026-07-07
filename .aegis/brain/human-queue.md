@@ -54,6 +54,24 @@
 - **Blocks**: deploy, 24/7-operation
 - **Raised**: 2026-06-08T12:50:00Z
 - **Resolved**: _(pending)_
+
+### [2026-07-02] EXTERNAL — CLEAR Men bottle photo file (product char-sheet) / ไฟล์รูปขวด CLEAR Men
+
+- **EN**: Drop the real CLEAR Men Scalp Pro bottle photo (.jpg/.png) into `runs/2026-07-02-clear-men-scalp-pro/00-source/product/`. Shopee blocks automated fetch (JS-rendered, empty); pasted-in-chat images are not disk files. Blocks ONLY product char-sheet generation — the rest of the Lock Sheet proceeds.
+- **TH**: วางไฟล์รูปขวด CLEAR Men Scalp Pro จริงลงใน `runs/2026-07-02-clear-men-scalp-pro/00-source/product/` — Shopee ดึงอัตโนมัติไม่ได้ รูปในแชตไม่ใช่ไฟล์ บล็อกเฉพาะการเจน product char-sheet
+- **Category**: External access
+- **Blocks**: clear-product-charsheet-gen
+- **Raised**: 2026-07-02T00:00:00Z
+- **Resolved**: _(pending)_
+### [2026-07-07] EXTERNAL — Postiz channel OAuth grants + API key + affiliate links (auto-publish 4 ads)
+
+- **EN**: To auto-publish the 4 finished ads via Postiz, the operator must — in the live browser — grant Postiz OAuth for **Facebook Page**, **Instagram (FB Business)**, and **TikTok** (I cannot grant OAuth / authenticate). Then copy the **Postiz API key** (Settings → Public API) so `~/Desktop/Auto-Affi-ads/postiz_publish.sh` can run. Videos verified posting-ready (1080×1920, <40MB, Postiz CDN-hosts on upload). Still missing **real Shopee affiliate links** for CLEAR (×2) + umbrella — only Gatsby link known (`s.shopee.co.th/5LA6RtWT9O`); the other 3 captions have link placeholders.
+- **TH**: จะโพสต์ 4 ตัวอัตโนมัติผ่าน Postiz ต้อง (ในเบราว์เซอร์) กดอนุญาต OAuth ให้ Postiz สำหรับ Facebook Page / Instagram / TikTok (ผมกดยืนยันตัวตนแทนไม่ได้) แล้วก๊อป API key จาก Settings → Public API เพื่อรันสคริปต์. ยังขาด affiliate link จริงของ CLEAR (×2) + ร่ม — มีแต่ Gatsby.
+- **Category**: External access
+- **Blocks**: auto-publish (postiz_publish.sh), 3-of-4 captions (missing affiliate links)
+- **Raised**: 2026-07-07T00:00:00Z
+- **Resolved**: _(pending)_
+
 <!-- PENDING_END -->
 
 ## Resolved
@@ -158,4 +176,40 @@
 - **Category**: Explicit-approval-gate + External access
 - **Blocks**: objects_sheet/cast_sheet generation, storyboard, contact, video
 - **Raised**: 2026-06-28
+- **Resolved**: _(pending)_
+
+## [2026-06-29] Publish umbrella-335 master_v2.mp4 (EXTERNAL — blocks publish only)
+- **EN:** master_v2.mp4 is produced + compliant (cleanroom PASS, 15s 1080×1920). To PUBLISH needs: (1) real Shopee affiliate link for the ฿335 umbrella, (2) Meta/TikTok upload token (SPEC §20 G2). I cannot drive external publishing.
+- **TH:** วิดีโอเสร็จ+ผ่าน compliance แล้ว เผยแพร่ต้องการ: (1) ลิงก์ affiliate Shopee จริง (2) token อัปโหลด Meta/TikTok — มนุษย์ทำ
+
+## [2026-06-30] Umbrella mechanism — ASSUMED (correct if wrong, FYI only — work continues)
+- **EN:** From product photos I read the umbrella as: crook-handle, black-out/yellow-in, with an integrated black hard-case tube that seals the closed wet canopy (reverse/retract). Shots show STATES (open-wet / cased / hanging / dry) so the exact close-motion doesn't matter. If the real mechanism differs, tell me and I'll adjust before the paid Veo step.
+- **TH:** อ่านจากรูป: ด้ามโค้ง นอกดำในเหลือง เคสแข็งหุ้มตอนหุบ (ล็อกน้ำ). ถ้ากลไกจริงต่างจากนี้ บอกได้ก่อนยิง Veo.
+
+## [2026-06-30] 🔴 Gemini monthly SPEND CAP exceeded (blocks ALL image+Veo generation)
+- **EN:** Raise/reset the project spend cap at https://ai.studio/spend — until then no keyframes or Veo clips can generate. (VO/BGM via kie.ai + HyperFrames render are unaffected.)
+- **TH:** ขยาย spend cap ที่ ai.studio/spend ก่อน ไม่งั้นเจนรูป/วิดีโอ Gemini ไม่ได้เลย
+
+## [2026-07-03] Add real side-profile photos of Jiab to the cast ref set (External access — enhances, non-blocking)
+- **EN:** Drop real photos of Jiab (2 side-profiles pasted in chat + any other angles) into `cast-library/jiap/identity/real-refs/` (HEIC/JPG/PNG). Pasted images don't persist as files, so I can't wire them as Gemini references. Once present I'll add them to the permanent identity anchor set for the tightest nose/identity lock on every future gen. Work continues meanwhile using `real-face-hq.png` (front) as the anchor.
+- **TH:** วางรูปจริงของเจี๊ยบ (2 profile ที่ paste + มุมอื่น) ลง `cast-library/jiap/identity/real-refs/` — paste ในแชตไม่กลายเป็นไฟล์ เลย feed เป็น ref ไม่ได้ พอมีไฟล์ผมเพิ่มเข้า anchor ถาวร ล็อกจมูกแน่นสุด · ระหว่างนี้ทำงานต่อด้วย real-face-hq (หน้าตรง)
+- **Category**: External access
+- **Blocks**: nothing — optional identity-lock enhancement
+- **Raised**: 2026-07-03
+- **Resolved**: _(pending)_
+
+## [2026-07-03] JIAP cast — "match ref" scope: face vs whole-look (Identity — decide/continue)
+- **EN:** Operator sent white-shirt/quiff-hair reference photos of Jiab and asked to make front+3/4 "match this ref". Decision taken (keeping "หน้าเหมือน" as north star): KEPT the current front/3-4 because fresh regens drifted the face toward a K-idol (verified via montage) — the current panels already match the real Jiab face = same person as the ref. Remaining difference vs the ref is STYLING only: cast uses v4 fringe hair + orange tee (locked), ref shows a swept-up quiff + white shirt. If operator wants the whole cast restyled to the ref look (quiff + shirt), that's a 9-panel restyle — awaiting explicit go. Side profile already re-matched to the clean side ref (jiab_ref).
+- **TH:** ถ้าอยากให้ทั้ง cast เป็นลุค ref (ผม quiff + เชิ้ตขาว) = restyle 9 พาเนล รอ "go" · ตอนนี้เก็บ front/3-4 เดิม (เหมือนจริงสุด, regen ใหม่ drift)
+- **Category**: Identity / Explicit-approval-gate
+- **Blocks**: nothing (v7 cast is complete + consistent as-is)
+- **Raised**: 2026-07-03
+- **Resolved**: _(pending)_
+
+## [2026-07-04] JIAP cast — need the white-shirt/quiff REF photos as FILES (External access, unblocks exact match)
+- **EN:** Repeated "ยังไม่เหมือน" traced to: (1) I over-idealized the v7 face (sharp jaw / lean cheeks per an earlier request) so it diverged from the fuller/natural real face; (2) the correct hairstyle is a swept-UP QUIFF (not the v4 down-fringe). Reverted to a natural fuller face + quiff — best interim = `identity/jiab_face_natural_quiff.png`. To lock the EXACT target I need the operator's 2 white-shirt/quiff reference images AS FILES (chat pastes don't persist to the macOS clipboard, so I can't grab them). Action: drag those 2 photos into `cast-library/jiap/identity/real-refs/` (folder opened). Then I rebuild the full cast (front/3-4/side/expressions) to match them exactly — no more gen-guessing. Decision: holding gen spend until files arrive; natural_a is the standing interim.
+- **TH:** วาง 2 รูป ref (เชิ้ตขาว+quiff) ลง `identity/real-refs/` แล้วผมทำ cast ให้ตรงเป๊ะ · ระหว่างนี้ใช้ natural_a เป็นตัวตั้ง หยุดเผา gen เดา
+- **Category**: External access / Identity
+- **Blocks**: exact cast-face match (interim natural_a usable)
+- **Raised**: 2026-07-04
 - **Resolved**: _(pending)_

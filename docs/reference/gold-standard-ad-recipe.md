@@ -59,7 +59,21 @@ char-sheets ~$0.2 + presenter stills ~$0.3 + Veo (1 hero 8s + 3 presenter 4s) ~$
 Copy masters to `~/Desktop/ผลงานร่ม-JIAP/` AND the My Drive project folder + `open` in Finder
 (My Drive→cloud sync lags; Desktop is instant).
 
+## Asset QC gate (MANDATORY — restored after the 2026-07-02 "3-hands" miss)
+**Every generated image passes an ADVERSARIAL QC pass before it is accepted or animated.** Eyeballing
+face/product/action is NOT QC — that let a 3-hand shower frame + a floating arm + a garbled label + an
+un-regenerated (still-moustached) frame slip through. Run one skeptic per asset (a QC subagent that Reads
+the image, default-to-fail — the `asset-qc-gate` workflow) and check, literally:
+- **Anatomy:** COUNT hands & arms; each arm connects shoulder→hand; no 3rd/floating/disconnected/duplicated/
+  deformed hand, correct fingers, no extra background people.
+- **Grooming/identity:** matches the CURRENT spec (e.g. clean-shaven + fade) in EVERY frame — when the spec
+  changes, regen ALL affected assets (don't fix one and forget the others).
+- **Face match** vs the real reference · **product label legible** (not garbled) · **text/artifacts**.
+Fail on ANY defect → regen that asset with an explicit constraint → **re-QC until the whole set PASSES.**
+Only a fully-passing set advances to Veo.
+
 ## Non-negotiables (the anti-waste gates)
+0. **QC gate above** — no image advances to Veo until it passes adversarial anatomy+grooming+identity+label QC.
 1. Real-product study → char-sheets → refs → animate. Never animate before the sheets exist.
 2. Veo prompt-mode matches gen-mode (i2v prompt ≠ referenceImages prompt ≠ FLF2V). Guard: `PROMPT_MODE_MISMATCH`.
 3. Never ask Veo to prove a negative. Guard: `VEO_PROVE_NEGATIVE`. Proof = still + caption.

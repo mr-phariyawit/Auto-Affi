@@ -71,3 +71,4 @@ the hard-reset). Activities below therefore merge the committed spine with the u
 **Phase-1 done = ONE real video live + ONE real subId click — verified, not produced.**
 
 ## Recommended next skills → see the response that generated this file (Step 6).
+- [HyperFrames transitions](2026-06-28_hyperframes-transitions.md) — 14 shaders + apply rule
