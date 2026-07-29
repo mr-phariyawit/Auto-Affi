@@ -7,6 +7,16 @@
 | งาน | Lock | หมายเหตุ |
 |---|---|---|
 | **Text/story/script/reasoning** | Model text ที่กำหนดใน workflow ล่าสุดเท่านั้น | |
+| **Stills / keyframes (image)** | **Nano Banana Pro** (`gemini-3-pro-image`) via `GEMINI_API_KEY` | `GeminiProvider` |
+| **Video (image→video)** | **Kling 2.6** (`kling-2.6/image-to-video`) via kie.ai `KIE_API_KEY` | `KlingProvider` — **PRIMARY LOCK ตั้งแต่ 2026-07-24** |
+| **Video (legacy / deliberate override)** | Veo 3.1 Fast (`veo-3.1-fast-generate-preview`) via `GEMINI_API_KEY` | เปิดด้วย `AUTO_AFFI_VIDEO_MODEL=veo` เท่านั้น — **ไม่ใช่ auto-fallback** |
+
+### Video i2v lock — Kling 2.6 via kie.ai (2026-07-24)
+
+- **สลับจาก Veo → Kling** หลังเทสต์จริง 3 ช็อต (hold / couple-hair / couple-CTA): Kling เท่าหรือดีกว่า Veo, ละเอียดกว่า (1076×1924 vs 720×1280), **ถูกกว่า 55–86%** (5s = 55 credits = $0.275 ≈ ฿9.3, VERIFIED via `creditsConsumed`). บน CTA, Kling ค้างคอมโพสิชัน (ของ+สบตา) ที่ Veo หลุด.
+- **Adapter:** `src/auto_affi/adapters/kling_provider.py` (`KlingProvider`) — ผ่าน `enforce_spend_gate` เดิม (PGA + verify-before-spend), dry-run default, cost `_KLING_COST_PER_SECOND=0.055`. Stills ยังเป็น Nano Banana Pro; wiring คือ `RoutedGenProvider` + `build_default_provider()` ใน `routing_provider.py`.
+- **Body:** `{model:"kling-2.6/image-to-video", input:{prompt:<motion-only>, image_urls:[PUBLIC_URL], sound:false, duration:"5"|"10"}}`. 9:16 = ป้อน still 9:16 (ไม่มี field aspect). `sound:false` → Thai VO mux แยก (no-lipsync). Seed ต้องเป็น **public URL** (host ผ่าน Postiz CDN — verified kie.ai ดึงได้).
+- **Compliance — ห้าม auto-fallback:** ตามกติกาข้อบนสุดของไฟล์นี้ Kling fail → **หยุด+รายงาน** (default `video_fallback=None`). ถ้าจำเป็นต้องมี auto Kling→Veo สำหรับรัน unattended = opt-in ชัดเจนด้วย `build_default_provider(allow_veo_fallback=True)` เท่านั้น. Budget/gate DENY จะ propagate เสมอ (ไม่ "กู้" ด้วยการจ่ายแพงกว่า).
 
 ## Provider Endpoints & Auth
 
