@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Faceless Channel"
+  short_description: "Build original scripts, visuals and packages from evidence"
+  default_prompt: "ใช้ $higgsfield-faceless-channel สร้าง fact-checked script และ scene plan สำหรับหัวข้อนี้พร้อม title และ shorts"
+policy:
+  allow_implicit_invocation: true

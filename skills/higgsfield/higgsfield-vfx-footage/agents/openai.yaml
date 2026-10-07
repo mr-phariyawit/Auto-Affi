@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield VFX on Footage"
+  short_description: "Change a plate while preserving motion, identity and contact"
+  default_prompt: "ใช้ $higgsfield-vfx-footage วาง VFX สำหรับคลิปนี้ พร้อม keep-list และเกณฑ์ตรวจ contact แสงและ parallax"
+policy:
+  allow_implicit_invocation: true

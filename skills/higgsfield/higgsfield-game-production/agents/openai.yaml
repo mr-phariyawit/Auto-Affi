@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Game Production"
+  short_description: "Separate game mechanics, media, playtesting and publishing"
+  default_prompt: "ใช้ $higgsfield-game-production ทำ GDD และแผน prototype ก่อนสร้าง media สำหรับเกมนี้"
+policy:
+  allow_implicit_invocation: true

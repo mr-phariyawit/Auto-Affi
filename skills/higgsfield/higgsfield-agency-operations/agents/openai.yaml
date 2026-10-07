@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Agency Operations"
+  short_description: "Design intake, quality handoffs and evidence-based economics"
+  default_prompt: "ใช้ $higgsfield-agency-operations ออกแบบ intake handoff QC และต้นทุนบริการผลิตโฆษณานี้"
+policy:
+  allow_implicit_invocation: true

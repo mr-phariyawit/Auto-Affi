@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Cinematic Direction"
+  short_description: "Turn story beats into controllable camera and action coverage"
+  default_prompt: "ใช้ $higgsfield-cinematic-direction แตกเรื่องนี้เป็น shotlist และ prompt ที่คุมกล้อง action และ continuity ได้"
+policy:
+  allow_implicit_invocation: true

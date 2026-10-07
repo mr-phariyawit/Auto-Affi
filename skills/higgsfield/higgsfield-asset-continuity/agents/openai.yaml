@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Asset & Continuity"
+  short_description: "Lock identity, product geometry, location and state references"
+  default_prompt: "ใช้ $higgsfield-asset-continuity เตรียม asset pack และตารางสถานะสำหรับโปรเจกต์นี้"
+policy:
+  allow_implicit_invocation: true

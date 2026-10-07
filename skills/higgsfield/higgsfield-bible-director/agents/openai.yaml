@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Bible Director"
+  short_description: "Route Bible-based media work into a small production plan"
+  default_prompt: "ช่วยใช้ $higgsfield-bible-director วาง workflow จาก Mega Bible สำหรับงานนี้ พร้อม artifact และเกณฑ์ตรวจที่จำเป็น"
+policy:
+  allow_implicit_invocation: true

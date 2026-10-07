@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Brand Visuals"
+  short_description: "Keep brand and product identity across campaign formats"
+  default_prompt: "ใช้ $higgsfield-brand-visuals ทำแผนภาพแบรนด์และ assets หลายช่องทางโดยรักษารุ่นสินค้า โลโก้และสี"
+policy:
+  allow_implicit_invocation: true

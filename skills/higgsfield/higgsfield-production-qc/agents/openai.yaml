@@ -1,0 +1,6 @@
+interface:
+  display_name: "Higgsfield Production QC"
+  short_description: "Review evidence, diagnose failed takes and select usable ranges"
+  default_prompt: "ใช้ $higgsfield-production-qc ตรวจงานนี้ตาม Bible ระบุ timecode blocker keeper และวิธีแก้เฉพาะจุด"
+policy:
+  allow_implicit_invocation: true

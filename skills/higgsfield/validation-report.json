@@ -1,0 +1,75 @@
+{
+  "checked_at": "2026-10-05",
+  "skills_validated": 9,
+  "agent_toml_parsed": true,
+  "installed_links_verified": 9,
+  "source_courses": 16,
+  "source_lessons": 171,
+  "source_sha256": "1a420cdf380e5daf860e7df87f94b13733d7b75ead8c9834d538b2adb78e9072",
+  "source_ids_in_guides_verified": 58,
+  "helper_test_command": "python3 -m unittest discover -s skills/higgsfield/tests -v",
+  "helper_tests_passed": 10,
+  "tests_used": "isolated synthetic fixtures; no provider or actual media",
+  "course_to_specialist_coverage": {
+    "A01": [
+      "asset-continuity",
+      "cinematic-direction"
+    ],
+    "A02": [
+      "cinematic-direction"
+    ],
+    "A03": [
+      "vfx-footage"
+    ],
+    "A04": [
+      "cinematic-direction"
+    ],
+    "A05": [
+      "production-qc"
+    ],
+    "A06": [
+      "asset-continuity",
+      "cinematic-direction"
+    ],
+    "A07": [
+      "agency-operations"
+    ],
+    "A08": [
+      "production-qc",
+      "vfx-footage"
+    ],
+    "A09": [
+      "brand-visuals"
+    ],
+    "A10": [
+      "cinematic-direction"
+    ],
+    "A11": [
+      "faceless-channel"
+    ],
+    "A12": [
+      "faceless-channel"
+    ],
+    "A13": [
+      "vfx-footage"
+    ],
+    "A14": [
+      "game-production"
+    ],
+    "A15": [
+      "cinematic-direction",
+      "asset-continuity"
+    ],
+    "A16": [
+      "cinematic-direction"
+    ]
+  },
+  "agent_runtime_spawn": "not_tested",
+  "cli_smoke": "blocked: /opt/homebrew/bin/codex cannot find its vendor binary",
+  "live_generation": "not_tested; no credits spent",
+  "limitations": [
+    "Static skill validation and helper tests do not prove agent behavior on live tasks.",
+    "Structural checks never authorize provider calls or certify media quality.",
+    "New skills may require a fresh chat for discovery."
+  ]
+}
