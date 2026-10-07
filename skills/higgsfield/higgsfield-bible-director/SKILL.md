@@ -5,6 +5,8 @@ description: "Use the Higgsfield Mega Bible to route and coordinate a requested 
 
 # Higgsfield Bible Director
 
+Source scope: Bible v2 (2026-10-07) — 16 courses / 171 lessons + 46 prompt-bank + 16 course pages, built from article + audio transcript + frames and audited 233/233 (231 VERIFIED + 2 VERIFIED_GAP: A15.L09, A15.L10). Prices, credits and UI are as recorded in the course, not current fact.
+
 Own the brief, route decision, artifact handoffs, and completion evidence. Use Thai for user-facing communication unless the user chooses another language.
 
 ## Start with the narrowest useful mode

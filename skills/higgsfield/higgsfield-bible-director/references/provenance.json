@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "created_at": "2026-10-05",
-  "source_sha256": "1a420cdf380e5daf860e7df87f94b13733d7b75ead8c9834d538b2adb78e9072",
-  "source_original_path": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/higgsfield-mega-bible/higgsfield-mega-bible-th-2026-10-05.md",
-  "reading_scope": "lesson text only; not all videos watched; no live generation evaluation",
+  "version": "2.0.0",
+  "created_at": "2026-10-07",
+  "source_sha256": "d672a95881f5c777f53d12222fc515b42f4b2a9083134936b9c4b94916a1f5dd",
+  "source_original_path": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/higgsfield-academy-study/bible-v2/higgsfield-bible-v2-th.md",
+  "reading_scope": "article + audio transcript + video frames for all 171 lessons, 46 prompt-bank, 16 course pages; 233/233 units audited (231 VERIFIED + 2 VERIFIED_GAP: A15.L09, A15.L10); Bible v2 sample-audited PASS (audit/BIBLE.tsv); no live generation evaluation",
   "course_count": 16,
   "lesson_count": 171,
   "skills": [
@@ -16,5 +16,10 @@
     "higgsfield-game-production",
     "higgsfield-production-qc",
     "higgsfield-agency-operations"
-  ]
+  ],
+  "previous": {
+    "version": "1.0.0",
+    "file": "bible-snapshot-v1.md",
+    "source_sha256": "1a420cdf380e5daf860e7df87f94b13733d7b75ead8c9834d538b2adb78e9072"
+  }
 }

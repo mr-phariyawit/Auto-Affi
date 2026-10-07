@@ -1,12 +1,12 @@
 # Higgsfield Director + Bible Skills
 
-สร้างสำหรับ Auto-Affi วันที่ 5 ตุลาคม 2026 จาก Mega Bible ฉบับ 1.0 ซึ่งสรุปข้อความ **16 คอร์ส 171 บท** ชุดนี้เป็นคำสั่งและเครื่องมือช่วยทำงานที่เรียกใช้ได้ ไม่ใช่การ fine-tune โมเดล และยังไม่ได้ทดสอบการสร้าง media จริงครบทุก workflow
+สร้างสำหรับ Auto-Affi วันที่ 5 ตุลาคม 2026 และอัปเดต 7 ตุลาคม 2026 เป็น **Bible v2**: 16 คอร์ส / 171 บท + prompt bank 46 รายการ + หน้าคอร์ส 16 หน้า สรุปจาก article + audio transcript + frames และ audit แล้ว 233/233 (231 VERIFIED + 2 VERIFIED_GAP: A15.L09, A15.L10) ชุดนี้เป็นคำสั่งและเครื่องมือช่วยทำงานที่เรียกใช้ได้ ไม่ใช่การ fine-tune โมเดล และยังไม่ได้ทดสอบการสร้าง media จริงครบทุก workflow
 
 ## เริ่มใช้งาน
 
 ```text
 ใช้ $higgsfield-bible-director
-วางแผนโฆษณาสำหรับสินค้านี้ตาม Mega Bible
+วางแผนโฆษณาสำหรับสินค้านี้ตาม Bible v2
 เริ่มจากข้อเท็จจริงและ asset pack แล้วทำ shotlist กับ prompt
 ใช้เฉพาะ skills ที่เกี่ยวข้อง และระบุข้อมูลที่ยังขาด
 ```
@@ -55,7 +55,7 @@
 
 Reference แต่ละชิ้นมีหน้าที่ ชื่อ version และข้อไม่แน่ใจ; ภาพมุมใหม่ของสินค้าไม่ถูกนับเป็นหลักฐานรายละเอียดที่ต้นฉบับไม่เห็น คน พร็อพ เสื้อผ้า และสถานที่มีสถานะก่อน/หลังที่รับกันข้าม cut เมื่อผลผิดซ้ำจะวินิจฉัย brief/reference ก่อนสุ่มใหม่ เก็บ keeper และสร้างเฉพาะ beat ที่ขาด
 
-โหลด Bible ตาม ID เฉพาะที่ต้องใช้ มี snapshot เดียวและ SHA-256 เพื่อรู้ฉบับต้นทาง ไม่โหลดทั้ง 171 บททุกครั้ง ใช้ agent ตัวเดียวเป็นค่าเริ่มต้นและไม่เปลี่ยนงานเล็กให้เป็น pipeline ใหญ่โดยอัตโนมัติ
+โหลด Bible ตาม ID เฉพาะที่ต้องใช้ มี snapshot เดียวและ SHA-256 เพื่อรู้ฉบับต้นทาง ไม่โหลดทั้งเล่ม (171 บท + prompt bank + หน้าคอร์ส) ทุกครั้ง ใช้ agent ตัวเดียวเป็นค่าเริ่มต้นและไม่เปลี่ยนงานเล็กให้เป็น pipeline ใหญ่โดยอัตโนมัติ
 
 กฎ Auto-Affi เดิมยังเป็นเจ้าของ model/voice/research/storyboard/preflight เมื่อใช้ production route นั้น ชุด Bible ไม่สร้าง approval เอง ไม่อนุญาตเครดิต และไม่แทนคำสั่ง `validate-generation` ที่มีอยู่แล้ว
 
@@ -83,7 +83,7 @@ python3 scripts/production_packet.py check --run-dir /absolute/run --stage deliv
 
 - `quick_validate.py` ผ่านทั้ง 9 skills; UI YAML และ installed links ตรวจแล้ว
 - Agent TOML parse ผ่าน และมี fields ที่เอกสารกำหนด
-- Helper tests ผ่าน 10 tests ด้วย synthetic fixtures ใน temporary directories ไม่มีการใช้เงินจริง/เครดิต
+- Helper tests ผ่าน 11 tests ด้วย synthetic fixtures ใน temporary directories ไม่มีการใช้เงินจริง/เครดิต
 - Source lookup ครอบคลุม 171 lesson IDs; ตรวจว่าอ่าน lesson เดี่ยวแล้วไม่ติด lesson ถัดไป
 - ตรวจ path ของ references, skill routing และการครอบคลุมทั้ง 16 คอร์ส
 

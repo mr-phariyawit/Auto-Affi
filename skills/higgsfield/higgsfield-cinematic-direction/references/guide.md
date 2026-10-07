@@ -2,20 +2,44 @@
 
 ## Source lookup
 
-Relevant Bible IDs: `A01 A02 A04 A06 A10 A15 A16 B5 B6 B7 D6 D8`. Choose the needed IDs; do not load the entire list by default.
+Relevant Bible IDs: `A01 A02 A04 A06 A08 A10 A15 A16 B5 B7 B8 B9 B10 C1 C1.2 D3 D5 D6 E1 E3 E5`. Choose the needed IDs; do not load the entire list by default.
 
 Use the shared helper at `../higgsfield-bible-director/scripts/bible_lookup.py` with repeated `--section ID`, or inspect `../higgsfield-bible-director/references/bible-snapshot.md`. These paths are relative to the skill root; resolve before calling. The helper is local and read-only. Shared contract: `../higgsfield-bible-director/references/operating-contract.md`.
 
 ## Operating notes
 
-Read the mode you need: A02 drama/performance; A04 animation; A06 realistic product commercial; A10 action ad; A15 vehicle blocking; A16 fight. A01 is the common assets-to-scenes film pipeline.
+Mode map: A02 drama/performance; A04 animation; A06 realistic product commercial; A08 4K realism; A10 action ad; A15 vehicle blocking; A16 fight. Verify current tools and plugin names before doing setup. The task of learning from a course is not authorization to install the course's integrations.
+- Common pipeline is Script → Assets (characters, locations, props) → Scene generation, and the Claude skill writes the Seedance prompts rather than hand-writing them [A01.L01 article] [A01.L01 t=00:51]
+- Prompts are labeled sections with locks: A01 ends in POSITIVE LOCKS, A08 splits SAME vs FORBIDDEN, A15 uses REFERENCE DEFINITIONS / TECHNICAL BLOCK / PROMPT, A16 requires ACTIVE REFERENCES [A01.L05 cue recreate-1b] [A08.L01 cue cue-l1-kaiju] [A15.L03 article] [A16.L01 frames t=01:30]
+- A10 skeleton: `SUBJECT / LOCATION / LAYOUT(@scheme) / ACTION with timed SHOTs / CAMERA / STYLE 60:30:10 / CONSTRAINTS`, ~15 s each, standalone because the Style Prefix is embedded; `@location is a STYLE REFERENCE ONLY, not a fixed keyframe` [A10.L01 frames t=00:35] [A10.L04 cue cue-scene-2]
+- State the wanted visible state, not a negation (Seedance 2.0 read "not crying" as crying); direct emotion by intention and visible state, not loudness [A02.L07 t=00:33-00:48] [A16.L02 t=03:19] [A01.L09 t=02:56]
+- Numbers beat adjectives: camera in meters/degrees, whips in seconds ("models prefer arithmetic over vague words"); name the technique, not the mood ("add a speed ramp during the kick") [A16.L02 t=01:04] [A16.L03 t=02:44] [PB.36] [A02.L13 article]
+- Describe motion step by step and tie each change to a gesture or second; scope every reference to style/appearance only; bind props to body position and time [A06.L11 t=04:36] [A16.L03 t=01:34] [A04.L06 cue scene4-animated] [A08.L08 cue cue-l8-racing] [A04.L10 cue scene8-animated]
+- Put readable text and dialogue as exact strings (the model generates the spoken line), colors as hex; audio default `No music, environmental SFX only`, score in the edit unless timing needs a real track as audio input [A02.L14 t=01:30-01:42] [A08.L04 frames t=01:30] [A01.L03 t=04:12-04:41] [A10.L04 t=01:26–01:46] [A06.L13 t=04:05]
+- One time rule per scene (no slow motion except a named beat); think one ≤15 s generation with several angles and hard shot/cut counts ("exactly 5 shots and 4 cuts, no extra inserts") [A08.L07 cue cue-l7-trailer] [A04.L06 t=01:21] [A02.L03 t=00:07] [A15.L09 t=01:18]
+- Camera grammar (authored skeleton from Prompt Bank notes): `[ONE move + rig] from [start] to [end] at [numeric params]; no [confusable move], no zoom; Speed: [constant/eased]; Framing: [invariant]; End: settle on [final composition] and hold.`; the "no X" list names the neighbor move the model may confuse (zoom forbids dolly, orbit forbids turntable); parallax is required in physical moves and forbidden in optical zoom [PB.10] [PB.36] [PB.38] [PB.15] [PB.04]
+- Movement alone does not carry emotion: cut coverage; fights use hard cuts on different lenses, not a floating long take that reads as a video game; low angle + handheld sells a real sports ad, Dutch angle adds tension [A02.L08 t=00:00-00:11] [A16.L05 t=01:11] [A10.L05 t=02:15–02:33] [A02.L08 t=00:11-00:27]
+- Short character-free macro inserts make the edit look expensive; reusable beat: hook → extreme slow-mo macro → snap to normal speed [A10.L05 t=03:16–03:43] [A08.L01 cue cue-l1-dragon]
+- Drama: micro-acting and "that one second of doubt"; shorten or break lines to fix delivery ("Change? No"); whip pan as timed A-settle / ~0.5 s blur / B-settle [A01.L05 t=01:15-01:27] [A15.L06 t=00:48] [A15.L08 t=01:57] [A02.L14 cue whip-pan-prompt]
+- If the image is a keeper and audio is the issue, generate a VO-only shot and overlay: `I need to generate a separate scene of [character] talking in [location]: '[exact line]'. With [pause pattern], [emotion], and [voice quality].` [A02.L16 t=00:00-00:08] [A02.L16 cue voice-over-line]
+- Animation: character keyframe first, multi-angle prop sheet for recurring props, edit keyframes instead of regenerating; on-screen prompt order was subject → Environment → Camera → Style → "No 3D rendering. No photorealism." plus an SFX-only sound paragraph [A04.L03 t=00:00] [A04.L03 t=01:20] [A04.L05 t=00:30-00:51] [A04.L04 frames t=01:15] [A04.L08 t=00:50-01:00]
+- Vehicles: "The tighter the frame, the less slop" (avoid wide FPV/aerial over traffic and overtakes; traffic lights fail every time); lock seating with a plain front shot first; approve blocking backward from the next beat [A15.L07 t=00:49] [A15.L07 t=01:19] [A15.L07 t=01:57] [A15.L10 t=02:42]
+- Hand-drawn motion diagrams work as path-only references ("use ONLY the path of the moving car ... do not use for environment, style or vehicle design"); forbid diagram stripes or they leak into video [A15.L10 frames t=03:05] [A15.L10 t=02:29]
+- Fight/scale: fog (~20 m) as the cheapest cleanup, crowd size by foreground/mid/far layering, action in 0.5 s steps, transformation as a ~0.4 s snap "a weapon deploying, not a magic sequence"; read big action via start, path, state change, duration, end [A16.L03 t=00:57] [A16.L03 t=01:18] [A16.L03 t=01:34] [A16.L03 t=02:59] [A16.L03 article]
+- A16 skill rules seen only on screen: every @tag listed in ACTIVE REFERENCES, no stale or invented tags, OUTPUT SETTINGS only when the user asks [A16.L01 frames t=01:30] [A16.L01 frames t=01:40]
+- Iterate in batches of 4 (4/4 broken = prompt, not seed); change one variable; fix pacing/physics before performance; judge per beat and assemble the best pieces like dailies; simplify (one continuous shot, split dense scenes) when it breaks hard [A16.L02 t=01:32] [A06.L05 t=01:08] [A02.L14 article] [A15.L03 t=01:39] [A01.L05 t=03:05] [A01.L08 t=01:35-01:48]
+- Use 4K when flares, fog, crowds or on-screen text must survive; judge realism by skin texture and near/mid/far layers, and judge the sequence, not the single clip [A02.L10 t=00:22-00:30] [A08.L01 t=01:56] [A08.L06 t=01:06] [A15.L11 t=00:16]
+- Observed model behavior: Seedance relit a keyframe to match prompt text, added unrequested details, took wardrobe from the prompt over the sheet, and misrendered HUD text [A04.L06 t=00:30] [A04.L09 t=00:40-00:50] [A02.L18 t=01:05-01:30] [A08.L08 frames t=00:25]
 
-Prompt structure: PURPOSE; REFERENCE ROLES; START STATE; visible ACTION sequence; CAMERA path/framing/time; LIGHT/material; AUDIO; END STATE; ACCEPTANCE. Avoid naming a technique without its start/end and narrative job.
+The A16 short instructions shown in the source are requests for a prompt builder, not downloaded expanded generation prompts. All new prompts are authored synthesis and should be labeled so; settings, voices and prices in examples are as recorded in the course, not current capabilities. Deliver only the requested scope: a small revision lists preserved locks plus the change, not a re-created script/asset set.
 
-Drama: performance onset/peak/release, pauses, eyelines and reverse angles. Create VO separately if image is already a keeper and audio is the issue. Animated worlds: maintain prop identity and actual style grammar such as screentone or clay response.
+## Known contradictions
 
-Vehicles: seat positions, interior angle references, landmarks, wheel geometry, lane/curb and door exit. Validate the ending backward when it determines blocking. Fights: numeric scale and path, contact, recovery, material consequences, and staged foreground/mid/background.
-
-The A16 short instructions shown in the source are requests for a prompt builder, not downloaded expanded generation prompts. All new prompts are authored synthesis and should be labeled accordingly. Settings or voices in the examples are not guaranteed current capabilities.
-
-Deliver only the requested scope. A small prompt revision should list the preserved locks and change, not re-create script/assets.
+- Aspect ratio: A02 audio/chip says 16:9 but cues say 21:9; A08 L02 is reversed; A01 cues carry both, so check the chip before generating [A02.L06 t=01:09-01:18] [A02.L13 frames t=00:10] [A08.L02 t=00:00] [A01.L03 cue 3-view-character-sheet-recreate]
+- A08 L04/L05 cues are swapped versus the video; follow the on-screen panel [A08.L04 frames t=01:30] [A08.L05 frames t=00:21]
+- A04 article says pass the previous scene, on-screen evidence leans to the first scene; unresolved [A04.L04 article] [A04.L05 frames t=00:55]
+- PB.05 dolly-zoom clip does not match its prompt; PB.11 and PB.27 are byte-identical prompts [PB.05] [PB.11] [PB.27]
+- A15 L09/L10 have no article (transcript + frames only); the L08 official prompt is truncated and the edit uses "Change? No." [A15.L09 t=00:00] [A15.L10 t=00:00] [A15.L08 article]
+- No-negatives rule vs practice: A02 and A16 still use "no tears" / "no sideways drift"; A04, A08 and the Prompt Bank use exclusions deliberately. v2 reading: avoid negated states/emotions, keep camera/style exclusion lists [A02.L07 frames t=00:27-00:33] [A16.L02 frames t=01:05] [A04.L07 cue scene5-animated] [PB.38]
+- A08 sells 4K but most Recreate links are 1080p; cues are not always the final prompt (A01 RED durag became YELLOW); A04 reference images beat style text [A08.L01 frames t=02:46] [A01.L03 cue 3-view-character-sheet-recreate] [A04.L03 cue scene1-animated] [A04.L10 t=00:50-01:10]
+- Per-course minors: A02 hard cut "After 9s" vs "at 8s"; A10 "slight tackle" vs "SLIDING TACKLE" and pack-shot WB 6000K vs 6500K; A16 arm fix and @roko_warrior vs @crystal_knight [A02.L06 cue scene-1-two-shot-prompt] [A10.L08 cue cue-scene-10] [A10.L09 cue cue-scene-12] [A16.L02 t=03:33] [A16.L03 frames t=03:03]

@@ -1,14 +1,14 @@
 {
-  "checked_at": "2026-10-05",
+  "checked_at": "2026-10-07",
   "skills_validated": 9,
   "agent_toml_parsed": true,
   "installed_links_verified": 9,
   "source_courses": 16,
   "source_lessons": 171,
-  "source_sha256": "1a420cdf380e5daf860e7df87f94b13733d7b75ead8c9834d538b2adb78e9072",
-  "source_ids_in_guides_verified": 58,
+  "source_sha256": "d672a95881f5c777f53d12222fc515b42f4b2a9083134936b9c4b94916a1f5dd",
+  "source_ids_in_guides_verified": 132,
   "helper_test_command": "python3 -m unittest discover -s skills/higgsfield/tests -v",
-  "helper_tests_passed": 10,
+  "helper_tests_passed": 11,
   "tests_used": "isolated synthetic fixtures; no provider or actual media",
   "course_to_specialist_coverage": {
     "A01": [
@@ -29,12 +29,14 @@
     ],
     "A06": [
       "asset-continuity",
+      "brand-visuals",
       "cinematic-direction"
     ],
     "A07": [
       "agency-operations"
     ],
     "A08": [
+      "cinematic-direction",
       "production-qc",
       "vfx-footage"
     ],
@@ -57,8 +59,8 @@
       "game-production"
     ],
     "A15": [
-      "cinematic-direction",
-      "asset-continuity"
+      "asset-continuity",
+      "cinematic-direction"
     ],
     "A16": [
       "cinematic-direction"
@@ -71,5 +73,9 @@
     "Static skill validation and helper tests do not prove agent behavior on live tasks.",
     "Structural checks never authorize provider calls or certify media quality.",
     "New skills may require a fresh chat for discovery."
-  ]
+  ],
+  "source_version": "2.0.0",
+  "source_scope": "article + audio transcript + frames; 171 lessons + 46 PB + 16 CP; units audited 233/233; Bible v2 sample audit PASS (52/52 SUPPORTED)",
+  "routing_ids_verified": 66,
+  "guide_citations_verbatim": "616/616"
 }

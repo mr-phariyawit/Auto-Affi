@@ -51,11 +51,21 @@ class HelperBehavior(unittest.TestCase):
     def test_lookup_covers_171_and_limits_excerpts(self):
         sections = lookup.load_sections()
         lessons = [x for x in sections if x.startswith('A') and '.' in x]
+        courses = [x for x in sections if x.startswith('A') and '.' not in x]
         self.assertEqual(len(lessons), 171)
+        self.assertEqual(len(courses), 16)
         self.assertIn('A16.04', sections)
-        self.assertNotIn('A16.05', sections['A16.04']['text'])
-        self.assertLess(len(sections['A16.04']['text']), 1000)
-        self.assertIn('A16.05', sections['A16']['text'])
+        bullets = [l for l in sections['A16.04']['text'].splitlines() if not l.startswith('#')]
+        self.assertTrue(bullets)
+        self.assertTrue(all('[A16.L04' in l for l in bullets))
+        self.assertLess(len(sections['A16.04']['text']), len(sections['A16']['text']))
+        self.assertIn('[A16.L05', sections['A16']['text'])
+
+    def test_lesson_index_ignores_other_course_citations(self):
+        text = '### rules\n- a [A01.L02 t=00:01] [A03.L02 t=00:02]\n- b [A03.L05 article]\n'
+        lessons = lookup._lesson_sections('A01', text)
+        self.assertEqual(list(lessons), ['A01.02'])
+        self.assertIn('### rules', lessons['A01.02'])
 
     def test_init_refuses_overwrite(self):
         p = self.run / 'production-plan.json'

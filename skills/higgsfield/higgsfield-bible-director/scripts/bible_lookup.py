@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Read selected Bible sections without loading the full source. No network or writes."""
+"""Read selected Bible v2 sections without loading the full source. No network or writes.
+
+IDs: course `A01`; lesson `A01.03` (every v2 bullet citing [A01.L03 ...], grouped by subsection);
+cross-course / prompt-bank / video-only / contradiction / diff sections `B1`..`F9` (### headings).
+"""
 import argparse
 import hashlib
 import json
@@ -8,26 +12,58 @@ import sys
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_SCOPE = '171 lessons + 46 prompt-bank + 16 course pages; article + audio + visual; audited notes'
+LESSON_CITE = re.compile(r'\[(A\d{2})\.L(\d{2})\b')
 
 
-def load_sections():
-    source = SKILL_ROOT / 'references/bible-snapshot.md'
+def _block_end(headings, pos, content):
+    level = len(headings[pos][1])
+    return next((h.start() for h in headings[pos + 1:] if len(h[1]) <= level), len(content))
+
+
+def _lesson_sections(course_id, text):
+    """Collect each cited bullet (with its ### label) under every lesson it cites."""
+    lessons, label = {}, ''
+    for line in text.splitlines():
+        if line.startswith('### '):
+            label = line[4:].strip()
+            continue
+        cited = {f'{c}.{n}' for c, n in LESSON_CITE.findall(line) if c == course_id}
+        for lesson_id in cited:
+            groups = lessons.setdefault(lesson_id, {})
+            groups.setdefault(label, []).append(line.strip())
+    return {
+        lesson_id: '\n'.join(f'### {lbl}\n' + '\n'.join(lines) for lbl, lines in groups.items())
+        for lesson_id, groups in lessons.items()
+    }
+
+
+def load_sections(source=None, provenance=None):
+    source = Path(source or SKILL_ROOT / 'references/bible-snapshot.md')
+    provenance = Path(provenance or SKILL_ROOT / 'references/provenance.json')
     data = source.read_bytes()
-    provenance = json.loads((SKILL_ROOT / 'references/provenance.json').read_text())
-    if hashlib.sha256(data).hexdigest() != provenance['source_sha256']:
+    if hashlib.sha256(data).hexdigest() != json.loads(provenance.read_text())['source_sha256']:
         raise ValueError('Bible snapshot changed; refresh provenance before using this index.')
     content = data.decode('utf-8')
     headings = list(re.finditer(r'(?m)^(#{2,4}) (.+)$', content))
     sections = {}
-    for pos, match in enumerate(headings):
-        named = re.match(r'(A\d{2}(?:\.\d{2})?|[B-F]\d+)(?:\. | — )', match[2])
-        if not named:
-            continue
-        section_id = named[1]
+
+    def add(section_id, title, text):
         if section_id in sections:
             raise ValueError(f'Duplicate ID: {section_id}')
-        end = next((h.start() for h in headings[pos + 1:] if len(h[1]) <= len(match[1])), len(content))
-        sections[section_id] = {'id': section_id, 'title': match[2], 'text': content[match.start():end].strip()}
+        sections[section_id] = {'id': section_id, 'title': title, 'text': text}
+
+    for pos, match in enumerate(headings):
+        level, title = len(match[1]), match[2]
+        course = re.match(r'(A\d{2})\b(?!\.)', title)
+        other = re.match(r'([B-F]\d+(?:\.\d+)?)(?:[.\s—:]|$)', title)
+        if level == 2 and course:
+            text = content[match.start():_block_end(headings, pos, content)].strip()
+            add(course[1], title, text)
+            for lesson_id, lesson_text in sorted(_lesson_sections(course[1], text).items()):
+                add(lesson_id, f'{lesson_id} (bullets citing {lesson_id.replace(".", ".L")})', lesson_text)
+        elif level == 3 and other:
+            add(other[1], title, content[match.start():_block_end(headings, pos, content)].strip())
     return sections
 
 
@@ -63,9 +99,9 @@ def main(argv=None):
                 if row['id'] not in args.section:
                     row.pop('text')
         if args.json:
-            print(json.dumps({'source_scope': '171 lesson texts; not all videos watched', 'sections': rows}, ensure_ascii=False, indent=2))
+            print(json.dumps({'source_scope': SOURCE_SCOPE, 'sections': rows}, ensure_ascii=False, indent=2))
         else:
-            print('Source: Bible v1.0; lesson-text synthesis, not current API documentation.\n')
+            print('Source: Bible v2.0; audited course notes (prices/UI as recorded), not current API documentation.\n')
             for row in rows:
                 print(row.get('text', row['title']) + '\n')
         return 0
