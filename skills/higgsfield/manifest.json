@@ -17,7 +17,8 @@
     "higgsfield-production-qc",
     "higgsfield-agency-operations",
     "higgsfield-seedance-prompt",
-    "higgsfield-operator"
+    "higgsfield-operator",
+    "higgsfield-dailies-review"
   ],
   "previous": {
     "version": "1.0.0",

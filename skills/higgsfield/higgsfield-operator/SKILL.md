@@ -22,7 +22,7 @@ Credits are real money. The gate exists because un-audited prompts and wrong ref
 7. **Preflight.** `G preflight --run RUN --stage video --manifest manifest.json --credits <price>` must exit 0. Exit 3 (prompt/reference changed since approval) → re-audit + re-approve. Exit 4 → ask the human to raise the cap or cut the job.
 8. **Click Generate once**, then immediately `G spend --run RUN --credits <price> --commit --label "<shot> take<N>" --route ui --model <model> --ref "<card id/time>"`.
 9. **Wait and collect** (polling tips in the playbook). On "Failed · Credits refunded": `G spend --run RUN --credits <price> --refund --label "<shot> take<N> refunded: <hover reason>"`. On success download into `RUN/media/` and review frames.
-10. **Hand off** to `higgsfield-production-qc` with the media path; report produced vs verified honestly. `G status --run RUN` gives the stage/budget/ledger summary for the report.
+10. **Review** with `higgsfield-dailies-review` (measure → frames → rubric → `record_review.py` verdict in the same ledger); report produced vs verified honestly. `G status --run RUN` gives the stage/budget/ledger summary for the report.
 
 A second take of the same approved prompt needs a new preflight (budget) but not a new approval; any prompt, reference or setting change does.
 
