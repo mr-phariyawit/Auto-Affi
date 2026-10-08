@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "created_at": "2026-10-07",
-  "source_sha256": "d672a95881f5c777f53d12222fc515b42f4b2a9083134936b9c4b94916a1f5dd",
+  "source_sha256": "1611545a8da5a0163bc223eefab7fa720d8526d82fedca82ddfb8c0dbe21a666",
   "source_original_path": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/higgsfield-academy-study/bible-v2/higgsfield-bible-v2-th.md",
   "reading_scope": "article + audio transcript + video frames for all 171 lessons, 46 prompt-bank, 16 course pages; 233/233 units audited (231 VERIFIED + 2 VERIFIED_GAP: A15.L09, A15.L10); Bible v2 sample-audited PASS (audit/BIBLE.tsv); no live generation evaluation",
   "course_count": 16,
@@ -21,5 +21,12 @@
     "version": "1.0.0",
     "file": "bible-snapshot-v1.md",
     "source_sha256": "1a420cdf380e5daf860e7df87f94b13733d7b75ead8c9834d538b2adb78e9072"
-  }
+  },
+  "revisions": [
+    {
+      "date": "2026-10-08",
+      "change": "C1 bullet: add third PB.38 exclusion \"NOT a track backward\" (gap found by capability exam Q17)",
+      "sha256": "1611545a8da5a0163bc223eefab7fa720d8526d82fedca82ddfb8c0dbe21a666"
+    }
+  ]
 }

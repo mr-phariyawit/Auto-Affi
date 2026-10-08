@@ -5,7 +5,7 @@
   "installed_links_verified": 9,
   "source_courses": 16,
   "source_lessons": 171,
-  "source_sha256": "d672a95881f5c777f53d12222fc515b42f4b2a9083134936b9c4b94916a1f5dd",
+  "source_sha256": "1611545a8da5a0163bc223eefab7fa720d8526d82fedca82ddfb8c0dbe21a666",
   "source_ids_in_guides_verified": 132,
   "helper_test_command": "python3 -m unittest discover -s skills/higgsfield/tests -v",
   "helper_tests_passed": 11,

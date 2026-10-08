@@ -2638,7 +2638,7 @@
 - บางรายการเพิ่มคำเปรียบ เช่น "like an elevator window" หรือ "like a standing head-turn" [PB.26] [PB.02]
 - ข้อ 2 ตัวเลขในช่องวงเล็บ 30 prompts เช่น ความสูง [1.5] m, รัศมี [2.5] m, FOV [18]/[84] องศา, หมุน [90] องศา, whip 0.4 s, snap 1.2 s [PB.10] [PB.15] [PB.29] [PB.36]
 - ข้อ 3 ช่องเนื้อหาในวงเล็บ 37/46 เช่น [composition A], [the landing subject], [the lower anchor]; ไม่มีช่องใน PB.01, 16, 22, 23, 32, 33, 36, 37, 44 [PB.01] [PB.16] [PB.02]
-- ข้อ 4 รายการ "no X, no Y" 41/46 ระบุ move ข้างเคียงที่โมเดลอาจสับสน: "no zoom" 26 prompts, zoom ห้าม dolly ("NOT a dolly out, NOT a pull-back"), orbit ห้าม "turntable effect"; ไม่มีรายการนี้ใน PB.14, 16, 21, 45, 46 [PB.38] [PB.15] [PB.14]
+- ข้อ 4 รายการ "no X, no Y" 41/46 ระบุ move ข้างเคียงที่โมเดลอาจสับสน: "no zoom" 26 prompts, zoom ห้าม dolly ("NOT a dolly out, NOT a pull-back, NOT a track backward" [PB.38]), orbit ห้าม "turntable effect"; ไม่มีรายการนี้ใน PB.14, 16, 21, 45, 46 [PB.38] [PB.15] [PB.14]
 - ข้อ 5 ความเร็ว: "constant" 26 prompts, ease/decelerate/settle 19, "no speed ramps" 5 (PB.07, 08, 17, 18, 23) [PB.07] [PB.17] [PB.23]
 - ข้อ 6 framing invariant หนึ่งอย่างที่ต้องคง (subject dead-center ขนาดคงที่, horizon level, lens axis ตรง); parallax ถูกเรียกใน 14 prompts — บังคับใน move กายภาพ ห้ามใน optical zoom [PB.10] [PB.04] [PB.38]
 - ข้อ 7 เงื่อนไขเทียบเฟรมแรก/เฟรมสุดท้าย 8 prompts (PB.01, 10, 22, 25, 26, 35, 38, 44) [PB.01] [PB.22] [PB.35]
