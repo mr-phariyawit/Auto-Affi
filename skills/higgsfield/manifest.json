@@ -15,7 +15,8 @@
     "higgsfield-faceless-channel",
     "higgsfield-game-production",
     "higgsfield-production-qc",
-    "higgsfield-agency-operations"
+    "higgsfield-agency-operations",
+    "higgsfield-seedance-prompt"
   ],
   "previous": {
     "version": "1.0.0",

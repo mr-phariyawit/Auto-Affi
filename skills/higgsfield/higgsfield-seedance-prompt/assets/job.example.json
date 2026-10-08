@@ -1,0 +1,8 @@
+{
+  "model": "seedance-2.0",
+  "duration_s": 15,
+  "aspect": "9:16",
+  "resolution": "1080p",
+  "references": ["@jiab", "@serum"],
+  "audio_reference": false
+}

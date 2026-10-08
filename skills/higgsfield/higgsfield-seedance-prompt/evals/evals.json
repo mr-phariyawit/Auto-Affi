@@ -1,0 +1,48 @@
+{
+  "skill_name": "higgsfield-seedance-prompt",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "เขียน prompt Seedance 2.0 คลิปรีวิวเซรั่มสำหรับช่องสายตำ ยาว 15 วิ แนวตั้ง 9:16 1080p ให้ JIAB (Element ชื่อ @jiab) ถือขวด @glow_serum ในห้องน้ำตอนเช้า 3 ช็อต: ยกขวดโชว์ → หยดลงฝ่ามือ → โชว์ฉลากใกล้ๆ มีเสียงพากย์ไทยบอกจุดเด่น",
+      "expected_output": "One prompt with ACTIVE REFERENCES (@jiab, @glow_serum with scope), timed segments 0-15s contiguous, AUDIO block, Thai lines as VO not on-camera speech, job settings stated; lint 0 errors.",
+      "files": [],
+      "assertions": [
+        "Prompt lints with 0 errors against the requested job settings",
+        "Every requested @tag is declared in a reference block (no R00/R01 errors)",
+        "Timed segments end exactly at the requested duration (no R08/R09 errors)",
+        "Prompt has an AUDIO block",
+        "Thai lines are voice-over, not on-camera speech (no @speaker: \"...\" dialogue)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "ช่วยตรวจ prompt นี้ก่อนกด generate หน่อย (ไฟล์ inputs/flawed_prompt.txt) job ตั้งไว้ Seedance 2.0, 15 วิ, 9:16, 1080p, แนบ Element @jiab กับ @mug_pro แล้ว แก้ให้พร้อมใช้",
+      "expected_output": "Finds: @mug_pro undeclared, 18s > 15s / segments past job, match cut without exact pose, 16:9 vs 9:16 + 18s in OUTPUT SETTINGS, negated state 'not smiling', vague camera speed, missing AUDIO; fixed prompt lints with 0 errors.",
+      "files": [
+        "inputs/flawed_prompt.txt",
+        "inputs/flawed_job.json"
+      ],
+      "assertions": [
+        "Prompt lints with 0 errors against the requested job settings",
+        "Every requested @tag is declared in a reference block (no R00/R01 errors)",
+        "Timed segments end exactly at the requested duration (no R08/R09 errors)",
+        "Prompt has an AUDIO block",
+        "Review names at least 6 of the 7 planted problems"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need a Seedance 2.0 prompt for a 12-second 21:9 4K fight beat: samurai @kenji draws his blade in a foggy bamboo valley (@fog_valley, location ref) and the shot match-cuts to the blade stopping 1 cm from the camera. Two shots. Make it as controllable as possible.",
+      "expected_output": "S4-style prompt: ACTIVE REFERENCES with scopes, location as style reference, 2 timed shots ending at 12s, match cut with end pose EXACTLY matching, camera moves with metres/degrees/seconds, AUDIO block; lint 0 errors.",
+      "files": [],
+      "assertions": [
+        "Prompt lints with 0 errors against the requested job settings",
+        "Every requested @tag is declared in a reference block (no R00/R01 errors)",
+        "Timed segments end exactly at the requested duration (no R08/R09 errors)",
+        "Prompt has an AUDIO block",
+        "Match cut states the end pose EXACTLY matches (no R18)",
+        "Camera clauses use numbers, not speed words (no R14)"
+      ]
+    }
+  ]
+}
