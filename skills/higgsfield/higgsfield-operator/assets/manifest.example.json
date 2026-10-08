@@ -1,0 +1,20 @@
+{
+  "prompt": "JIAB01, Southeast Asian male host, medium-long wavy hair. ACTIVE REFERENCES: @jiab — character appearance only; @serum — product shape and label only. ...",
+  "identity_string": "JIAB01, Southeast Asian male host, medium-long wavy hair",
+  "stage_kind": "character",
+  "prompt_mode": "video_gen",
+  "cast_sheet_approved": true,
+  "objects_sheet_approved": true,
+  "declared_objects": ["serum bottle"],
+  "scene_objects": ["serum bottle"],
+  "face_reference_count": 1,
+  "reference_uris": ["higgsfield:element/@jiab", "higgsfield:element/@serum"],
+  "negative_prompt": "different person, extra hands, garbled label, on-screen text, watermark",
+  "aspect": "9:16",
+  "resolution": "720p",
+  "duration_s": 8,
+  "max_duration_s": 15,
+  "soul_id": "@jiab",
+  "thai_no_lipsync": true,
+  "visibly_speaking_thai_mouth": false
+}

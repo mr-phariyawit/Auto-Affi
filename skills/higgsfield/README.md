@@ -26,7 +26,7 @@
 เตรียมงานให้ตรวจได้ก่อนถึงขั้นจ่ายเครดิตตาม gate ที่ยังค้าง
 ```
 
-ไม่ต้องพิมพ์ชื่อทุกตัวพร้อมกัน (ตอนนี้มี 10 skills รวม `higgsfield-seedance-prompt` ที่เขียนและ lint prompt Seedance ด้วย `scripts/lint_prompt.py`) ตัว router เลือกตาม deliverable และโหลดข้อมูลเฉพาะส่วน Skills ตั้งให้เลือกโดยอัตโนมัติได้ตามคำอธิบายด้วย หากรายการ skills ในแชทเดิมยังไม่ปรากฏ ให้เปิดแชทใหม่เพื่อให้ค้นพบไฟล์ที่เพิ่งเพิ่ม
+ไม่ต้องพิมพ์ชื่อทุกตัวพร้อมกัน (ตอนนี้มี 11 skills รวม `higgsfield-seedance-prompt` ที่เขียนและ lint prompt Seedance ด้วย `scripts/lint_prompt.py` และ `higgsfield-operator` ที่กด generate จริงผ่าน UI หลังผ่าน PGA gate + credit cap ด้วย `uv run python -m auto_affi.ops.gate_cli`) ตัว router เลือกตาม deliverable และโหลดข้อมูลเฉพาะส่วน Skills ตั้งให้เลือกโดยอัตโนมัติได้ตามคำอธิบายด้วย หากรายการ skills ในแชทเดิมยังไม่ปรากฏ ให้เปิดแชทใหม่เพื่อให้ค้นพบไฟล์ที่เพิ่งเพิ่ม
 
 ## Agent และการติดตั้ง
 

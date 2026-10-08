@@ -6,6 +6,7 @@ Select by requested deliverable, not every keyword. One specialist is usually en
 |---|---|---|
 | End-to-end or mixed workflow | higgsfield-bible-director | B1, B4, B13, E1, E4 |
 | References / identity / product shape / states | higgsfield-asset-continuity | A01.03, A06.02, A06.03, A06.05, A06.06, A06.08, B1, B2, B3, D3 |
+| Actually generate on Higgsfield / live credit price (UI via Claude in Chrome, gated) | higgsfield-operator (+ gate_cli) | B13, A07 |
 | Seedance video prompt writing / prompt review before spend | higgsfield-seedance-prompt (+ its lint_prompt.py) | B5, A01.05, A10, A16 |
 | Film / ad / dialogue / action | higgsfield-cinematic-direction | A01, A02, A10, B5, B7, B8, B9, C1.2 |
 | Animated style continuity | higgsfield-cinematic-direction | A04, D6, E1 |
@@ -22,6 +23,7 @@ Select by requested deliverable, not every keyword. One specialist is usually en
 The helper accepts exact Bible v2 IDs, not ranges (v1 B–E IDs are invalid). For A06 lessons select the needed individual IDs (A06.02 … A06.09) or the A06 course. `--list` shows all IDs. Avoid loading an entire course if one small lesson answers the request.
 
 Execution adapter rules:
+- Higgsfield generation: use `higgsfield-operator` (UI route behind the PGA gate + credit cap); never click Generate outside it.
 - User asks CUA: use CUA for browser interactions and read the current browser documentation.
 - API/SDK: read the current installed Higgsfield API client or provider integration skill; do not translate marketing course menus into guessed endpoints.
 - Existing media-edit/faceless/UGC production skill: use its actual supported workflow; the Bible specialist supplies creative criteria.

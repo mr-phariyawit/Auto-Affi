@@ -16,7 +16,8 @@
     "higgsfield-game-production",
     "higgsfield-production-qc",
     "higgsfield-agency-operations",
-    "higgsfield-seedance-prompt"
+    "higgsfield-seedance-prompt",
+    "higgsfield-operator"
   ],
   "previous": {
     "version": "1.0.0",
