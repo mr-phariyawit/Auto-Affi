@@ -7,6 +7,10 @@ description: "Write and lint Seedance (Higgsfield) video prompts the way the Hig
 
 Turns a shot brief into a course-structured Seedance prompt and proves it is structurally consistent before anyone spends credits. Rules come from the audited Bible v2; every rule carries the course citation that taught it.
 
+## 0. Check what already worked
+
+Read `recipes/higgsfield/INDEX.md` (skill `higgsfield-recipe-ledger`): reuse a matching recipe, and if a recorded failure matches the planned model + shot, start from its next lever.
+
 ## 1. Pin the job first
 
 Write `job.json` beside the prompt (example: [assets/job.example.json](assets/job.example.json)). The prompt is checked against it, so get it from the brief or the live UI, never by guessing:

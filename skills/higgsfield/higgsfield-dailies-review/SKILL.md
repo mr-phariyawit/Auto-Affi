@@ -33,7 +33,7 @@ Verdict per take: KEEP / REROLL / FIX-BRIEF / REJECT (definitions in the rubric;
 python3 <skill>/scripts/record_review.py --run RUN --label "shot01 take1" --verdict REROLL \
   --issues "V2 label smudged 5.0-6.0s; V3 thumb merges 3.2s" --keep "0.0-4.8s" --report RUN/review/take1.report.json
 ```
-The entry lands in `RUN/ledger.jsonl` next to the spend lines from `gate_cli`, so cost per kept take can be computed later. REROLL needs a new preflight (budget) but not a new approval; FIX-BRIEF changes the prompt, so it goes back through `higgsfield-seedance-prompt` lint and the gate's re-audit + human approval.
+Then feed the recipe ledger: KEEP → `recipes.py promote`; a failure whose cause you understand → `recipes.py fail` (skill `higgsfield-recipe-ledger`). The entry lands in `RUN/ledger.jsonl` next to the spend lines from `gate_cli`, so cost per kept take can be computed later. REROLL needs a new preflight (budget) but not a new approval; FIX-BRIEF changes the prompt, so it goes back through `higgsfield-seedance-prompt` lint and the gate's re-audit + human approval.
 
 ## 5. Report
 

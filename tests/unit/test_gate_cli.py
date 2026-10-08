@@ -99,7 +99,7 @@ def test_spend_cap_and_ledger(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     budget = json.loads((tmp_path / "credits.json").read_text())
     assert budget["spent_credits"] == 60
     entry = json.loads((tmp_path / "ledger.jsonl").read_text().splitlines()[-1])
-    assert entry["credits"] == 60 and entry["label"] == "shot01 take1" and entry["route"] == "ui"
+    assert entry["type"] == "spend" and entry["credits"] == 60 and entry["label"] == "shot01 take1" and entry["route"] == "ui"
 
 
 def test_preflight_needs_gate_and_budget(tmp_path: Path) -> None:

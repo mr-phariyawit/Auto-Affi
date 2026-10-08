@@ -1,0 +1,27 @@
+{
+  "name": "jiap-genjutsu-dance-mt-720p",
+  "status": "HUMAN-APPROVED",
+  "created_at": "2026-10-08T11:24:00.874047+00:00",
+  "model": "genjutsu-motion-transfer",
+  "route": "ui",
+  "credits_for_label": 112.0,
+  "files": {
+    "prompt": "prompt.txt",
+    "manifest": "run.json"
+  },
+  "prompt_sha256": "563e794e6c1feb732f3a62b120968477ccb7ffe433e59588c23e56b086a4b14f",
+  "tags": [
+    "dance",
+    "motion-transfer",
+    "jiap",
+    "full-body"
+  ],
+  "notes": "Higgsfield Video > Create Video > Genjutsu > Motion transfer, 720p, 112 cr, ~10 min. Refs = 30 JIAP Soul TRAINING images (soul-trainset-v2/genjutsu-refs-30: 8 full-body yaw 0-315, 17 head angles, 5 close-ups). Reuse: swap ONLY the reference video; 1080p when face size matters (face ~40 px at 720p). Works for full-body dance, NOT for close-up singers (see failures).",
+  "source": {
+    "run": null,
+    "label": null,
+    "evidence": "human:operator 'งานรอบนี้ ดีมาก' 2026-10-07 (memory jiap-genjutsu-dance-recipe)",
+    "reviews": [],
+    "spends": []
+  }
+}

@@ -1,0 +1,34 @@
+{
+ "date": "2026-10-07",
+ "tool": "Higgsfield Genjutsu - Motion transfer",
+ "quality": "720p",
+ "credits_shown": 112,
+ "operator_go": "ลอง genjitus motion transfer จากรูปที่ใช้ train soul id - JIAP ก่อนก็ได้",
+ "reference_video": "Motion Library community-trending pick by operator (man in striped suit dancing on DJ stage, red light; @CHEGA_MAN watermark)",
+ "character_images": "30 JIAP Soul training images: soul-trainset-v2/genjutsu-refs-30/ (8 full-body 0-315, 17 head angles, 5 close-ups C1/C2/C3/C5/C6)",
+ "prompt": "All reference images show the same man, JIAP: face close-ups, a full 360-degree head turnaround and a full 360-degree full-body turnaround. Transfer the exact dance motion from the reference video to JIAP. Keep JIAP's face, medium-long voluminous wavy dark hair, thin mustache and shaped chin goatee, black blazer, black t-shirt, ivory trousers and black loafers exactly as in the reference images. Match the timing, rhythm, body movement, arm movements and footwork of the reference video as closely as possible. Use the video only for the dance movement. Do not copy the dancer's face, hair, moustache, glasses or striped suit. Keep JIAP's expression confident and charismatic while performing the dance. Photorealistic video, natural body movement, realistic hands and feet, realistic clothing movement, handheld smartphone footage.",
+ "notes": {
+  "soul_id_in_video": "VERIFIED 2026-10-07: Soul ID JIAP is NOT attachable in Genjutsu/Motion Control; IS attachable in Seedance 2.5 via @ Elements -> My Elements -> @JIAP (help-center page + UI seen).",
+  "seedance_next": "Seedance 2.5 References accepts Image/Video/Audio; Motion Library video not in its picker -> needs the dance video file uploaded. 5s 1080p shown 60 credits."
+ },
+ "status": "done (PRODUCED); viewed in browser only, original mp4 NOT downloaded",
+ "result": {
+  "duration_s": 16.04,
+  "size": "720x1280",
+  "frames_board": "JIAP-genjutsu-v1-frames.jpg (screen captures at 0:01/0:04/0:07.5/0:11/0:14.5)",
+  "agent_read": {
+   "wardrobe": "PASS-looking: black blazer, black tee, ivory wide trousers, black loafers",
+   "hair": "medium-length dark wavy voluminous - consistent with JIAP at this size",
+   "motion": "follows dance (arm waves, crossed arms, kicks); frame-accuracy vs source NOT measured",
+   "face_likeness": "UNVERIFIED - face ~40px tall at 720p; moustache/goatee not resolvable",
+   "scene": "crowd, DJ decks, string lights kept; red stage light from source NOT present (warm light instead)"
+  },
+  "operator_verdict": "APPROVED 2026-10-07: งานรอบนี้ ดีมาก",
+  "asset_url": "https://higgsfield.ai/asset/all/4add9029-9249-4856-9b58-6fc4b3de622e",
+  "asset_details": "Model: Higgsfield Genjutsu - Motion Transfer; 720p; bitrate High; 720x1280; 0:16; created 2026-10-07 05:09"
+ },
+ "next": {
+  "prompt_v2": "prompt-v2-storm-template.txt (STORM II template pattern) - typed into Genjutsu box, NOT generated",
+  "seedance_option": "Seedance 2.5 + @JIAP Element; needs dance video file uploaded"
+ }
+}

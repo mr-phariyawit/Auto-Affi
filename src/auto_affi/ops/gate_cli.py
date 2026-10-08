@@ -114,7 +114,7 @@ def cmd_spend(args: argparse.Namespace) -> int:
             return BUDGET_BLOCKED
         budget["spent_credits"] = max(0.0, float(budget.get("spent_credits", 0)) - args.credits)  # type: ignore[arg-type]
         (args.run / CREDITS_FILE).write_text(json.dumps(budget, indent=2), encoding="utf-8")
-        entry = {"at": _now(), "credits": -args.credits, "label": args.label or "refund", "route": args.route,
+        entry = {"type": "refund", "at": _now(), "credits": -args.credits, "label": args.label or "refund", "route": args.route,
                  "model": args.model, "request_ref": args.ref}
         with (args.run / LEDGER_FILE).open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -125,7 +125,7 @@ def cmd_spend(args: argparse.Namespace) -> int:
         budget = _budget(args.run) or {}
         budget["spent_credits"] = float(budget.get("spent_credits", 0)) + args.credits  # type: ignore[arg-type]
         (args.run / CREDITS_FILE).write_text(json.dumps(budget, indent=2), encoding="utf-8")
-        entry = {"at": _now(), "credits": args.credits, "label": args.label, "route": args.route,
+        entry = {"type": "spend", "at": _now(), "credits": args.credits, "label": args.label, "route": args.route,
                  "model": args.model, "request_ref": args.ref}
         with (args.run / LEDGER_FILE).open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(entry, ensure_ascii=False) + "\n")

@@ -6,6 +6,7 @@ Select by requested deliverable, not every keyword. One specialist is usually en
 |---|---|---|
 | End-to-end or mixed workflow | higgsfield-bible-director | B1, B4, B13, E1, E4 |
 | References / identity / product shape / states | higgsfield-asset-continuity | A01.03, A06.02, A06.03, A06.05, A06.06, A06.08, B1, B2, B3, D3 |
+| Reuse what worked / cost per kept take / known failures | higgsfield-recipe-ledger | B7, B13 |
 | Review a generated take (measure + frames + rubric, KEEP/REROLL/FIX-BRIEF) | higgsfield-dailies-review | B7, A05, A16.02 |
 | Actually generate on Higgsfield / live credit price (UI via Claude in Chrome, gated) | higgsfield-operator (+ gate_cli) | B13, A07 |
 | Seedance video prompt writing / prompt review before spend | higgsfield-seedance-prompt (+ its lint_prompt.py) | B5, A01.05, A10, A16 |

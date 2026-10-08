@@ -18,7 +18,8 @@
     "higgsfield-agency-operations",
     "higgsfield-seedance-prompt",
     "higgsfield-operator",
-    "higgsfield-dailies-review"
+    "higgsfield-dailies-review",
+    "higgsfield-recipe-ledger"
   ],
   "previous": {
     "version": "1.0.0",
