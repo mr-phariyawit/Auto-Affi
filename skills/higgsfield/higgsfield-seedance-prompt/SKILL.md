@@ -37,7 +37,7 @@ Apply [references/rules.md](references/rules.md). The ones that most often break
 ```bash
 python3 <skill>/scripts/lint_prompt.py shot01.txt [shot02.txt ...] --job job.json
 ```
-Fix every ERROR. For each WARN either fix it or state why it is intentional (e.g. the shot really needs a negated physical constraint). Re-run until 0 errors. Several files at once also checks style-prefix drift (R22).
+Try it first on the bundled sample: `python3 <skill>/scripts/lint_prompt.py <skill>/assets/shot.example.txt --job <skill>/assets/job.example.json` (→ PASS). Fix every ERROR. For each WARN either fix it or state why it is intentional (e.g. the shot really needs a negated physical constraint). Re-run until 0 errors. Several files at once also checks style-prefix drift (R22).
 
 ## 5. Report honestly
 

@@ -1,0 +1,12 @@
+ACTIVE REFERENCES:
+@jiab — character appearance only; background NOT inherited.
+@serum — product shape and label only.
+SCENE CONTEXT: bright bathroom vanity, morning.
+FORMAT MODE: Timed multishot, exactly three shots and two cuts.
+SHOT 1 (0.0–5.0s): medium shot, 35mm, static. @jiab lifts @serum to chest height.
+SHOT 2 (5.0–10.0s): close-up, 85mm, push-in 0.5 m. @jiab taps two drops onto the palm.
+SHOT 3 (10.0–15.0s): close-up, 50mm, static. @serum label faces camera, held 2 s.
+CAMERA: tripod, push-in 0.5 m over 3 s, no tilt, no rotation.
+LIGHTING: soft window key from camera left.
+AUDIO: No music. Environmental SFX only. No subtitles.
+POSITIVE LOCKS: Exactly one named character. Label text reads "GLOW 10%".
