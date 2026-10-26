@@ -11,6 +11,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / 'higgsfield-seedance-prompt/scripts/lint_prompt.py'
 BIBLE = ROOT / 'higgsfield-bible-director/references/bible-snapshot.md'
+EXTERNAL = ROOT / 'higgsfield-seedance-prompt/references/external-techniques.md'
 
 spec = importlib.util.spec_from_file_location('lint_prompt', SCRIPT)
 lint_prompt = importlib.util.module_from_spec(spec)
@@ -167,11 +168,82 @@ class SeedanceLint(unittest.TestCase):
         mc = CLEAN.replace('SHOT 2 (5.0–10.0s):', 'SHOT 2 (5.0–10.0s): match cut; the bottle sits at the exact same screen position.')
         self.assertNotIn('R18', rules(run(mc)))
 
+    def test_style_block_drift_across_clips(self):
+        # a multi-clip film locks the STYLE block word-for-word, not only STYLE PREFIX
+        a = CLEAN + 'STYLE: 35mm, f/4, low saturation, handheld.\n'
+        b = CLEAN + 'STYLE: 50mm, f/2, high saturation, tripod.\n'
+        results = lint_prompt.lint_project({'a': a, 'b': b}, JOB)
+        self.assertIn('R22', rules(results['b']))
+        self.assertNotIn('R22', rules(lint_prompt.lint_project({'a': a, 'a2': a}, JOB)['a2']))
+
+    def test_lookalike_extra_needs_negative_reference(self):
+        prompt = CLEAN + 'SCENE: a different girl about six packs a backpack.\n'
+        self.assertIn('X01', rules(run(prompt), 'warn'))
+        ok = prompt.replace('about six', 'about six, NOT @jiab,')
+        self.assertNotIn('X01', rules(run(ok)))
+        # real-world form: a name between NOT and the tag
+        self.assertNotIn('X01', rules(run(prompt.replace('about six', 'about six, NOT Jiab @jiab,'))))
+
+    def test_numbered_subject_header_ends_style_block(self):
+        # "SUBJECT 1:" must start a new block, or subject lines leak into STYLE and fake R22 drift
+        a = CLEAN + 'STYLE: 35mm, f/4.\nSUBJECT 1: @jiab — appearance only, rider jacket.\n'
+        b = CLEAN + 'STYLE: 35mm, f/4.\nSUBJECT 1: @jiab — appearance only, navy sweater.\n'
+        self.assertNotIn('R22', rules(lint_prompt.lint_project({'a': a, 'b': b}, JOB)['b']))
+
+    def test_dialogue_without_tag_still_needs_subtitle_and_lipsync_lines(self):
+        prompt = CLEAN.replace('AUDIO: No music. Environmental SFX only. No subtitles.', 'AUDIO: No music.')
+        found = rules(run(prompt + 'She says (excited): "Tomorrow we go!"\n'))
+        self.assertIn('R19', found)
+        self.assertIn('R20', found)
+
+    def test_wardrobe_switch_needs_timestamp(self):
+        prompt = CLEAN + 'SCENE: in the ending @jiab is wearing outfit B from her sheet.\n'
+        self.assertIn('X02', rules(run(prompt), 'warn'))
+        ok = CLEAN + 'SCENE: from 10.0s onward @jiab is wearing outfit B from her sheet.\n'
+        self.assertNotIn('X02', rules(run(ok)))
+
+    def test_dialogue_needs_delivery_parenthetical(self):
+        prompt = CLEAN + '@jiab says: "Two drops are enough."\n'
+        self.assertIn('X03', rules(run(prompt), 'warn'))
+        ok = CLEAN + '@jiab says (calm, half-whisper): "Two drops are enough."\n'
+        self.assertNotIn('X03', rules(run(ok)))
+
+    def test_product_reference_needs_exactness_lock(self):
+        no_lock = CLEAN.replace(' Label text reads "GLOW 10%".', '')
+        self.assertIn('X04', rules(run(no_lock), 'warn'))
+        ok = no_lock + 'PRODUCT: @serum — glass dropper bottle. Keep label design exact.\n'
+        self.assertNotIn('X04', rules(run(ok)))
+
+    def test_kemlife_shaped_30s_clip_lints_clean(self):
+        # synthetic prompt in the 7-block shape (FORMAT/STYLE/SUBJECT/ENVIRONMENT/PRODUCT/AUDIO/TIMELINE)
+        prompt = """\
+ACTIVE REFERENCES:
+@dad — appearance and wardrobe only; background NOT inherited.
+@book — product cover only.
+FORMAT: 30 seconds / 3 cuts / family drama, worry to hope / dialogue in Korean.
+STYLE: 35mm, f/4, low saturation, blue-black grade, handheld. NO TEXT ON SCREEN.
+ENVIRONMENT: small apartment kitchen at night, single warm bulb.
+PRODUCT: @book — beige hardcover. Keep cover design exact.
+AUDIO: Rain, fridge hum. No music. No subtitles. Lip-sync to the Korean line.
+TIMELINE:
+0:00–0:10: medium shot — @dad sits at the table, @book under the bills.
+0:10–0:20: close-up — @dad says (tired, quiet): "괜찮아."
+0:20–0:30: from 0:20 onward @dad is wearing outfit B from his sheet; he holds up @book.
+"""
+        job = {**JOB, 'model': 'seedance-2.5', 'duration_s': 30, 'resolution': '720p',
+               'references': ['@dad', '@book']}
+        self.assertEqual(lint_prompt.lint(prompt, job), [])
+
     def test_every_rule_citation_is_in_bible(self):
+        # Bible-audited rules cite the Bible; external-source rules ([EXT.*]) cite references/external-techniques.md
         bible = BIBLE.read_text(encoding='utf-8')
+        external = EXTERNAL.read_text(encoding='utf-8')
         cites = [c for rule in lint_prompt.RULES.values() for c in re.findall(r'\[[^\]]+\]', rule['cite'])]
         self.assertTrue(cites)
-        self.assertEqual([c for c in cites if c not in bible], [])
+        self.assertEqual([c for c in cites if c not in (external if c.startswith('[EXT.') else bible)], [])
+        for rule_id, rule in lint_prompt.RULES.items():
+            if rule_id.startswith('X'):
+                self.assertTrue(rule['cite'].startswith('[EXT.'), rule_id)
 
     def test_cli_exit_code_and_json(self):
         with tempfile.TemporaryDirectory() as tmp:

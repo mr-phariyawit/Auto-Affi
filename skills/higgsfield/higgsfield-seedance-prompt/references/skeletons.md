@@ -9,6 +9,7 @@ Read the cited section with `bible_lookup.py --section A01.05` (lesson) when you
 | S2 Standalone 15 s ad | every prompt must work alone, shared style prefix, timed SHOT list | A10 `seedance-prompt-structure` |
 | S3 Shotlist CUT n — lens | ad/product sequence written as a shot list with a Global Style Prefix | A06 |
 | S4 Continuous take / action | one-take, fights, scale, transformation; coordinates in metres, motion in seconds | A16 skill |
+| S5 Multi-clip story ad | a film longer than one generation, stitched in post; locked STYLE, product plant→payoff | external (KEMLIFE), untested |
 
 ## S1 — Structured cinematic (14 sections, in this order) [A01.L05 cue recreate-1b]
 
@@ -82,6 +83,27 @@ SHOT 2 (5.0–15.0s): start pose EXACTLY matches the end of SHOT 1 …
 ```
 - Blocks: [A16.L02 frames t=00:40] [A16.L02 frames t=00:50] [A16.L02 frames t=01:05] [A16.L04 frames t=00:26]
 - ACTIVE REFERENCES required; OUTPUT SETTINGS only when asked or the UI cannot set it [A16.L01 frames t=01:30] [A16.L01 frames t=01:40]
+
+## S5 — Multi-clip story ad (external, untested) [EXT.KEMLIFE.STYLE-LOCK]
+
+Not from the courses. A film longer than one generation (e.g. 4 × 30 s on 2.5), cut together in post. Sources and status: [external-techniques.md](external-techniques.md).
+```
+ACTIVE REFERENCES:                      (house rule — Bible R00; same tags, same order, every clip)
+@dad — appearance and wardrobe A/B only; background NOT inherited.
+@book — product cover only.
+FORMAT: 30 seconds / N cuts / <genre>, <emotional arc of THIS clip> / dialogue in <language>.
+STYLE: <camera, lens, focal mm, f-stop, grade, grain, handheld, aspect, NO TEXT ON SCREEN>   ← word-for-word in every clip (R22)
+SUBJECT 1: @dad — <one-line look>; from <m:ss> onward wearing outfit B from his sheet.       (X02)
+<extra who is not a reference>: a different child, NOT @kid.                                 (X01)
+ENVIRONMENT: <location, time, light sources, weather>
+PRODUCT: @book — <one line>. Keep cover design exact.                                        (X04; only in clips that show it)
+AUDIO: <diegetic SFX>. No music. No subtitles. <lip-sync line, or VO>
+TIMELINE:
+0:00–0:04: <shot size> — <action>.
+0:04–0:08: close-up — @dad says (tired, quiet): "…"                                          (X03)
+```
+- Plant the product early (half-hidden), pay it off late; CTA in the last beat.
+- Auto-Affi Thai ads: dialogue stays VO over B-roll; write `VO says (warm): "…"` lines for the audio pipeline.
 
 ## Related — A15 car commercial [A15.L03 article] [A15.L03 frames t=01:35]
 `— REFERENCE DEFINITIONS — → — TECHNICAL BLOCK — → — PROMPT — → SFX list`; references defined once, shots use tags only.

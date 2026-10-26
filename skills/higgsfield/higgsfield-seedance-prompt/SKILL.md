@@ -5,7 +5,7 @@ description: "Write and lint Seedance (Higgsfield) video prompts the way the Hig
 
 # Seedance Prompt Compiler + Linter
 
-Turns a shot brief into a course-structured Seedance prompt and proves it is structurally consistent before anyone spends credits. Rules come from the audited Bible v2; every rule carries the course citation that taught it.
+Turns a shot brief into a course-structured Seedance prompt and proves it is structurally consistent before anyone spends credits. Rules come from the audited Bible v2; every rule carries the course citation that taught it. X-rules are the exception: they come from an external prompt pack, cite `[EXT.*]`, and stay warn-only until a generation proves them.
 
 ## 0. Check what already worked
 
@@ -21,8 +21,8 @@ Limits are as recorded in the courses — see [references/model-limits.md](refer
 ## 2. Pick one skeleton
 
 Read [references/skeletons.md](references/skeletons.md) and choose by deliverable:
-S1 structured cinematic (multi-cut story shot) · S2 standalone 15 s ad with shared style prefix · S3 shotlist `CUT n — lens` with Global Style Prefix · S4 continuous take / action in metres and seconds.
-Several prompts in one project share one STYLE PREFIX; label a deliberate per-scene change `STYLE PREFIX (override)`.
+S1 structured cinematic (multi-cut story shot) · S2 standalone 15 s ad with shared style prefix · S3 shotlist `CUT n — lens` with Global Style Prefix · S4 continuous take / action in metres and seconds · S5 multi-clip story ad (external, untested).
+Several prompts in one project share one STYLE PREFIX / STYLE block, word-for-word; label a deliberate per-scene change `STYLE PREFIX (override)`.
 
 ## 3. Write the prompt
 
@@ -34,6 +34,7 @@ Apply [references/rules.md](references/rules.md). The ones that most often break
 - Timed segments start at 0, touch each other and end exactly at `duration_s`. "Exactly N shots and N-1 cuts" must match the blocks you wrote.
 - Match cuts say the end pose EXACTLY matches the next start, otherwise the model treats the cut as a new scene.
 - AUDIO block always. Default "No music. Environmental SFX only. No subtitles." unless a track is attached.
+- External-source X-rules (warn only, untested — see [references/external-techniques.md](references/external-techniques.md)): a look-alike extra gets "NOT @tag" (X01); a wardrobe switch gets a time anchor (X02); each line gets its delivery, `says (tired, quiet): "…"` (X03); a product gets "Keep … design exact" (X04).
 - **Auto-Affi Thai ads:** no visibly speaking Thai mouth — dialogue is VO over B-roll (creative-lead rule, project constraint not from the courses). Write VO lines for the audio pipeline, not on-camera quotes.
 
 ## 4. Lint, fix, repeat

@@ -22,10 +22,21 @@ All citations exist verbatim in Bible v2. Prices, menus and limits are as record
 | R19 | Dialogue verbatim in quotes tied to a speaker tag; AUDIO says "No subtitles" | warn | [A03.L06 cue lizards-climbing] [A08.L04 frames t=01:30] [A16.L02 frames t=01:22] |
 | R20 | Dialogue scenes add lip-sync / eyeline lines | warn | [A15.L06 article] |
 | R21 | AUDIO block present; default "No music, environmental SFX only" unless a music track is attached | warn | [A10.L04 t=01:26–01:46] [A06.L13 t=04:05] [A08.L04 cue cue-l4-fungal] |
-| R22 | One shared style prefix across a project's prompts; per-scene changes labelled "override" | warn | [A06.L10 t=02:02] [A06.L12 t=02:15] [A06.L12 t=02:38] [A10.L01 frames t=00:35] |
+| R22 | One shared style prefix (or `STYLE:` block) across a project's prompts, word-for-word; per-scene changes labelled "override" | warn | [A06.L10 t=02:02] [A06.L12 t=02:15] [A06.L12 t=02:38] [A10.L01 frames t=00:35] [EXT.KEMLIFE.STYLE-LOCK] |
 | R24 | Exact colours as valid hex (AI-written hex gets mistyped: #D1EF17 for #d1fe17) | warn | [A01.L03 t=04:12-04:41] [A09.L03 t=01:59–02:04] [A09.L03 cue c3j] |
 | R27 | "Exactly N named characters…" instead of "No extra people" | warn | [A16.L01 frames t=01:30] [A01.L07 cue recreate-2-1c] |
 | R30 | Aspect/duration written in the prompt must equal the job settings; OUTPUT SETTINGS only when asked | error | [A16.L01 frames t=01:40] [A09.L08 frames t=00:40] [A09.L06 cue c6a] |
+
+### External-source rules (X) — warn only, not in the Bible
+
+From a third-party prompt pack, not tested by us. Sources and status: [external-techniques.md](external-techniques.md).
+
+| ID | Rule | Sev | Citation |
+|---|---|---|---|
+| X01 | A look-alike extra who is not a reference ("a different girl", "another customer") needs "NOT @tag" for the reference it could be confused with | warn | [EXT.KEMLIFE.NEGATIVE-REF] |
+| X02 | Wardrobe switch inside a clip is anchored to a time ("from 0:22 onward wearing outfit B from his sheet") | warn | [EXT.KEMLIFE.WARDROBE-SWITCH] |
+| X03 | Every spoken/VO line carries its delivery: `says (tired, quiet): "…"` | warn | [EXT.KEMLIFE.DIALOGUE-DELIVERY] |
+| X04 | A product reference has an exactness lock ("Keep cover design exact", or the exact label text) | warn | [EXT.KEMLIFE.PRODUCT-LOCK] |
 
 ## Judgement rules (apply while writing)
 

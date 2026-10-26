@@ -31,10 +31,15 @@ RULES = {
     'R19': {'title': 'dialogue present but no "No subtitles"', 'cite': '[A08.L04 frames t=01:30] [A16.L02 frames t=01:22] [A10.L01 frames t=00:35]'},
     'R20': {'title': 'dialogue present but no lip-sync line', 'cite': '[A15.L06 article]'},
     'R21': {'title': 'AUDIO block missing, or "No music" while an audio reference is attached', 'cite': '[A10.L04 t=01:26–01:46] [A06.L13 t=04:05] [A08.L04 cue cue-l4-fungal]'},
-    'R22': {'title': 'style prefix differs between prompts of one project (label per-scene changes "override")', 'cite': '[A06.L10 t=02:02] [A06.L12 t=02:15] [A10.L01 frames t=00:35]'},
+    'R22': {'title': 'style prefix / STYLE block differs between prompts of one project (label per-scene changes "override")', 'cite': '[A06.L10 t=02:02] [A06.L12 t=02:15] [A10.L01 frames t=00:35] [EXT.KEMLIFE.STYLE-LOCK]'},
     'R24': {'title': 'malformed hex colour (AI-written hex can be mistyped)', 'cite': '[A09.L03 t=01:59–02:04] [A09.L03 cue c3j]'},
     'R27': {'title': 'vague headcount; state "Exactly N named characters"', 'cite': '[A16.L01 frames t=01:30] [A01.L07 cue recreate-2-1c]'},
     'R30': {'title': 'aspect/duration written in the prompt contradicts the job settings', 'cite': '[A16.L01 frames t=01:40] [A09.L08 frames t=00:40] [A09.L06 cue c6a]'},
+    # X-rules: from an external prompt pack, not the audited Bible; warn-only until a generation proves them.
+    'X01': {'title': 'look-alike extra appears but no "NOT @tag" rules out the referenced person', 'cite': '[EXT.KEMLIFE.NEGATIVE-REF]'},
+    'X02': {'title': 'wardrobe switch without a timestamp anchor ("from 0:22 onward")', 'cite': '[EXT.KEMLIFE.WARDROBE-SWITCH]'},
+    'X03': {'title': 'dialogue line without a delivery parenthetical ("says (tired, quiet):")', 'cite': '[EXT.KEMLIFE.DIALOGUE-DELIVERY]'},
+    'X04': {'title': 'product reference without an exactness lock ("Keep cover design exact")', 'cite': '[EXT.KEMLIFE.PRODUCT-LOCK]'},
 }
 
 # As recorded in the courses (not current API docs).
@@ -51,11 +56,13 @@ HEADERS = sorted([
     'PHYSICS', 'LIGHTING', 'COLOR', 'COLOUR', 'AUDIO', 'STYLE PREFIX', 'STYLE', 'POSITIVE LOCKS', 'CONSTRAINTS',
     'TECHNICAL BLOCK', 'TECHNICAL', 'SUBJECT', 'MULTISHOT', 'OUTPUT SETTINGS', 'FORBIDDEN', 'NEGATIVE',
     'CONTINUITY', 'MATERIAL', 'CHARACTER DESIGN', 'PROMPT', 'SFX', 'LAYOUT', 'PRACTICAL VFX', 'SKY', 'FOG', 'WEATHER',
-    'REFERENCES', 'SETTING', 'AVOID', 'OUTPUT', 'SOUND',
+    'REFERENCES', 'SETTING', 'AVOID', 'OUTPUT', 'SOUND', 'FORMAT', 'ENVIRONMENT', 'TIMELINE', 'PRODUCT',
 ], key=len, reverse=True)
-HEADER_RE = re.compile(r'^\s*(?:—\s*)?(' + '|'.join(map(re.escape, HEADERS)) + r')\b\s*(?:\([^)]*\))?\s*(?:—|:|$)')
+# Optional number after the header name: "SUBJECT 1:", "SCENE 2:".
+HEADER_RE = re.compile(r'^\s*(?:—\s*)?(' + '|'.join(map(re.escape, HEADERS)) + r')\b(?:\s+\d+)?\s*(?:\([^)]*\))?\s*(?:—|:|$)')
 SHOT_RE = re.compile(r'^\s*(SHOT|CUT)\s+\d+\s*(?:\(|:|—|–|-)', re.I)
-DECLARE = {'ACTIVE REFERENCES', 'REFERENCE DEFINITIONS', 'REFERENCES', 'CHARACTERS'}
+DECLARE = {'ACTIVE REFERENCES', 'REFERENCE DEFINITIONS', 'REFERENCES', 'CHARACTERS', 'PRODUCT', 'SUBJECT'}
+STYLE_BLOCKS = {'STYLE PREFIX', 'STYLE'}
 # Blocks where "no X" exclusion lists are the taught form, not a negated state.
 NEGATION_OK = {'CAMERA', 'CONSTRAINTS', 'FORBIDDEN', 'NEGATIVE', 'AUDIO', 'SOUND', 'AVOID', 'TECHNICAL',
                'TECHNICAL BLOCK', 'OUTPUT SETTINGS', 'OUTPUT', 'STYLE', 'STYLE PREFIX', 'CONTINUITY', 'POSITIVE LOCKS'} | DECLARE
@@ -65,6 +72,21 @@ RANGE_RE = re.compile(r'(?<![\d.:])(\d+(?:\.\d+)?)\s*s?\s*(?:–|—|-|to)\s*(\d
 NEGATED_STATE = re.compile(r"\b(?:not|never|isn't|doesn't)\s+\w+(?:ing|ed)\b"
                            r'|\bno\s+(?:tears|smil\w*|emotion\w*|expression\w*|fear|anger)\b', re.I)
 NUMBERS = {w: i for i, w in enumerate('zero one two three four five six seven eight nine ten eleven twelve'.split())}
+PERSON = r'(?:girl|boy|child|kid|man|woman|person|guy|lady|teen(?:ager)?|baby|customer|stranger|friend)'
+LOOKALIKE_RE = re.compile(r'\b(?:an?\s+(?:different|other|second|new|unrelated)|another)\s+(?:\w+\s+)?' + PERSON + r'\b', re.I)
+# "NOT @seoa" or "NOT Seo-a @image3" (a name may sit between NOT and the tag)
+NOT_TAG_RE = re.compile(r'\bNOT\s+(?:[\w-]+\s+){0,3}@[A-Za-z][\w-]*', re.I)
+WARDROBE_RE = re.compile(r'\boutfit\s+[B-Z2-9]\b|\bchang(?:e|es|ed|ing)\s+(?:into|clothes|outfits?)\b|\bnow wearing\b'
+                         r'|\b(?:second|other|ending|final|later)\s+outfit\b'
+                         r'|\b(?:in the end(?:ing)?|later|final beats?)\b[^.]{0,40}\bwearing\b', re.I)
+TIME_ANCHOR_RE = re.compile(r'\d+:\d{2}|\d+(?:\.\d+)?\s?s\b')
+SPEECH_RE = re.compile(r'\b(?:says|said|replies|whispers|shouts|asks|yells|answers|mutters)\b\s*(\([^)]*\))?\s*:?\s*"'
+                       r'|@[A-Za-z][\w-]*\s*(\([^)]*\))?\s*:\s*"')
+PRODUCT_WORDS = re.compile(r'\b(?:product|packag\w*|label|cover|bottle|box|book|jar|tube|can)\b', re.I)
+PRODUCT_LOCK_RE = re.compile(r'\b(?:keep|kept)\b[^.]*\bexact\b'
+                             r'|\bexact\s+(?:design|label|logo|cover|text|shape|colou?r|packaging)\b'
+                             r'|\b(?:label|text|logo|cover)\b[^.]*\breads\s+"|\bunchanged\b|\bidentical\b'
+                             r'|\bdo not (?:alter|change|redesign)\b', re.I)
 
 
 def norm_model(name):
@@ -144,7 +166,8 @@ def lint(prompt, job):
         for t in sorted(declared - set(used)):
             add('R01', 'warn', f'{t} declared but not used in the prompt body')
         unscoped = [n for n, text in declare_lines
-                    if not re.search(r'\bonly\b|not inherited|reference only|\bcontrols\b', text, re.I)]
+                    if not re.search(r'\bonly\b|not inherited|reference only|\bcontrols\b', text, re.I)
+                    and not PRODUCT_LOCK_RE.search(text)]
         if unscoped:
             add('R03', 'warn', 'state what each reference controls ("appearance only", "NOT inherited") on lines '
                 + ', '.join(f'L{n}' for n in unscoped), unscoped[0])
@@ -213,12 +236,29 @@ def lint(prompt, job):
             prompt, re.I):
         add('R18', 'error', 'state that the end pose of shot N EXACTLY matches the start of shot N+1')
 
-    dialogue = re.search(r'@[\w-]+[^"\n]{0,40}?(?::|\bsays\b|\bsaid\b)\s*"[^"]+"', prompt)
+    dialogue = re.search(r'@[\w-]+[^"\n]{0,40}?(?::|\bsays\b|\bsaid\b)\s*"[^"]+"', prompt) or SPEECH_RE.search(prompt)
     if dialogue:
         if 'no subtitle' not in lower:
             add('R19', 'warn', 'dialogue present: add "No subtitles" to AUDIO')
         if not re.search(r'lip[- ]?sync', lower):
             add('R20', 'warn', 'dialogue present: add a lip-sync line (or use VO instead of on-camera speech)')
+
+    # External-pack techniques (X-rules)
+    if declared or used:
+        lookalike = next(((n, m[0]) for n, _, t in rows if (m := LOOKALIKE_RE.search(t))), None)
+        if lookalike and not NOT_TAG_RE.search(prompt):
+            add('X01', 'warn', f'{lookalike[1]!r} is not a reference: add "NOT @tag" for the look-alike reference', lookalike[0])
+    for n, _, text in rows:
+        if WARDROBE_RE.search(text) and not TIME_ANCHOR_RE.search(text):
+            add('X02', 'warn', 'anchor the wardrobe switch to a time ("from 0:22 onward wearing …")', n)
+        for m in SPEECH_RE.finditer(text):
+            if not (m[1] or m[2]):
+                add('X03', 'warn', 'add the delivery before the line: says (emotion, delivery): "…"', n)
+                break
+    product_tags = {t.lower() for n, s, t_line in rows if s in DECLARE
+                    and (s == 'PRODUCT' or PRODUCT_WORDS.search(t_line)) for t in TAG_RE.findall(t_line)}
+    if product_tags and not PRODUCT_LOCK_RE.search(prompt):
+        add('X04', 'warn', f'lock {", ".join(sorted(product_tags))}: "Keep <cover/label> design exact" or the exact label text')
 
     if not any(s in ('AUDIO', 'SOUND', 'SFX') for _, s, _ in rows):
         add('R21', 'warn', 'add an AUDIO block (default: "No music. Environmental SFX only.")')
@@ -229,7 +269,7 @@ def lint(prompt, job):
 
 def style_prefix(prompt):
     rows = parse(prompt)
-    return '\n'.join(t.strip() for _, s, t in rows if s == 'STYLE PREFIX').strip()
+    return '\n'.join(t.strip() for _, s, t in rows if s in STYLE_BLOCKS).strip()
 
 
 def lint_project(prompts, job):
@@ -240,7 +280,7 @@ def lint_project(prompts, job):
     for name, prefix in prefixes.items():
         if base and prefix and prefix != base and 'override' not in prefix.lower():
             results[name].append({'rule': 'R22', 'severity': 'warn', 'line': None, 'cite': RULES['R22']['cite'],
-                                  'message': 'STYLE PREFIX differs from the first prompt; reuse it or label the change "override"'})
+                                  'message': 'STYLE PREFIX / STYLE differs from the first prompt; copy it word-for-word or label the change "override"'})
     return results
 
 
