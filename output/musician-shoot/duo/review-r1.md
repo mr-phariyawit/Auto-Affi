@@ -13,3 +13,17 @@ File: `duo-r1.png` 1152×1536 [VERIFIED: PIL]. Route: OpenRouter `openai/gpt-ima
 | Text / logos | PASS — none |
 
 Round-2 levers if wanted: widen (fov 42 → "wider two-shot, full body with floor room") and darken the drummer's key side for more poster contrast; heavier mustache on the drummer ("thin mustache clearly visible").
+
+# Round 2 (2026-11-06) — camera fix
+
+File: `duo-r2.png` 1152×1536. Refs reordered: IMAGE 1 = operator mannequin snapshot, IMAGE 2 = Jiab face-front, IMAGE 3 = drummer face-front (keeper + guitar photo dropped; wardrobe/guitar by text). Prompt gained a numeric COMPOSITION block (camera 1.7 m high, left, 15° down, 42° fov; singer fills frame height, drummer ≈60 % of his height; mic base bottom-centre; floor = lower 40 %; shadows to lower-left). Cost [VERIFIED from API response]: $0.086 (prompt $0.037 + output $0.049).
+
+| Check | Verdict |
+|---|---|
+| Camera vs mannequin | PASS — high-left, looking down and across; singer large in the left foreground with boots and floor around them; drummer smaller right-back, head at the singer's chest; mic base bottom-centre; floor fills the lower part. Shadows fall toward lower-right (prompt asked lower-left) — the model kept its own key-light geometry. |
+| Singer likeness | PLAUSIBLE — unchanged from round 1 despite the face moving to IMAGE 2 |
+| Drummer likeness | PLAUSIBLE — mustache now visible, hair/brows/ear stud match |
+| Wardrobe / guitar / pad | PASS — plain headstock, tortoise pickguard, pad on tripod, amp behind |
+| Light | PASS — warm key left, red rim right, overhead beam in haze |
+
+Lesson: for camera/composition, put the mannequin FIRST and spell the camera out in numbers; identity still held with faces at IMAGE 2–3 and only 3 refs.

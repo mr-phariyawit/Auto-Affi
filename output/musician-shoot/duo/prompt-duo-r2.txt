@@ -1,0 +1,21 @@
+Band poster photograph of a two-man acoustic duo captured mid-performance on a small dark club stage. Vertical 3:4 poster. Render NO text, NO logos, NO lettering anywhere.
+
+COMPOSITION — reproduce the camera of IMAGE 1 exactly (IMAGE 1 is a 3D wooden-mannequin blocking of this very shot; copy its camera, framing, figure sizes, light and shadows, and replace the mannequins with the two real men described below):
+- Camera is high and to the LEFT of the stage, about 1.7 m above the floor, tilted DOWN about 15 degrees, wide lens (42 degree field of view). We look down and across the stage toward the right.
+- The SINGER stands in the left foreground, close to camera: he fills most of the frame height, his head near the top third, his boots near the bottom edge with floor visible around them.
+- The DRUMMER sits in the right background, clearly smaller (about 60 percent of the singer's height in frame), his head level with the singer's chest.
+- The microphone stand rises in front of the singer's chest; its round base sits at the bottom centre of the frame.
+- The stage floor fills the lower 40 percent of the frame, receding toward a black back wall whose edge sits about two thirds up the frame.
+- Long shadows of both men stretch across the floor toward the lower-left of the frame.
+
+IDENTITIES (match exactly, do not blend the two men, do not idealize):
+- SINGER-GUITARIST = the man from IMAGE 2: his exact face, bone structure, eyes, nose, lips, light stubble, short dark textured hair with side fringe.
+- DRUMMER = the man from IMAGE 3: his exact face — youthful oval face, straight thick brows, dark middle-parted wavy hair falling to the brows, a thin but clearly visible mustache and a small goatee, small ear studs. He is a different person from the singer.
+
+ACTION: the singer sings into a chrome vintage microphone, mouth open on a note, eyes open, head lifted toward the mic; he strums a tobacco-sunburst dreadnought acoustic guitar (sunburst top, tortoiseshell pickguard, PLAIN dark headstock with no inlay or logo) with his right hand, left hand fretting the neck which points to the right. The drummer sits on a low black stool, leaning slightly forward, eyes down on an electronic multi-pad drum controller (black rubber pads on a tripod stand) at his knees, a drumstick in each hand: right stick raised mid-strike, left stick resting on a pad. A small guitar amp sits behind him.
+
+WARDROBE: singer — brown suede blouson jacket with snap cuffs over a plain white tee, light-wash straight jeans, wheat nubuck lace-up boots. Drummer — plain black crew-neck tee, dark slim jeans, black sneakers.
+
+LIGHTING (physically consistent with IMAGE 1): one warm tungsten key light from high camera-left raking across both men, lighting the singer's face and the guitar top from his right side with soft falloff, far sides in shadow; a saturated amber-red rim light from behind camera-right outlining the drummer's shoulders, hair and sticks; a narrow overhead white spotlight pooling on the floor between them with thin haze making the beam visible; long soft floor shadows toward lower-left; background near black, no front fill. High contrast, deep blacks.
+
+STYLE: cinematic live-music photography, 35 mm film look with fine grain, real skin texture, natural proportions, slight motion blur only on the raised drumstick.
