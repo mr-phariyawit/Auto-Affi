@@ -82,3 +82,5 @@ tools/mannequin-pose/out/
 # musician shoot: operator face refs + generated likeness stay local (public repo)
 output/musician-shoot/refs/
 output/musician-shoot/round*/
+output/musician-shoot/duo/*.png
+output/musician-shoot/duo/*.jpg

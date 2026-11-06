@@ -1,0 +1,255 @@
+{
+ "title": "duo: acoustic singer + drum pad",
+ "notes": "Two-shot on a small stage. Guitarist sings at the mic camera-left; drummer SEATED on a stool camera-right slightly behind, hitting an electronic pad on a lowered stand. Warm key camera-left high, amber rim from behind, spot over centre.",
+ "bg": 394758,
+ "floor": 855309,
+ "cam": {
+  "pos": [
+   -1.818,
+   1.67,
+   4.006
+  ],
+  "target": [
+   0.15,
+   1.0,
+   0
+  ],
+  "fov": 42
+ },
+ "light": {
+  "keyPos": [
+   -3,
+   3.2,
+   2.5
+  ],
+  "color": 16774358,
+  "intensity": 1.4,
+  "ambient": 0.14,
+  "rimPos": [
+   2.5,
+   2.6,
+   -2.8
+  ],
+  "rimColor": 16735290,
+  "rimIntensity": 1.8
+ },
+ "figures": [
+  {
+   "id": "fig-1",
+   "name": "มือกีตาร์ (ร้อง)",
+   "pose": {
+    "rootPos": [
+     -0.45,
+     0.98,
+     0.1
+    ],
+    "bodyYaw": 8,
+    "spineLean": 5,
+    "headPitch": -8,
+    "headYaw": -4,
+    "headTilt": -3,
+    "armL": {
+     "fwd": 26,
+     "out": 54,
+     "bend": 72
+    },
+    "armR": {
+     "fwd": 30,
+     "out": 10,
+     "bend": 50,
+     "twist": 55
+    },
+    "legL": {
+     "out": 9,
+     "fwd": 3
+    },
+    "legR": {
+     "out": 9,
+     "fwd": -3,
+     "bend": 4
+    }
+   }
+  },
+  {
+   "id": "fig-2",
+   "name": "มือกลองแพด",
+   "pose": {
+    "rootPos": [
+     0.85,
+     0.72,
+     -0.35
+    ],
+    "bodyYaw": -22,
+    "spineLean": 10,
+    "headPitch": 20,
+    "headYaw": 6,
+    "armL": {
+     "fwd": 32,
+     "out": 16,
+     "bend": 40,
+     "twist": 10
+    },
+    "armR": {
+     "fwd": 52,
+     "out": 14,
+     "bend": 60,
+     "twist": 10
+    },
+    "legL": {
+     "fwd": 32,
+     "out": 76,
+     "bend": 88,
+     "twist": 68,
+     "foot": 0
+    },
+    "legR": {
+     "fwd": 80,
+     "bend": 84,
+     "out": 16
+    }
+   }
+  }
+ ],
+ "objects": [
+  {
+   "id": "guitar",
+   "name": "กีตาร์",
+   "kind": "guitar",
+   "pos": [
+    -0.42,
+    1.0,
+    0.38
+   ],
+   "rot": [
+    -10,
+    8,
+    15
+   ],
+   "scale": 1
+  },
+  {
+   "id": "mic",
+   "name": "ไมค์",
+   "kind": "mic",
+   "pos": [
+    -0.47,
+    0,
+    0.675
+   ],
+   "rot": [
+    0,
+    -178,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "drumpad",
+   "name": "กลองแพด",
+   "kind": "drumpad",
+   "pos": [
+    0.9,
+    0,
+    0.37
+   ],
+   "rot": [
+    0,
+    -22,
+    0
+   ],
+   "scale": [
+    1,
+    0.86,
+    1
+   ]
+  },
+  {
+   "id": "stool-2",
+   "name": "สตูลมือกลอง",
+   "kind": "stool",
+   "pos": [
+    0.85,
+    0,
+    -0.37
+   ],
+   "rot": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "stick-1",
+   "name": "ไม้กลองซ้าย",
+   "kind": "stick",
+   "attach": {
+    "fig": "fig-2",
+    "anchor": "handL"
+   },
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    40,
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "stick-2",
+   "name": "ไม้กลองขวา",
+   "kind": "stick",
+   "attach": {
+    "fig": "fig-2",
+    "anchor": "handR"
+   },
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    40,
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "amp-1",
+   "name": "แอมป์",
+   "kind": "amp",
+   "pos": [
+    1.5,
+    0,
+    -1.0
+   ],
+   "rot": [
+    0,
+    -30,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "spot",
+   "name": "สปอตไลท์",
+   "kind": "spot",
+   "pos": [
+    0.2,
+    4.2,
+    2.2
+   ],
+   "target": [
+    0.15,
+    1.2,
+    0
+   ],
+   "intensity": 70
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+# Duo band poster — round 1 prompt (OpenRouter gpt-image-2.5-sunburst, 3:4)
+
+Reference order: 1 Jiab face-front · 2 Jiab face-side · 3 drummer face-front · 4 mannequin pose/camera/light blocking · 5 Jiab keeper (wardrobe + guitar look) · 6 Crafter guitar product photo
+
+---PROMPT---
+Band poster photograph of a two-man acoustic duo captured mid-performance on a small dark club stage. Vertical 3:4 poster composition with a little dark negative space above the heads for a title; render NO text, NO logos, NO lettering anywhere.
+
+IDENTITIES (match exactly, do not blend the two men, do not idealize):
+- SINGER-GUITARIST (left of frame, standing) = the man from IMAGE 1 and IMAGE 2: his exact face, bone structure, eyes, nose, lips, light stubble, and his short dark textured hair with side fringe.
+- DRUMMER (right of frame, seated, slightly behind) = the man from IMAGE 3: his exact face — youthful, oval face, straight thick brows, dark middle-parted wavy hair falling to the brows, thin mustache and a small goatee, small ear studs. He is a different person from the singer.
+
+BLOCKING (follow IMAGE 4 exactly; it is a wooden mannequin placeholder for pose, camera and light only — replace the mannequins with the two real men): camera slightly left of centre and a little above eye level, looking across the stage to the right. The singer stands at a chrome vintage microphone on a stand, mouth open on a sung note, eyes open, head lifted toward the mic, strumming a tobacco-sunburst dreadnought acoustic guitar (IMAGE 6: sunburst top, tortoiseshell pickguard, PLAIN dark headstock with no inlay or logo) with his right hand while his left hand frets the neck. The drummer sits on a low stool, leaning slightly forward, eyes down on an electronic multi-pad drum controller (black rubber pads on a tripod stand, like a Roland SPD-SX) at his knees, a drumstick in each hand: the right stick raised mid-strike, the left stick resting on a pad. A small guitar amp sits behind him.
+
+WARDROBE: the singer wears exactly the outfit of IMAGE 5 — brown suede blouson jacket with snap cuffs over a plain white tee, light-wash straight jeans, wheat nubuck lace-up boots. The drummer wears a plain black crew-neck tee, dark slim jeans and black sneakers.
+
+LIGHTING (accurate, physically consistent with IMAGE 4): one warm tungsten key light from high camera-left raking across both men, so the singer's face and the guitar top are lit from his right side with soft falloff and the far sides fall into shadow; a saturated amber-red rim light from behind camera-right outlining the drummer's shoulders, hair and the sticks; a narrow overhead white spotlight pooling on the stage floor between them with thin haze making the beam visible; long soft shadows thrown toward camera-right on the floor; background drops to near black. High contrast, deep blacks, no fill from the front.
+
+STYLE: cinematic live-music photography, 35 mm film look with fine grain, shallow depth of field on the singer, drummer slightly softer, slight motion blur only on the raised drumstick. Natural proportions, real skin texture, no plastic smoothing.
+---END---
