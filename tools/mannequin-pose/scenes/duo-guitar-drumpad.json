@@ -1,6 +1,6 @@
 {
  "title": "duo: acoustic singer + drum pad",
- "notes": "Two-shot on a small stage. Guitarist sings at the mic camera-left, drummer hits an electronic pad camera-right slightly behind. Warm key camera-left high, amber rim from behind, spot over centre.",
+ "notes": "Two-shot on a small stage. Guitarist sings at the mic camera-left; drummer SEATED on a stool camera-right slightly behind, hitting an electronic pad on a lowered stand. Warm key camera-left high, amber rim from behind, spot over centre.",
  "bg": 394758,
  "floor": 855309,
  "cam": {
@@ -75,34 +75,35 @@
    "name": "มือกลองแพด",
    "pose": {
     "rootPos": [
-     0.8,
-     0.98,
-     -0.3
+     0.85,
+     0.72,
+     -0.35
     ],
     "bodyYaw": -22,
-    "spineLean": 10,
-    "headPitch": 18,
+    "spineLean": 8,
+    "headPitch": 16,
     "headYaw": 6,
     "armL": {
-     "fwd": 62,
-     "out": 18,
-     "bend": 95,
+     "fwd": 58,
+     "out": 16,
+     "bend": 92,
      "twist": 10
     },
     "armR": {
-     "fwd": 88,
-     "out": 14,
-     "bend": 60,
+     "fwd": 84,
+     "out": 12,
+     "bend": 62,
      "twist": 10
     },
     "legL": {
-     "out": 10,
-     "fwd": 2
+     "fwd": 78,
+     "bend": 88,
+     "out": 14
     },
     "legR": {
-     "out": 10,
-     "fwd": -2,
-     "bend": 3
+     "fwd": 80,
+     "bend": 84,
+     "out": 16
     }
    }
   }
@@ -145,13 +146,33 @@
    "name": "กลองแพด",
    "kind": "drumpad",
    "pos": [
-    0.78,
+    0.9,
     0,
     0.12
    ],
    "rot": [
     0,
     -22,
+    0
+   ],
+   "scale": [
+    1,
+    0.86,
+    1
+   ]
+  },
+  {
+   "id": "stool-2",
+   "name": "สตูลมือกลอง",
+   "kind": "stool",
+   "pos": [
+    0.85,
+    0,
+    -0.37
+   ],
+   "rot": [
+    0,
+    0,
     0
    ],
    "scale": 1

@@ -30,7 +30,7 @@ Same format for `poses.js` entries, `render-json.sh`, the artifact inbox/outbox 
 - Playing guitar in front: fretting armL out 50–60 fwd 25–35 bend 70; strumming armR fwd 28–34 out 8–12 bend 48–55 twist 55.
 - Guitar slung on back: armL fwd 38 bend 105 out 6 (hand on the strap).
 - Singing at a mic: headPitch −6…−10, spineLean 5; mic stand at `[figX, 0, figZ+0.45]`.
-- Drum pad player: spineLean 10, headPitch 18, armL fwd 62 out 18 bend 95, armR fwd 88 out 14 bend 60 (one stick raised); pad at `[figX, 0, figZ+0.42]` rotated to face them.
+- Drum pad player, SEATED on a stool (rootPos y 0.72, legs fwd≈80 bend≈86): spineLean 8, headPitch 16, armL fwd 58 out 16 bend 92, armR fwd 84 out 12 bend 62 (one stick raised); stool at `[figX,0,figZ-0.02]`, pad at `[figX+0.05,0,figZ+0.47]` scale `[1,0.86,1]`, rotated to face them. Standing variant: pad scale 1, spineLean 10, headPitch 18.
 - Two characters: x ≈ −0.45 and x ≈ 0.8 (second slightly behind, z −0.3), camera two-shot `pos [0.25,1.35,4.7] target [0.15,1.0,0] fov 42`. Objects that belong to a figure are positioned relative to that figure's rootPos.
 - Example: `tools/mannequin-pose/scenes/duo-guitar-drumpad.json`.
 
