@@ -39,3 +39,7 @@ File: `duo-r3.png` 1152×1536. Same recipe as round 2 (mannequin IMAGE 1 = new o
 | Camera vs mannequin | PASS — same high-left framing as round 2; singer large left, drummer right-back, mic base bottom-centre, floor visible |
 | Singer | unchanged, PLAUSIBLE; mouth open on a note |
 | Light | PASS — warm key left, red rim right, overhead beam; shadows again fall lower-right |
+
+# Round 4 (2026-11-06) — low angle from the pit, concert-photo optics
+
+Model choice after the benchmark survey (`docs/reference/model-study/image-model-benchmark-2026-11-06.md`): gpt-image-2.5-sunburst still #1 on every board → kept. File: `duo-r4-lowangle.png` 1152×1536. Refs: IMAGE 1 operator low-angle mannequin snapshot, IMAGE 2 Jiab face, IMAGE 3 drummer face. Prompt: camera 0.9 m, tilted up 12°, 50 mm, focus on the singer's face, drummer softer, background bokeh + flares. Cost [VERIFIED from API]: $0.086.
