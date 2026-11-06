@@ -8,8 +8,9 @@ description: "Use when the operator wants a pose / blocking / pose-reference for
 Artifact: **Mannequin Poser — หุ่นไม้ 3D จัดท่า** · url `https://claude.ai/artifact/9AhtJ19m85QVuuJU5L4V2k` · slug `4223ffc4-adee-4ddc-a759-6e673e560cbd`.
 Source: `tools/mannequin-pose/` (`poser.html`, `objlib.js`, `mannequin.html`, `poses.js`, `render.sh`, `render-json.sh`). Operator guide: `tools/mannequin-pose/USAGE-TH.md`.
 
-Two channels on the artifact's db (capability `db` is declared):
+Channels on the artifact's db (capability `db` is declared):
 - `poser/inbox`  — Claude → page. The page shows a banner "Claude ส่งฉากมา: <title>" with a โหลด button (auto-loads on a fresh page).
+- `scenes/<id>` — the page's library (แท็บ คลัง): every scene the operator saved (`source:"user"`) and every inbox push auto-archived (`source:"claude"`, id `claude-<sentAt>`). Each doc: `title, scene, thumb (jpeg data URL 180×240), savedAt, source, note`. Browse with `db_list`/`db_query` on collection `scenes`; load one with `db_get scenes/<id>`. To re-show an old job, read it here and push its `scene` to `poser/inbox` again.
 - `poser/outbox` — page → Claude. The operator presses "ส่งฉาก + ภาพไป Claude" in the Export tab; the doc holds `scene`, `image` (jpeg data URL or null), `sentAt`, `note`.
 
 ## Procedure

@@ -50,3 +50,7 @@ the poser. Scene JSON has `figures: [{id,name,pose}]`; the legacy single `pose` 
 `figures[0].pose`. Poser: Pose tab has a character dropdown, + เพิ่มหุ่น / ลบ / ทำสำเนา; characters also appear
 as blue buttons in the Objects tab for whole-body move/rotate. New library object `drumpad`. Preset "Duo · guitar +
 drum pad" = `scenes/duo-guitar-drumpad.json`.
+
+## v5 (2026-11-06): library
+
+แท็บ คลัง: Save / Save-as / list / load / delete, stored in the artifact db collection `scenes` (thumb jpeg 180×240, title, scene, savedAt, source, note); localStorage fallback when `db` is null. Inbox pushes from Claude are auto-archived as `claude-<sentAt>`.

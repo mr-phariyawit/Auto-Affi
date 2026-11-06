@@ -44,6 +44,12 @@
   .note{font-size:12px;color:var(--mut);margin:6px 0}
   .status{font-size:12px;min-height:18px;margin-top:6px;color:var(--acc2);white-space:pre-wrap}
   select,input[type=color],input[type=text]{background:#111;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px}
+  .card{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px;margin:6px 0;background:#161618}
+  .card.on{border-color:var(--acc)}
+  .card img{width:72px;height:96px;object-fit:cover;border-radius:4px;background:#000}
+  .card .t{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .m{font-size:11px;color:var(--mut)}
+  .card .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:#263238;color:var(--acc2);margin-left:4px}
   #modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:9;padding:16px}
   #modal img{max-height:78vh;max-width:95vw;border:1px solid #444}
   @media (max-width:860px){#app{grid-template-columns:1fr;grid-template-rows:58vh 1fr}#panel{border-left:0;border-top:1px solid var(--line)}}
@@ -67,6 +73,7 @@
       <button data-t="objects">Objects</button>
       <button data-t="scene">Scene</button>
       <button data-t="export">Export</button>
+      <button data-t="library">คลัง</button>
     </div>
 
     <div class="tab on" id="t-prompt">
@@ -121,6 +128,15 @@
       <div class="row"><label>พื้น</label><input type="color" id="flcolor" value="#3a3a3a"><span></span></div>
     </div>
 
+    <div class="tab" id="t-library">
+      <h3>บันทึกฉากปัจจุบัน</h3>
+      <div class="row"><label>ชื่อ</label><input type="text" id="savename" placeholder="เช่น Duo v2 มือกลองนั่ง"><span></span></div>
+      <div><button class="btn p" id="savebtn">Save</button><button class="btn" id="saveas">Save เป็นฉากใหม่</button></div>
+      <div class="status" id="lstat"></div>
+      <h3>งานที่เคยสั่ง / บันทึกไว้</h3>
+      <div class="note" id="lnote"></div>
+      <div id="llist"></div>
+    </div>
     <div class="tab" id="t-export">
       <h3>Snapshot (3:4)</h3>
       <button class="btn p" id="snap">ถ่าย PNG</button>
@@ -529,6 +545,7 @@ async function watchInbox(){
     db.doc('poser/inbox').onSnapshot(snap => {
       if (!snap.exists) return; const d = snap.data(); if (!d || !d.scene || d.sentAt === lastInboxAt) return;
       const first = lastInboxAt === null; lastInboxAt = d.sentAt; pending = d; showInbox(d);
+      archiveFromClaude(d);
       if (first && !userEdited) $('#inboxLoad').click();
     }, err => { console.warn('inbox', err); });
   }catch(e){ console.warn('inbox', e); }
@@ -545,6 +562,56 @@ $('#sendc').onclick = async ()=>{
     st.textContent = 'ส่งแล้ว ' + new Date().toLocaleTimeString() + (jpg?'' : ' (ภาพใหญ่เกิน ส่งเฉพาะฉาก)');
   }catch(e){ st.textContent = 'ส่งไม่สำเร็จ: ' + (e.message||e.code||e); }
 };
+
+// ---------- library (saved scenes): artifact db collection `scenes`, localStorage fallback ----------
+let currentSaveId = null; const LS_KEY = 'poser.scenes.v1';
+function thumbDataURL(){ const cv = cleanRender(); const c = document.createElement('canvas'); c.width = 180; c.height = 240; c.getContext('2d').drawImage(cv, 0, 0, 180, 240); return c.toDataURL('image/jpeg', 0.7); }
+const lsRead = ()=>{ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } };
+const lsWrite = arr => { try{ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }catch(e){} };
+let store = null; // {mode, save(id,doc), remove(id), watch(cb)}
+async function getStore(){
+  if (store) return store;
+  const db = await getDB();
+  if (db){
+    store = { mode:'db',
+      save: async (id, doc) => { await db.collection('scenes').doc(id).set(doc); },
+      remove: async id => { await db.collection('scenes').doc(id).delete(); },
+      watch: cb => { db.collection('scenes').orderBy('savedAt','desc').limit(200).onSnapshot(snap => cb(snap.docs.map(d => ({id:d.id, ...d.data()}))), err => { $('#lnote').textContent = 'อ่านคลังไม่ได้: ' + (err.message||err.code); }); } };
+  } else {
+    const subs = [];
+    const emit = ()=>{ const arr = lsRead().sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||'')); subs.forEach(cb=>cb(arr)); };
+    store = { mode:'local',
+      save: async (id, doc) => { const arr = lsRead().filter(x=>x.id!==id); arr.push({id, ...doc}); lsWrite(arr); emit(); },
+      remove: async id => { lsWrite(lsRead().filter(x=>x.id!==id)); emit(); },
+      watch: cb => { subs.push(cb); emit(); } };
+  }
+  $('#lnote').textContent = store.mode==='db' ? 'เก็บในฐานข้อมูลของ artifact นี้ (Claude Code อ่านได้ที่ scenes/<id>)' : 'ยังไม่ได้ต่อ db — เก็บไว้ในเบราว์เซอร์นี้เท่านั้น';
+  return store;
+}
+function sceneDoc(title, source){ return { title, scene: exportState(), thumb: thumbDataURL(), savedAt: new Date().toISOString(), source: source||'user', note: $('#ptext').value.slice(0,300) }; }
+async function saveScene(asNew){
+  const st = $('#lstat'); const title = ($('#savename').value.trim() || S.title || 'ฉาก ' + new Date().toLocaleString());
+  const id = (!asNew && currentSaveId) ? currentSaveId : ('s-' + Date.now().toString(36));
+  try{ const s = await getStore(); await s.save(id, sceneDoc(title,'user')); currentSaveId = id; S.title = title; setJSON(); st.textContent = 'บันทึกแล้ว: ' + title; }
+  catch(e){ st.textContent = 'บันทึกไม่สำเร็จ: ' + (e.message||e.code||e); }
+}
+$('#savebtn').onclick = ()=>saveScene(false);
+$('#saveas').onclick = ()=>saveScene(true);
+function renderLibrary(items){
+  const host = $('#llist'); host.innerHTML = '';
+  if (!items.length){ host.innerHTML = '<div class="note">ยังไม่มีฉากที่บันทึก</div>'; return; }
+  for (const it of items){
+    const c = document.createElement('div'); c.className = 'card' + (it.id===currentSaveId?' on':'');
+    const when = it.savedAt ? new Date(it.savedAt).toLocaleString() : '';
+    c.innerHTML = `<img src="${it.thumb||''}" alt=""><div><div class="t">${it.title||it.id}${it.source==='claude'?'<span class="tag">จาก Claude</span>':''}</div><div class="m">${when}${it.note? ' · '+it.note.slice(0,60):''}</div><div><button class="btn sm p">โหลด</button><button class="btn sm d">ลบ</button></div></div>`;
+    const [bLoad, bDel] = c.querySelectorAll('button');
+    bLoad.onclick = ()=>{ try{ S = normalize(it.scene); activeFig = S.figures[0].id; currentSaveId = it.id; $('#savename').value = it.title||''; syncAll(); $('#lstat').textContent = 'โหลดแล้ว: ' + (it.title||it.id); document.querySelectorAll('.card').forEach(x=>x.classList.toggle('on', x===c)); }catch(e){ $('#lstat').textContent = 'โหลดไม่ได้: '+e.message; } };
+    bDel.onclick = async ()=>{ if (!bDel.dataset.arm){ bDel.dataset.arm='1'; bDel.textContent='ยืนยันลบ'; setTimeout(()=>{ bDel.dataset.arm=''; bDel.textContent='ลบ'; }, 2500); return; } try{ const s = await getStore(); await s.remove(it.id); if (currentSaveId===it.id) currentSaveId=null; }catch(e){ $('#lstat').textContent='ลบไม่ได้: '+(e.message||e.code); } };
+    host.appendChild(c);
+  }
+}
+setTimeout(async ()=>{ const s = await getStore(); s.watch(renderLibrary); }, 50);
+async function archiveFromClaude(d){ try{ const s = await getStore(); const id = 'claude-' + String(d.sentAt||Date.now()).replace(/[^A-Za-z0-9_.~:@+-]/g,'-'); const keep = S; S = normalize(d.scene); rebuildFigures(); rebuildObjects(); applyScene(); applyCamera(); const doc = sceneDoc(d.title||'จาก Claude','claude'); doc.note = d.note||''; S = keep; rebuildFigures(); rebuildObjects(); applyScene(); applyCamera(); await s.save(id, doc); }catch(e){ console.warn('archive', e); } }
 
 // ---------- resize + loop ----------
 function resize(){ const w = stage.clientWidth-8, h = stage.clientHeight-8; const cw = Math.min(w, h*3/4), ch = cw*4/3; renderer.setSize(Math.floor(cw), Math.floor(ch)); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); cam.aspect = 3/4; cam.updateProjectionMatrix(); }
