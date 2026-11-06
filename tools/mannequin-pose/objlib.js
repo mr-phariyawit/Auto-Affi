@@ -24,6 +24,13 @@ export const LIBRARY = {
   box:     { th:'กล่อง',    parts: () => [ {shape:'box', size:[0.5,0.5,0.5], pos:[0,0.25,0], color:0x8d8d8d} ] },
   sphere:  { th:'ทรงกลม',   parts: () => [ {shape:'sphere', size:[0.25], pos:[0,0.25,0], color:0x8d8d8d} ] },
   cylinder:{ th:'ทรงกระบอก', parts: () => [ {shape:'cylinder', size:[0.2,0.2,0.6], pos:[0,0.3,0], color:0x8d8d8d} ] },
+  drumpad: { th:'กลองแพด',  parts: () => [ {shape:'cylinder', size:[0.03,0.03,0.02], pos:[0,0.01,0], color:0x333333, metalness:0.6},
+                              ...[0,1,2].map(i => ({shape:'cylinder', size:[0.012,0.012,0.45], pos:[Math.cos(i*2.094+1.57)*0.17,0.2,Math.sin(i*2.094+1.57)*0.17], rot:[Math.sin(i*2.094+1.57)*-28, 0, Math.cos(i*2.094+1.57)*28], color:0x444444, metalness:0.6})),
+                              {shape:'cylinder', size:[0.015,0.015,0.55], pos:[0,0.62,0], color:0x444444, metalness:0.6},
+                              {shape:'box', size:[0.52,0.07,0.38], pos:[0,0.93,0.02], rot:[-12,0,0], color:0x1a1a1a},
+                              ...[[-0.17,0.08],[0,0.08],[0.17,0.08],[-0.17,-0.08],[0,-0.08],[0.17,-0.08]].map(([x,z]) => ({shape:'box', size:[0.14,0.015,0.13], pos:[x,0.975-z*0.21,0.02+z], rot:[-12,0,0], color:0x3d3d3d})),
+                              {shape:'cylinder', size:[0.008,0.008,0.4], pos:[-0.3,1.0,0.3], rot:[70,0,30], color:0xd9b382},
+                              {shape:'cylinder', size:[0.008,0.008,0.4], pos:[0.3,1.0,0.3], rot:[70,0,-30], color:0xd9b382} ] },
   guitar:  { th:'กีตาร์',   parts: null }, // built by buildGuitar
   spot:    { th:'สปอตไลท์', parts: null }, // light, handled by the scene
 };

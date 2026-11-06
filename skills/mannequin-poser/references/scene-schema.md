@@ -9,8 +9,9 @@ Same format for `poses.js` entries, `render-json.sh`, the artifact inbox/outbox 
  "cam": {"pos": [x,y,z], "target": [x,y,z], "fov": 38},
  "light": {"keyPos": [x,y,z], "color": 16773856, "intensity": 2.2, "ambient": 0.35,
            "rimPos": [x,y,z], "rimColor": 10469631, "rimIntensity": 1.0},
+ "figures": [ {"id":"fig-1","name":"มือกีตาร์","pose":{...}}, {"id":"fig-2","name":"มือกลอง","pose":{...}} ],  // one or more characters; legacy single "pose" still accepted
  "objects": [ {"id":"guitar","name":"กีตาร์","kind":"guitar","pos":[x,y,z],"rot":[x,y,z],"scale":1}, ... ],
- "pose": {
+ "pose": {   // = figures[0].pose (kept for single-figure consumers)
    "rootPos": [0,0.98,0], "bodyYaw": 0,
    "spineLean": 0, "spineTwist": 0, "spineTilt": 0, "chestLean": 0, "chestTwist": 0,
    "headPitch": 0, "headYaw": 0, "headTilt": 0,
@@ -28,10 +29,14 @@ Same format for `poses.js` entries, `render-json.sh`, the artifact inbox/outbox 
 - Walking: legL fwd 22 bend 8 foot 8 · legR fwd −14 bend 28 foot −20 · arms swing opposite (armR fwd −18, armL fwd 18).
 - Playing guitar in front: fretting armL out 50–60 fwd 25–35 bend 70; strumming armR fwd 28–34 out 8–12 bend 48–55 twist 55.
 - Guitar slung on back: armL fwd 38 bend 105 out 6 (hand on the strap).
+- Singing at a mic: headPitch −6…−10, spineLean 5; mic stand at `[figX, 0, figZ+0.45]`.
+- Drum pad player: spineLean 10, headPitch 18, armL fwd 62 out 18 bend 95, armR fwd 88 out 14 bend 60 (one stick raised); pad at `[figX, 0, figZ+0.42]` rotated to face them.
+- Two characters: x ≈ −0.45 and x ≈ 0.8 (second slightly behind, z −0.3), camera two-shot `pos [0.25,1.35,4.7] target [0.15,1.0,0] fov 42`. Objects that belong to a figure are positioned relative to that figure's rootPos.
+- Example: `tools/mannequin-pose/scenes/duo-guitar-drumpad.json`.
 
 ## Objects
 `{"id","name","kind","pos","rot","scale","color"?,"parts"?}` — `scale` number or `[x,y,z]`; `color` tints every part.
-Library kinds (origin at the base on the floor, facing +Z): `stool` (seat 0.64) · `chair` (seat 0.45) · `table` (top 0.74, 1.0×0.6) · `amp` (0.6×0.5×0.3) · `speaker` (0.4×0.7×0.35) · `mic` (1.58 tall, capsule at ~1.64) · `wall` (10×4 plane; put at z ≈ −0.9) · `box` (0.5) · `sphere` (r 0.25) · `cylinder` · `guitar` · `spot`.
+Library kinds (origin at the base on the floor, facing +Z): `stool` (seat 0.64) · `chair` (seat 0.45) · `table` (top 0.74, 1.0×0.6) · `amp` (0.6×0.5×0.3) · `speaker` (0.4×0.7×0.35) · `mic` (1.58 tall, capsule at ~1.64) · `drumpad` (electronic pad on a tripod stand, pad at 0.93 tilted, two sticks) · `wall` (10×4 plane; put at z ≈ −0.9) · `box` (0.5) · `sphere` (r 0.25) · `cylinder` · `guitar` · `spot`.
 - `guitar`: body centre is the origin, neck points +X before rot. Held in front `pos [0.02,0.95,0.26] rot [-10,0,22]`; on lap seated `pos [-0.02,0.86,0.36] rot [-8,-10,32]`; slung on back `pos [0.14,1.08,-0.26] rot [0,180,55]`.
 - `spot`: `{"kind":"spot","pos":[0.5,4.2,2],"target":[0,1.2,0],"intensity":60}` (a light, not a mesh).
 - `custom`: `"parts":[{"shape":"box|cylinder|sphere|cone|capsule|plane|torus","size":[...],"pos":[x,y,z],"rot":[x,y,z],"color":n,"roughness":0.8,"metalness":0}]` with sizes box `[w,h,d]`, cylinder `[rTop,rBottom,h]`, sphere `[r]`, cone `[r,h]`, capsule `[r,len]`, plane `[w,h]`, torus `[r,tube]`. Local `pos` is relative to the object's origin; keep the object's base at local y = 0 so `pos.y = 0` puts it on the floor (or `0.74` on a table top).

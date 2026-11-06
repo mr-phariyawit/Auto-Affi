@@ -1,0 +1,192 @@
+{
+ "title": "duo: acoustic singer + drum pad",
+ "notes": "Two-shot on a small stage. Guitarist sings at the mic camera-left, drummer hits an electronic pad camera-right slightly behind. Warm key camera-left high, amber rim from behind, spot over centre.",
+ "bg": 394758,
+ "floor": 855309,
+ "cam": {
+  "pos": [
+   0.25,
+   1.35,
+   4.7
+  ],
+  "target": [
+   0.15,
+   1.0,
+   0
+  ],
+  "fov": 42
+ },
+ "light": {
+  "keyPos": [
+   -3,
+   3.2,
+   2.5
+  ],
+  "color": 16774358,
+  "intensity": 1.4,
+  "ambient": 0.14,
+  "rimPos": [
+   2.5,
+   2.6,
+   -2.8
+  ],
+  "rimColor": 16735290,
+  "rimIntensity": 1.8
+ },
+ "figures": [
+  {
+   "id": "fig-1",
+   "name": "มือกีตาร์ (ร้อง)",
+   "pose": {
+    "rootPos": [
+     -0.45,
+     0.98,
+     0.1
+    ],
+    "bodyYaw": 8,
+    "spineLean": 5,
+    "headPitch": -8,
+    "headYaw": -4,
+    "headTilt": -3,
+    "armL": {
+     "fwd": 26,
+     "out": 54,
+     "bend": 72
+    },
+    "armR": {
+     "fwd": 30,
+     "out": 10,
+     "bend": 50,
+     "twist": 55
+    },
+    "legL": {
+     "out": 9,
+     "fwd": 3
+    },
+    "legR": {
+     "out": 9,
+     "fwd": -3,
+     "bend": 4
+    }
+   }
+  },
+  {
+   "id": "fig-2",
+   "name": "มือกลองแพด",
+   "pose": {
+    "rootPos": [
+     0.8,
+     0.98,
+     -0.3
+    ],
+    "bodyYaw": -22,
+    "spineLean": 10,
+    "headPitch": 18,
+    "headYaw": 6,
+    "armL": {
+     "fwd": 62,
+     "out": 18,
+     "bend": 95,
+     "twist": 10
+    },
+    "armR": {
+     "fwd": 88,
+     "out": 14,
+     "bend": 60,
+     "twist": 10
+    },
+    "legL": {
+     "out": 10,
+     "fwd": 2
+    },
+    "legR": {
+     "out": 10,
+     "fwd": -2,
+     "bend": 3
+    }
+   }
+  }
+ ],
+ "objects": [
+  {
+   "id": "guitar",
+   "name": "กีตาร์",
+   "kind": "guitar",
+   "pos": [
+    -0.42,
+    1.0,
+    0.38
+   ],
+   "rot": [
+    -10,
+    8,
+    15
+   ],
+   "scale": 1
+  },
+  {
+   "id": "mic",
+   "name": "ไมค์",
+   "kind": "mic",
+   "pos": [
+    -0.47,
+    0,
+    0.55
+   ],
+   "rot": [
+    0,
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "drumpad",
+   "name": "กลองแพด",
+   "kind": "drumpad",
+   "pos": [
+    0.78,
+    0,
+    0.12
+   ],
+   "rot": [
+    0,
+    -22,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "amp-1",
+   "name": "แอมป์",
+   "kind": "amp",
+   "pos": [
+    1.5,
+    0,
+    -1.0
+   ],
+   "rot": [
+    0,
+    -30,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "spot",
+   "name": "สปอตไลท์",
+   "kind": "spot",
+   "pos": [
+    0.2,
+    4.2,
+    2.2
+   ],
+   "target": [
+    0.15,
+    1.2,
+    0
+   ],
+   "intensity": 70
+  }
+ ]
+}

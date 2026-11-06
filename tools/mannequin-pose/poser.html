@@ -16,6 +16,7 @@
   #modes{position:absolute;right:10px;top:10px;display:flex;gap:4px}
   #modes button{padding:6px 10px;background:rgba(0,0,0,.6);border:1px solid #444;color:#ddd;border-radius:6px;cursor:pointer;font-size:12px}
   #modes button.on{border-color:var(--acc);color:var(--acc)}
+  #inbox{display:none;position:absolute;left:50%;top:10px;transform:translateX(-50%);background:#263238;border:1px solid #64b5f6;color:#e3f2fd;padding:8px 12px;border-radius:8px;font-size:13px;max-width:70%;z-index:5}
   #panel{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
   #tabs{display:flex;border-bottom:1px solid var(--line)}
   #tabs button{flex:1;padding:10px 2px;background:none;border:0;color:var(--mut);font-weight:600;cursor:pointer;border-bottom:2px solid transparent;font-size:13px}
@@ -38,6 +39,8 @@
   .list{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:6px 0}
   .list button{padding:6px 4px;font-size:12px;background:#2a2a2d;border:1px solid #3a3a3d;color:#ddd;border-radius:6px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .list button.on{border-color:var(--acc);color:var(--acc)}
+  .list button.fig{border-color:#37474f;color:var(--acc2)}
+  .list button.fig.on{border-color:var(--acc2)}
   .note{font-size:12px;color:var(--mut);margin:6px 0}
   .status{font-size:12px;min-height:18px;margin-top:6px;color:var(--acc2);white-space:pre-wrap}
   select,input[type=color],input[type=text]{background:#111;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px}
@@ -55,7 +58,7 @@
     <div id="hud">ลากพื้นหลัง = หมุนกล้อง · คลิกหุ่น/วัตถุ = เลือก แล้วลาก gizmo หรือใช้ slider · Scroll = ซูม · ปุ่ม W/E/R = ย้าย/หมุน/ขนาด</div>
     <div id="modes"><button data-m="translate">ย้าย (W)</button><button data-m="rotate" class="on">หมุน (E)</button><button data-m="scale">ขนาด (R)</button></div>
     <div id="sel">ยังไม่ได้เลือก</div>
-    <div id="inbox" style="display:none;position:absolute;left:50%;top:10px;transform:translateX(-50%);background:#263238;border:1px solid #64b5f6;color:#e3f2fd;padding:8px 12px;border-radius:8px;font-size:13px;max-width:70%;z-index:5"><span id="inboxTxt"></span> <button class="btn sm p" id="inboxLoad">โหลด</button><button class="btn sm" id="inboxClose">ปิด</button></div>
+    <div id="inbox"><span id="inboxTxt"></span> <button class="btn sm p" id="inboxLoad">โหลด</button><button class="btn sm" id="inboxClose">ปิด</button></div>
   </div>
   <div id="panel">
     <div id="tabs">
@@ -67,32 +70,35 @@
     </div>
 
     <div class="tab on" id="t-prompt">
-      <h3>สั่งด้วยข้อความ (ท่า / วัตถุ / กล้อง / แสง)</h3>
-      <textarea id="ptext" placeholder="เช่น: นั่งบนสตูล กีตาร์บนตัก เพิ่มแอมป์ด้านหลังซ้ายและโต๊ะไม้เตี้ยด้านขวา แสงหลักซ้ายบน close-up ครึ่งตัว"></textarea>
+      <h3>สั่งด้วยข้อความ (ท่า / ตัวละคร / วัตถุ / กล้อง / แสง)</h3>
+      <textarea id="ptext" placeholder="เช่น: 2 คน คนแรกยืนร้องเพลงหน้าไมค์ถือกีตาร์โปร่ง คนที่สองตีกลองแพดทางขวา ไฟเวทีอุ่น มุมกว้าง"></textarea>
       <div>
         <button class="btn p" id="pgo">ใช้ Claude</button>
         <button class="btn" id="plocal">offline (keyword)</button>
       </div>
       <div class="status" id="pstat"></div>
-      <div class="note">Claude ได้รับสถานะปัจจุบัน + schema แล้วตอบเป็น JSON — เพิ่มวัตถุใหม่ได้ไม่จำกัดชนิดโดยประกอบจากกล่อง/ทรงกระบอก/ทรงกลม ฯลฯ (ครั้งแรกจะมีหน้าต่างขออนุญาต)</div>
+      <div class="note">Claude ได้รับสถานะปัจจุบัน + schema แล้วตอบเป็น JSON — เพิ่มตัวละครหรือวัตถุใหม่ได้ (วัตถุนอก library ประกอบจาก primitive) ครั้งแรกจะมีหน้าต่างขออนุญาต</div>
       <h3>Presets</h3>
       <div class="chips" id="presets"></div>
       <h3>ตัวอย่างคำสั่ง</h3>
       <div class="chips">
         <span class="chip" data-ex="ยืนเดินสบายๆ กีตาร์สะพายหลัง หันตัวเล็กน้อย มองไปทางซ้าย แสงอุ่นจากซ้ายต่ำ full body มีผนังอิฐด้านหลัง">เดิน + กีตาร์หลัง</span>
         <span class="chip" data-ex="นั่งสตูล กีตาร์บนตักขวา มือซ้ายจับคอกีตาร์ มือขวาดีดสาย มองกล้อง แสง softbox ซ้ายบน">นั่งเล่นกีตาร์</span>
-        <span class="chip" data-ex="ยืนร้องเพลงหน้าไมค์ เงยหน้าเล็กน้อย กีตาร์สะพายหน้า เพิ่มแอมป์ด้านหลังขวา ไฟ spotlight จากบน มุมกล้องต่ำ ฉากมืด">ร้องหน้าไมค์ + แอมป์</span>
+        <span class="chip" data-ex="เพิ่มตัวละครคนที่สองยืนด้านขวาถอยหลังเล็กน้อย ตีกลองแพดด้วยไม้สองข้าง ก้มมองแพด">เพิ่มมือกลองแพด</span>
         <span class="chip" data-ex="เพิ่มโต๊ะไม้เตี้ยด้านขวาของหุ่น มีแก้วกาแฟบนโต๊ะ และเก้าอี้ไม้ด้านหลัง">เพิ่มวัตถุ (ต้องใช้ Claude)</span>
       </div>
     </div>
 
     <div class="tab" id="t-pose">
-      <h3>เลือกข้อต่อ</h3>
+      <h3>ตัวละคร</h3>
+      <div class="row"><select id="figsel"></select><button class="btn sm" id="figadd">+ เพิ่มหุ่น</button><button class="btn sm d" id="figdel">ลบ</button></div>
+      <div class="row"><label>ชื่อ</label><input type="text" id="figname"><span></span></div>
+      <h3>เลือกข้อต่อ (ของตัวละครที่เลือก)</h3>
       <div class="list" id="jbtns"></div>
       <div id="jsliders"></div>
       <h3>ลำตัว / ตำแหน่ง</h3>
       <div id="bodysliders"></div>
-      <div><button class="btn" id="mirror">สลับซ้าย-ขวา</button><button class="btn" id="reset">ท่าเริ่มต้น</button></div>
+      <div><button class="btn" id="mirror">สลับซ้าย-ขวา</button><button class="btn" id="reset">ท่าเริ่มต้น</button><button class="btn" id="figdup">ทำสำเนาหุ่น</button></div>
     </div>
 
     <div class="tab" id="t-objects">
@@ -128,7 +134,7 @@
       <button class="btn" id="loadj">Load JSON จากกล่องด้านล่าง</button>
       <textarea id="jtext" style="min-height:160px;font-family:ui-monospace,Menlo,monospace;font-size:11px"></textarea>
       <div class="status" id="estat"></div>
-      <div class="note">JSON รูปแบบเดียวกับ <code>tools/mannequin-pose/poses.js</code> (มี <code>objects</code> เพิ่ม) วางกลับใน poses.js แล้วรัน render.sh ได้</div>
+      <div class="note">JSON รูปแบบเดียวกับ <code>tools/mannequin-pose/poses.js</code> (มี <code>figures</code> + <code>objects</code>) บันทึกเป็น scenes/*.json แล้วรัน render-json.sh ได้</div>
     </div>
   </div>
 </div>
@@ -139,58 +145,73 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { LIBRARY, buildObject, applyTransform, legacyToObjects } from './objlib.js';
+import { buildMannequin, applyPoseTo, readBackJoint } from './mannequin-lib.js';
 
 const D = Math.PI/180, $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const r3 = v => Math.round(v*1000)/1000;
 
 // ---------- state ----------
+const BASE_POSE = { rootPos:[0,0.98,0], bodyYaw:0, spineLean:0, spineTwist:0, spineTilt:0, chestLean:0, chestTwist:0,
+    headPitch:0, headYaw:0, headTilt:0,
+    armL:{fwd:0,out:8,bend:5,twist:0}, armR:{fwd:0,out:8,bend:5,twist:0},
+    legL:{fwd:0,out:3,bend:0,twist:0,foot:0}, legR:{fwd:0,out:3,bend:0,twist:0,foot:0} };
 const DEFAULT = {
   title:'custom', notes:'', bg:0x2a2a2a, floor:0x3a3a3a,
   cam:{pos:[0.4,1.2,3.4], target:[0,0.95,0], fov:38},
   light:{keyPos:[-2.5,2.6,2.4], color:0xfff2e0, intensity:2.2, ambient:0.35, rimPos:[2.2,2.4,-2.2], rimColor:0x9fc0ff, rimIntensity:1.0},
   objects:[ {id:'guitar', name:'กีตาร์', kind:'guitar', pos:[0.02,0.95,0.26], rot:[-10,0,22], scale:1} ],
-  pose:{ rootPos:[0,0.98,0], bodyYaw:0, spineLean:0, spineTwist:0, spineTilt:0, chestLean:0, chestTwist:0,
-    headPitch:0, headYaw:0, headTilt:0,
-    armL:{fwd:0,out:8,bend:5,twist:0}, armR:{fwd:0,out:8,bend:5,twist:0},
-    legL:{fwd:0,out:3,bend:0,twist:0,foot:0}, legR:{fwd:0,out:3,bend:0,twist:0,foot:0} }
+  figures:[ {id:'fig-1', name:'หุ่น 1', pose: clone(BASE_POSE)} ]
 };
 const G = (pos,rot) => ({id:'guitar', name:'กีตาร์', kind:'guitar', pos, rot, scale:1});
+const F1 = pose => [{id:'fig-1', name:'หุ่น 1', pose}];
 const PRESETS = {
-  'T-pose': { objects:[], pose:{ armL:{fwd:0,out:90,bend:0}, armR:{fwd:0,out:90,bend:0} } },
+  'T-pose': { objects:[], figures:F1({ armL:{fwd:0,out:90,bend:0}, armR:{fwd:0,out:90,bend:0} }) },
   'A · street walk': { bg:0x6b4a3b, floor:0x4b4540,
     cam:{pos:[1.3,1.15,4.3], target:[0,0.92,0], fov:36},
     light:{keyPos:[-4,1.4,3], color:0xffc27a, intensity:2.6, ambient:0.35, rimPos:[3,2,-2], rimColor:0xffe0b0, rimIntensity:0.8},
     objects:[ G([0.14,1.08,-0.26],[0,180,55]), {id:'wall', name:'ผนัง', kind:'wall', pos:[0,0,-0.9], rot:[0,0,0], scale:1, color:0x7a4f3c} ],
-    pose:{ bodyYaw:20, spineLean:3, headYaw:-15, headPitch:2, armL:{fwd:38,bend:105,out:6}, armR:{fwd:-18,bend:12,out:8}, legL:{fwd:22,bend:8,foot:8}, legR:{fwd:-14,bend:28,foot:-20} } },
+    figures:F1({ bodyYaw:20, spineLean:3, headYaw:-15, headPitch:2, armL:{fwd:38,bend:105,out:6}, armR:{fwd:-18,bend:12,out:8}, legL:{fwd:22,bend:8,foot:8}, legR:{fwd:-14,bend:28,foot:-20} }) },
   'B · studio stool': { bg:0x1d1d1d, floor:0x1f1f1f,
     cam:{pos:[0.35,1.15,2.7], target:[0,0.95,0.1], fov:38},
     light:{keyPos:[-2.5,2.6,2.4], color:0xfff2e0, intensity:2.4, ambient:0.18, rimPos:[2.2,2.4,-2.2], rimColor:0x9fc0ff, rimIntensity:1.4},
     objects:[ G([-0.02,0.86,0.36],[-8,-10,32]), {id:'stool', name:'สตูล', kind:'stool', pos:[0,0,-0.02], rot:[0,0,0], scale:1} ],
-    pose:{ rootPos:[0,0.72,0.02], bodyYaw:-8, spineLean:4, headYaw:8, headPitch:4, armL:{fwd:30,out:58,bend:70}, armR:{fwd:30,out:12,bend:48,twist:55}, legL:{fwd:82,bend:92,out:10}, legR:{fwd:85,bend:88,out:14} } },
+    figures:F1({ rootPos:[0,0.72,0.02], bodyYaw:-8, spineLean:4, headYaw:8, headPitch:4, armL:{fwd:30,out:58,bend:70}, armR:{fwd:30,out:12,bend:48,twist:55}, legL:{fwd:82,bend:92,out:10}, legR:{fwd:85,bend:88,out:14} }) },
   'F · live stage': { bg:0x060606, floor:0x0d0d0d,
     cam:{pos:[-0.9,1.0,3.1], target:[0,1.25,0.05], fov:40},
     light:{keyPos:[0.6,4,2.2], color:0xfff4d6, intensity:0.6, ambient:0.08, rimPos:[-2.5,2.5,-2.5], rimColor:0xff5c3a, rimIntensity:1.6},
     objects:[ G([0.06,0.96,0.24],[-10,0,22]), {id:'mic', name:'ไมค์', kind:'mic', pos:[0.02,0,0.42], rot:[0,0,0], scale:1}, {id:'spot', name:'สปอตไลท์', kind:'spot', pos:[0.5,4.2,2.0], target:[0,1.2,0], intensity:60} ],
-    pose:{ bodyYaw:-5, spineLean:6, headPitch:-6, headYaw:3, headTilt:-4, armL:{fwd:26,out:52,bend:72}, armR:{fwd:28,out:10,bend:50,twist:55}, legL:{out:9,fwd:4}, legR:{out:9,fwd:-4,bend:4} } },
+    figures:F1({ bodyYaw:-5, spineLean:6, headPitch:-6, headYaw:3, headTilt:-4, armL:{fwd:26,out:52,bend:72}, armR:{fwd:28,out:10,bend:50,twist:55}, legL:{out:9,fwd:4}, legR:{out:9,fwd:-4,bend:4} }) },
   'G · close-up': { bg:0xd9d9d9, floor:0xcfcfcf,
     cam:{pos:[0.3,1.6,2.0], target:[0,1.45,0.1], fov:34},
     light:{keyPos:[-2,3,2.2], color:0xffffff, intensity:2.0, ambient:0.95, rimPos:[2,2.5,-1.5], rimColor:0xffffff, rimIntensity:0.6},
     objects:[ G([-0.02,1.0,0.34],[-12,-6,68]) ],
-    pose:{ bodyYaw:-6, spineLean:3, headYaw:16, headTilt:5, headPitch:3, armL:{fwd:62,out:22,bend:110}, armR:{fwd:34,out:8,bend:55,twist:60} } }
+    figures:F1({ bodyYaw:-6, spineLean:3, headYaw:16, headTilt:5, headPitch:3, armL:{fwd:62,out:22,bend:110}, armR:{fwd:34,out:8,bend:55,twist:60} }) },
+  'Duo · guitar + drum pad': { bg:0x060606, floor:0x0d0d0d,
+    cam:{pos:[0.25,1.35,4.7], target:[0.15,1.0,0], fov:42},
+    light:{keyPos:[-3,3.2,2.5], color:0xfff6d6, intensity:1.4, ambient:0.14, rimPos:[2.5,2.6,-2.8], rimColor:0xff5c3a, rimIntensity:1.8},
+    objects:[ G([-0.42,1.0,0.38],[-10,8,15]), {id:'mic', name:'ไมค์', kind:'mic', pos:[-0.47,0,0.55], rot:[0,0,0], scale:1}, {id:'drumpad', name:'กลองแพด', kind:'drumpad', pos:[0.78,0,0.12], rot:[0,-22,0], scale:1}, {id:'amp-1', name:'แอมป์', kind:'amp', pos:[1.5,0,-1.0], rot:[0,-30,0], scale:1}, {id:'spot', name:'สปอตไลท์', kind:'spot', pos:[0.2,4.2,2.2], target:[0.15,1.2,0], intensity:70} ],
+    figures:[ {id:'fig-1', name:'มือกีตาร์ (ร้อง)', pose:{ rootPos:[-0.45,0.98,0.1], bodyYaw:8, spineLean:5, headPitch:-8, headYaw:-4, headTilt:-3, armL:{fwd:26,out:54,bend:72}, armR:{fwd:30,out:10,bend:50,twist:55}, legL:{out:9,fwd:3}, legR:{out:9,fwd:-3,bend:4} }},
+              {id:'fig-2', name:'มือกลองแพด', pose:{ rootPos:[0.8,0.98,-0.3], bodyYaw:-22, spineLean:10, headPitch:18, headYaw:6, armL:{fwd:62,out:18,bend:95,twist:10}, armR:{fwd:88,out:14,bend:60,twist:10}, legL:{out:10,fwd:2}, legR:{out:10,fwd:-2,bend:3} }} ] },
 };
 let S = clone(DEFAULT);
 function merge(base, over){ const o = clone(base);
   for (const k in over){ const v = over[k];
     if (v && typeof v==='object' && !Array.isArray(v) && o[k] && typeof o[k]==='object' && !Array.isArray(o[k])) o[k] = merge(o[k], v); else o[k] = clone(v); }
   return o; }
-function normalize(o){ // accept legacy harness JSON (guitar/props/wall) and fill ids
+function normalize(o){ // accept legacy JSON (pose / guitar / props / wall) and fill ids
   const n = merge(DEFAULT, o);
   if (!o.objects) n.objects = (o.guitar || o.props || o.wall) ? legacyToObjects(o) : clone(DEFAULT.objects);
   n.objects = (n.objects||[]).map((ob,i)=>({ id: ob.id || (ob.kind||'obj')+'-'+(i+1), name: ob.name || (LIBRARY[ob.kind]?.th || ob.kind || 'วัตถุ'), kind: ob.kind||'custom', pos: ob.pos||[0,0,0], rot: ob.rot||[0,0,0], scale: ob.scale ?? 1, ...ob }));
-  delete n.guitar; delete n.props; delete n.wall; return n;
+  if (!o.figures) n.figures = [{id:'fig-1', name:'หุ่น 1', pose: merge(BASE_POSE, o.pose || {})}];
+  n.figures = n.figures.map((f,i)=>({ id: f.id || 'fig-'+(i+1), name: f.name || ('หุ่น '+(i+1)), pose: merge(BASE_POSE, f.pose || {}) }));
+  if (!n.figures.length) n.figures = [{id:'fig-1', name:'หุ่น 1', pose: clone(BASE_POSE)}];
+  delete n.guitar; delete n.props; delete n.wall; delete n.pose; return n;
 }
-function applyPreset(p){ S = normalize(p); syncAll(); }
+let activeFig = 'fig-1';
+const figOf = id => S.figures.find(f=>f.id===id);
+const activePose = () => (figOf(activeFig) || S.figures[0]).pose;
+function applyPreset(p){ S = normalize(p); activeFig = S.figures[0].id; syncAll(); }
 
 // ---------- renderer / scene ----------
 const stage = $('#stage');
@@ -208,43 +229,19 @@ const floor = new THREE.Mesh(new THREE.PlaneGeometry(16,16), new THREE.MeshStand
 floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
 const grid = new THREE.GridHelper(6, 12, 0x555555, 0x333333); grid.position.y = 0.002; scene.add(grid);
 const spot = new THREE.SpotLight(0xffffff, 0, 8, 0.45, 0.6, 1.2); spot.castShadow = true; scene.add(spot, spot.target);
-
-const wood = new THREE.MeshStandardMaterial({color:0xc9a06a, roughness:0.75});
-const jointM = new THREE.MeshStandardMaterial({color:0x8c6a3f, roughness:0.6});
 const selM = new THREE.MeshStandardMaterial({color:0xffb74d, emissive:0x663300, roughness:0.5});
-const dark = new THREE.MeshStandardMaterial({color:0x2b1a10, roughness:0.5});
 const sh = m => { m.castShadow = m.receiveShadow = true; return m; };
 
-// ---------- mannequin ----------
-const J = {}; const pickables = [];
-function mkJoint(name, kind, side, r){ const g = new THREE.Group(); const b = sh(new THREE.Mesh(new THREE.SphereGeometry(r,20,14), jointM)); b.userData.joint = name; g.add(b); pickables.push(b); J[name] = {g, kind, side, ball:b}; return g; }
-function limbMesh(len, r, name){ const m = sh(new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(len-2*r,0.01), 6, 16), wood)); m.position.y = -len/2; m.userData.joint = name; pickables.push(m); return m; }
-const root = new THREE.Group(); scene.add(root);
-const pelvis = sh(new THREE.Mesh(new THREE.SphereGeometry(1,24,16), wood)); pelvis.scale.set(0.17,0.11,0.12); pelvis.userData.joint='spine'; pickables.push(pelvis); root.add(pelvis);
-const spine = mkJoint('spine','spine',0,0.05); spine.position.y = 0.08; root.add(spine);
-const lowerM = sh(new THREE.Mesh(new THREE.SphereGeometry(1,24,16), wood)); lowerM.scale.set(0.15,0.11,0.11); lowerM.position.y=0.11; lowerM.userData.joint='spine'; pickables.push(lowerM); spine.add(lowerM);
-const chest = mkJoint('chest','spine',0,0.05); chest.position.y = 0.22; spine.add(chest);
-const chestM = sh(new THREE.Mesh(new THREE.SphereGeometry(1,24,16), wood)); chestM.scale.set(0.19,0.15,0.13); chestM.position.y=0.15; chestM.userData.joint='chest'; pickables.push(chestM); chest.add(chestM);
-const neckG = new THREE.Group(); neckG.position.y = 0.30; chest.add(neckG);
-const neckM = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.09,16), wood)); neckM.position.y=0.045; neckG.add(neckM);
-const head = mkJoint('head','head',0,0.03); head.position.y = 0.09; neckG.add(head);
-const headM = sh(new THREE.Mesh(new THREE.SphereGeometry(1,32,24), wood)); headM.scale.set(0.095,0.12,0.105); headM.position.y=0.12; headM.userData.joint='head'; pickables.push(headM); head.add(headM);
-const nose = sh(new THREE.Mesh(new THREE.ConeGeometry(0.018,0.04,12), jointM)); nose.rotation.x=Math.PI/2; nose.position.set(0,0.11,0.105); head.add(nose);
-for (const sx of [-0.035,0.035]){ const e = new THREE.Mesh(new THREE.SphereGeometry(0.012,10,8), dark); e.position.set(sx,0.14,0.095); head.add(e); }
-function buildArm(side, L){ const sh0 = new THREE.Group(); sh0.position.set(side*0.21, 0.27, 0); chest.add(sh0);
-  const up = mkJoint('arm'+L,'arm',side,0.05); up.add(limbMesh(0.30,0.045,'arm'+L)); sh0.add(up);
-  const fo = mkJoint('fore'+L,'fore',side,0.045); fo.position.y=-0.30; fo.add(limbMesh(0.27,0.04,'fore'+L)); up.add(fo);
-  const hand = sh(new THREE.Mesh(new THREE.SphereGeometry(1,16,12), jointM)); hand.scale.set(0.04,0.07,0.025); hand.position.y=-0.33; hand.userData.joint='fore'+L; pickables.push(hand); fo.add(hand); }
-buildArm(+1,'L'); buildArm(-1,'R');
-function buildLeg(side, L){ const hip = new THREE.Group(); hip.position.set(side*0.10,-0.05,0); root.add(hip);
-  const th = mkJoint('leg'+L,'leg',side,0.07); th.add(limbMesh(0.43,0.065,'leg'+L)); hip.add(th);
-  const sn = mkJoint('shin'+L,'shin',side,0.055); sn.position.y=-0.43; sn.add(limbMesh(0.42,0.05,'shin'+L)); th.add(sn);
-  const ft = sh(new THREE.Mesh(new THREE.BoxGeometry(0.08,0.05,0.25), jointM)); ft.position.set(0,-0.445,0.08); ft.userData.joint='shin'+L; pickables.push(ft); sn.add(ft); J['shin'+L].foot = ft; }
-buildLeg(+1,'L'); buildLeg(-1,'R');
+// ---------- figures ----------
+const FIGS = new Map(); // id -> mannequin {root,J,pickables,mats}
+function rebuildFigures(){
+  for (const mq of FIGS.values()) scene.remove(mq.root); FIGS.clear();
+  for (const f of S.figures){ const mq = buildMannequin(THREE, sh); mq.root.traverse(m => { m.userData.fig = f.id; }); applyPoseTo(mq, f.pose); scene.add(mq.root); FIGS.set(f.id, mq); }
+}
+function applyPoses(){ for (const f of S.figures){ const mq = FIGS.get(f.id); if (mq) applyPoseTo(mq, f.pose); } }
 
 // ---------- objects ----------
-const objGroups = new Map(); // id -> group
-const objPick = [];
+const objGroups = new Map(); const objPick = [];
 function rebuildObjects(){
   for (const g of objGroups.values()) scene.remove(g); objGroups.clear(); objPick.length = 0;
   let sp = null;
@@ -256,40 +253,12 @@ function rebuildObjects(){
   }
   spot.intensity = sp ? (sp.intensity||40) : 0; if (sp){ spot.position.set(...sp.pos); spot.target.position.set(...(sp.target||[0,1.2,0])); }
 }
-
-// ---------- apply state -> scene ----------
-const setRot = (o,x,y,z,order) => { o.rotation.order = order; o.rotation.set(x*D,y*D,z*D); };
-function applyPose(){
-  const p = S.pose;
-  root.position.set(...(p.rootPos||[0,0.98,0])); setRot(root,0,p.bodyYaw||0,0,'YXZ');
-  setRot(spine, p.spineLean||0, p.spineTwist||0, p.spineTilt||0, 'YXZ');
-  setRot(chest, p.chestLean||0, p.chestTwist||0, 0, 'YXZ');
-  setRot(head, p.headPitch||0, p.headYaw||0, p.headTilt||0, 'YXZ');
-  for (const [L,side] of [['L',1],['R',-1]]){
-    const a = p['arm'+L]||{}, l = p['leg'+L]||{};
-    setRot(J['arm'+L].g, -(a.fwd||0), a.twist||0, side*(a.out||0), 'ZXY');
-    setRot(J['fore'+L].g, -(a.bend||0), a.foreTwist||0, 0, 'YXZ');
-    setRot(J['leg'+L].g, -(l.fwd||0), l.twist||0, side*(l.out||0), 'ZXY');
-    setRot(J['shin'+L].g, l.bend||0, 0, 0, 'YXZ');
-    J['shin'+L].foot.rotation.x = -(l.foot||0)*D;
-  }
-}
-function readBackJoint(name){
-  const j = J[name], r = j.g.rotation, L = name.slice(-1), side = j.side, p = S.pose, R = v=>Math.round(v/D);
-  if (j.kind==='arm'){ const a = p['arm'+L] = p['arm'+L]||{}; a.fwd = -R(r.x); a.twist = R(r.y); a.out = side*R(r.z); }
-  else if (j.kind==='fore'){ const a = p['arm'+L] = p['arm'+L]||{}; a.bend = -R(r.x); a.foreTwist = R(r.y); }
-  else if (j.kind==='leg'){ const l = p['leg'+L] = p['leg'+L]||{}; l.fwd = -R(r.x); l.twist = R(r.y); l.out = side*R(r.z); }
-  else if (j.kind==='shin'){ const l = p['leg'+L] = p['leg'+L]||{}; l.bend = R(r.x); }
-  else if (name==='head'){ p.headPitch=R(r.x); p.headYaw=R(r.y); p.headTilt=R(r.z); }
-  else if (name==='spine'){ p.spineLean=R(r.x); p.spineTwist=R(r.y); p.spineTilt=R(r.z); }
-  else if (name==='chest'){ p.chestLean=R(r.x); p.chestTwist=R(r.y); }
-}
 function readBackObject(id){
-  if (id==='figure'){ S.pose.rootPos = root.position.toArray().map(r3); S.pose.bodyYaw = Math.round(root.rotation.y/D); return; }
   const ob = S.objects.find(o=>o.id===id), g = objGroups.get(id); if (!ob||!g) return;
   ob.pos = g.position.toArray().map(r3); ob.rot = [g.rotation.x,g.rotation.y,g.rotation.z].map(v=>Math.round(v/D));
   const s = g.scale.toArray().map(r3); ob.scale = (Math.abs(s[0]-s[1])<1e-3 && Math.abs(s[1]-s[2])<1e-3) ? s[0] : s;
 }
+function readBackFigure(id){ const mq = FIGS.get(id), f = figOf(id); if (!mq||!f) return; f.pose.rootPos = mq.root.position.toArray().map(r3); f.pose.bodyYaw = Math.round(mq.root.rotation.y/D); }
 function applyScene(){
   scene.background = new THREE.Color(S.bg); floor.material.color.set(S.floor);
   key.position.set(...S.light.keyPos); key.color.set(S.light.color); key.intensity = S.light.intensity; hemi.intensity = S.light.ambient;
@@ -297,24 +266,29 @@ function applyScene(){
   cam.fov = S.cam.fov; cam.updateProjectionMatrix();
 }
 function applyCamera(){ cam.position.set(...S.cam.pos); orbit.target.set(...S.cam.target); orbit.update(); }
-function syncAll(){ select(null); rebuildObjects(); applyPose(); applyScene(); applyCamera(); buildPanels(); setJSON(); }
+function syncAll(){ select(null); if (!figOf(activeFig)) activeFig = S.figures[0].id; rebuildFigures(); rebuildObjects(); applyScene(); applyCamera(); buildPanels(); setJSON(); }
 orbit.addEventListener('change', ()=>{ S.cam.pos = cam.position.toArray().map(r3); S.cam.target = orbit.target.toArray().map(r3); });
 
 // ---------- selection + gizmo ----------
 const gizmo = new TransformControls(cam, renderer.domElement); gizmo.setMode('rotate'); gizmo.setSize(0.75); scene.add(gizmo.getHelper ? gizmo.getHelper() : gizmo);
 gizmo.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; });
-gizmo.addEventListener('objectChange', ()=>{ if (!sel) return; if (sel.type==='joint'){ readBackJoint(sel.id); buildJointSliders(); } else { readBackObject(sel.id); buildObjSliders(); } setJSON(); });
-let sel = null; // {type:'joint'|'obj'|'figure', id}
-function setMode(m){ if (sel && sel.type==='joint' && m!=='rotate') m='rotate'; gizmo.setMode(m); document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on', b.dataset.m===m)); }
+gizmo.addEventListener('objectChange', ()=>{ if (!sel) return;
+  if (sel.type==='joint'){ readBackJoint(FIGS.get(sel.fig), sel.id, figOf(sel.fig).pose); buildJointSliders(); }
+  else if (sel.type==='figure'){ readBackFigure(sel.id); buildObjSliders(); }
+  else { readBackObject(sel.id); buildObjSliders(); }
+  setJSON(); });
+let sel = null; // {type:'joint', fig, id} | {type:'figure', id} | {type:'obj', id}
+function setMode(m){ if (sel && sel.type==='joint' && m!=='rotate') m='rotate'; if (sel && sel.type==='figure' && m==='scale') m='translate'; gizmo.setMode(m); document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on', b.dataset.m===m)); }
 document.querySelectorAll('#modes button').forEach(b => b.onclick = ()=>setMode(b.dataset.m));
 addEventListener('keydown', e => { if (e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT') return; if (e.key==='w') setMode('translate'); if (e.key==='e') setMode('rotate'); if (e.key==='r') setMode('scale'); if (e.key==='Escape') select(null); if ((e.key==='Delete'||e.key==='Backspace') && sel && sel.type==='obj') removeObject(sel.id); });
 function select(s){
-  if (sel && sel.type==='joint' && J[sel.id]) J[sel.id].ball.material = jointM;
+  if (sel && sel.type==='joint'){ const mq = FIGS.get(sel.fig); if (mq && mq.J[sel.id]) mq.J[sel.id].ball.material = mq.mats.jointM; }
   sel = s;
   if (!s){ gizmo.detach(); $('#sel').textContent = 'ยังไม่ได้เลือก'; }
-  else if (s.type==='joint'){ J[s.id].ball.material = selM; gizmo.attach(J[s.id].g); setMode('rotate'); $('#sel').textContent = 'ข้อต่อ: ' + LABEL[s.id]; }
-  else if (s.type==='figure'){ gizmo.attach(root); if (gizmo.mode==='scale') setMode('translate'); $('#sel').textContent = 'หุ่น (ย้าย/หมุนทั้งตัว)'; }
+  else if (s.type==='joint'){ const mq = FIGS.get(s.fig); if (!mq){ sel=null; return; } activeFig = s.fig; mq.J[s.id].ball.material = selM; gizmo.attach(mq.J[s.id].g); setMode('rotate'); $('#sel').textContent = (figOf(s.fig)?.name||s.fig) + ' › ' + LABEL[s.id]; }
+  else if (s.type==='figure'){ const mq = FIGS.get(s.id); if (!mq){ sel=null; return; } activeFig = s.id; gizmo.attach(mq.root); if (gizmo.mode==='scale') setMode('translate'); $('#sel').textContent = 'ตัวละคร: ' + (figOf(s.id)?.name||s.id) + ' (ย้าย/หมุนทั้งตัว)'; }
   else { const g = objGroups.get(s.id); if (!g){ sel=null; gizmo.detach(); return; } gizmo.attach(g); $('#sel').textContent = 'วัตถุ: ' + (S.objects.find(o=>o.id===s.id)?.name||s.id); }
+  $('#figsel').value = activeFig; $('#figname').value = figOf(activeFig)?.name || '';
   document.querySelectorAll('#jbtns button').forEach(b=>b.classList.toggle('on', !!sel && sel.type==='joint' && b.dataset.j===sel.id));
   document.querySelectorAll('#obtns button').forEach(b=>b.classList.toggle('on', !!sel && sel.type!=='joint' && b.dataset.o===sel.id));
   buildJointSliders(); buildObjSliders();
@@ -326,16 +300,20 @@ renderer.domElement.addEventListener('pointerup', e => {
   const r = renderer.domElement.getBoundingClientRect();
   mouse.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(mouse, cam);
-  const hit = ray.intersectObjects([...pickables, ...objPick], false)[0];
+  const figPick = []; for (const mq of FIGS.values()) figPick.push(...mq.pickables);
+  const hit = ray.intersectObjects([...figPick, ...objPick], false)[0];
   if (!hit) return select(null);
-  if (hit.object.userData.joint) select({type:'joint', id:hit.object.userData.joint}); else if (hit.object.userData.obj) select({type:'obj', id:hit.object.userData.obj});
+  if (hit.object.userData.joint) select({type:'joint', fig:hit.object.userData.fig, id:hit.object.userData.joint}); else if (hit.object.userData.obj) select({type:'obj', id:hit.object.userData.obj});
 });
 
-// ---------- object edits ----------
+// ---------- object / figure edits ----------
 function uid(kind){ let i=1; while (S.objects.some(o=>o.id===kind+'-'+i)) i++; return kind+'-'+i; }
 function addObject(kind, extra={}){ const id = uid(kind); const ob = { id, name:(LIBRARY[kind]?.th||kind), kind, pos:[0.9,0,0], rot:[0,0,0], scale:1, ...extra }; if (kind==='spot'){ ob.pos=[0.5,4,2]; ob.target=[0,1.2,0]; ob.intensity=60; } if (kind==='wall'){ ob.pos=[0,0,-0.9]; } S.objects.push(ob); rebuildObjects(); buildPanels(); setJSON(); select({type:'obj', id}); return id; }
 function removeObject(id){ S.objects = S.objects.filter(o=>o.id!==id); select(null); rebuildObjects(); buildPanels(); setJSON(); }
 function duplicateObject(id){ const ob = S.objects.find(o=>o.id===id); if(!ob) return; const c = clone(ob); c.id = uid(ob.kind); c.pos = [ob.pos[0]+0.4, ob.pos[1], ob.pos[2]]; S.objects.push(c); rebuildObjects(); buildPanels(); setJSON(); select({type:'obj', id:c.id}); }
+function fuid(){ let i=1; while (S.figures.some(f=>f.id==='fig-'+i)) i++; return 'fig-'+i; }
+function addFigure(pose, name){ const id = fuid(); const p = merge(BASE_POSE, pose||{}); if (!pose || !pose.rootPos) p.rootPos = [0.9*S.figures.length, 0.98, 0]; S.figures.push({id, name: name || ('หุ่น '+id.slice(4)), pose:p}); activeFig = id; rebuildFigures(); buildPanels(); setJSON(); select({type:'figure', id}); return id; }
+function removeFigure(id){ if (S.figures.length<=1) return; S.figures = S.figures.filter(f=>f.id!==id); activeFig = S.figures[0].id; select(null); rebuildFigures(); buildPanels(); setJSON(); }
 
 // ---------- panels ----------
 const LABEL = {head:'หัว',spine:'เอว/สันหลัง',chest:'อก',armL:'แขนซ้าย',foreL:'ปลายแขนซ้าย',armR:'แขนขวา',foreR:'ปลายแขนขวา',legL:'ขาซ้าย',shinL:'หน้าแข้งซ้าย',legR:'ขาขวา',shinR:'หน้าแข้งขวา'};
@@ -353,25 +331,26 @@ function slider(host, label, min, max, step, get, set, after){
   row.innerHTML = `<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}"><output></output>`;
   const inp = row.querySelector('input'), out = row.querySelector('output');
   const v = get(); inp.value = v; out.value = (+v).toFixed(step<1?2:0);
-  inp.oninput = ()=>{ set(+inp.value); out.value=(+inp.value).toFixed(step<1?2:0); (after||(()=>{ applyPose(); applyScene(); }))(); setJSON(); };
+  inp.oninput = ()=>{ set(+inp.value); out.value=(+inp.value).toFixed(step<1?2:0); (after||(()=>{ applyPoses(); applyScene(); }))(); setJSON(); };
   host.appendChild(row);
 }
 function buildJointSliders(){
   const host = $('#jsliders'); host.innerHTML='';
   if (!sel || sel.type!=='joint') { host.innerHTML='<div class="note">คลิกข้อต่อบนหุ่น หรือกดปุ่มด้านบน</div>'; return; }
-  const name = sel.id, j = J[name];
+  const name = sel.id, mq = FIGS.get(sel.fig), j = mq.J[name], P = figOf(sel.fig).pose;
   if (['arm','fore','leg','shin'].includes(j.kind)){
-    const grp = (j.kind==='arm'||j.kind==='fore') ? 'arm'+name.slice(-1) : 'leg'+name.slice(-1); S.pose[grp] = S.pose[grp]||{};
-    for (const [k,lab,mn,mx] of JOINT_PARAMS[j.kind]) slider(host, lab, mn, mx, 1, ()=>S.pose[grp][k]||0, v=>S.pose[grp][k]=v);
-  } else for (const [k,lab,mn,mx] of JOINT_PARAMS[name]) slider(host, lab, mn, mx, 1, ()=>S.pose[k]||0, v=>S.pose[k]=v);
+    const grp = (j.kind==='arm'||j.kind==='fore') ? 'arm'+name.slice(-1) : 'leg'+name.slice(-1); P[grp] = P[grp]||{};
+    for (const [k,lab,mn,mx] of JOINT_PARAMS[j.kind]) slider(host, lab, mn, mx, 1, ()=>P[grp][k]||0, v=>P[grp][k]=v);
+  } else for (const [k,lab,mn,mx] of JOINT_PARAMS[name]) slider(host, lab, mn, mx, 1, ()=>P[k]||0, v=>P[k]=v);
 }
 function buildObjSliders(){
   const host = $('#osliders'), act = $('#oactions'); host.innerHTML=''; act.innerHTML='';
-  if (!sel || sel.type==='joint'){ host.innerHTML='<div class="note">เลือกวัตถุจากปุ่มด้านบน หรือคลิกในฉาก แล้วลาก gizmo (W ย้าย / E หมุน / R ขนาด)</div>'; return; }
+  if (!sel || sel.type==='joint'){ host.innerHTML='<div class="note">เลือกตัวละครหรือวัตถุจากปุ่มด้านบน หรือคลิกในฉาก แล้วลาก gizmo (W ย้าย / E หมุน / R ขนาด)</div>'; return; }
   if (sel.type==='figure'){
-    const rp = ()=>{ S.pose.rootPos=S.pose.rootPos||[0,0.98,0]; return S.pose.rootPos; };
-    ['x','y','z'].forEach((a,i)=>slider(host,'ตำแหน่ง '+a,-2,2.5,0.01,()=>rp()[i],v=>rp()[i]=v,()=>applyPose()));
-    slider(host,'หมุนตัว',-180,180,1,()=>S.pose.bodyYaw||0,v=>S.pose.bodyYaw=v,()=>applyPose());
+    const P = figOf(sel.id).pose; const rp = ()=>{ P.rootPos=P.rootPos||[0,0.98,0]; return P.rootPos; };
+    ['x','y','z'].forEach((a,i)=>slider(host,'ตำแหน่ง '+a,-2.5,2.5,0.01,()=>rp()[i],v=>rp()[i]=v,()=>applyPoses()));
+    slider(host,'หมุนตัว',-180,180,1,()=>P.bodyYaw||0,v=>P.bodyYaw=v,()=>applyPoses());
+    const del=document.createElement('button'); del.className='btn sm d'; del.textContent='ลบตัวละคร'; del.onclick=()=>removeFigure(sel.id); act.append(del);
     return;
   }
   const ob = S.objects.find(o=>o.id===sel.id); if (!ob) return;
@@ -391,16 +370,20 @@ function buildObjSliders(){
 }
 function buildObjButtons(){
   const ob = $('#obtns'); ob.innerHTML='';
-  const fb=document.createElement('button'); fb.textContent='หุ่น'; fb.dataset.o='figure'; fb.onclick=()=>select({type:'figure',id:'figure'}); ob.appendChild(fb);
+  for (const f of S.figures){ const b=document.createElement('button'); b.className='fig'; b.textContent=f.name; b.dataset.o=f.id; b.onclick=()=>select({type:'figure',id:f.id}); ob.appendChild(b); }
   for (const o of S.objects){ const b=document.createElement('button'); b.textContent=o.name; b.dataset.o=o.id; b.title=o.id; b.onclick=()=>select({type:'obj',id:o.id}); ob.appendChild(b); }
   document.querySelectorAll('#obtns button').forEach(b=>b.classList.toggle('on', !!sel && sel.type!=='joint' && b.dataset.o===sel.id));
 }
+function buildFigSelect(){ const s = $('#figsel'); s.innerHTML=''; for (const f of S.figures){ const o=document.createElement('option'); o.value=f.id; o.textContent=f.name; s.appendChild(o); } s.value = activeFig; $('#figname').value = figOf(activeFig)?.name || ''; }
 function buildPanels(){
+  buildFigSelect();
   const jb = $('#jbtns'); jb.innerHTML='';
-  for (const n of Object.keys(LABEL)){ const b=document.createElement('button'); b.textContent=LABEL[n]; b.dataset.j=n; b.onclick=()=>select({type:'joint',id:n}); jb.appendChild(b); }
+  for (const n of Object.keys(LABEL)){ const b=document.createElement('button'); b.textContent=LABEL[n]; b.dataset.j=n; b.onclick=()=>select({type:'joint',fig:activeFig,id:n}); jb.appendChild(b); }
   const bs = $('#bodysliders'); bs.innerHTML='';
-  slider(bs,'หมุนตัว',-180,180,1,()=>S.pose.bodyYaw||0,v=>S.pose.bodyYaw=v);
-  slider(bs,'สูง (y)',0.3,1.2,0.01,()=>(S.pose.rootPos||[0,0.98,0])[1],v=>{S.pose.rootPos=S.pose.rootPos||[0,0.98,0];S.pose.rootPos[1]=v;});
+  slider(bs,'หมุนตัว',-180,180,1,()=>activePose().bodyYaw||0,v=>activePose().bodyYaw=v);
+  slider(bs,'สูง (y)',0.3,1.2,0.01,()=>(activePose().rootPos||[0,0.98,0])[1],v=>{const P=activePose(); P.rootPos=P.rootPos||[0,0.98,0]; P.rootPos[1]=v;});
+  slider(bs,'ซ้าย-ขวา (x)',-2.5,2.5,0.01,()=>(activePose().rootPos||[0,0.98,0])[0],v=>{const P=activePose(); P.rootPos=P.rootPos||[0,0.98,0]; P.rootPos[0]=v;});
+  slider(bs,'หน้า-หลัง (z)',-2.5,2.5,0.01,()=>(activePose().rootPos||[0,0.98,0])[2],v=>{const P=activePose(); P.rootPos=P.rootPos||[0,0.98,0]; P.rootPos[2]=v;});
   buildObjButtons();
   const sel0 = $('#oadd'); sel0.innerHTML=''; for (const k in LIBRARY){ const o=document.createElement('option'); o.value=k; o.textContent=LIBRARY[k].th+' ('+k+')'; sel0.appendChild(o); }
   const cs = $('#camsliders'); cs.innerHTML=''; slider(cs,'FOV',20,70,1,()=>S.cam.fov,v=>S.cam.fov=v);
@@ -412,48 +395,57 @@ function buildPanels(){
   const pr = $('#presets'); pr.innerHTML=''; for (const n in PRESETS){ const c=document.createElement('span'); c.className='chip'; c.textContent=n; c.onclick=()=>applyPreset(PRESETS[n]); pr.appendChild(c); }
   buildJointSliders(); buildObjSliders();
 }
+$('#figsel').onchange = e => { activeFig = e.target.value; select({type:'figure', id:activeFig}); buildPanels(); };
+$('#figname').oninput = e => { const f = figOf(activeFig); if (f){ f.name = e.target.value; buildFigSelect(); buildObjButtons(); setJSON(); } };
+$('#figadd').onclick = ()=>addFigure();
+$('#figdel').onclick = ()=>removeFigure(activeFig);
+$('#figdup').onclick = ()=>{ const f = figOf(activeFig); if (!f) return; const p = clone(f.pose); p.rootPos = [(p.rootPos||[0,0.98,0])[0]+0.9, (p.rootPos||[0,0.98,0])[1], (p.rootPos||[0,0.98,0])[2]]; addFigure(p, f.name+' (สำเนา)'); };
 $('#oaddbtn').onclick = ()=>{ addObject($('#oadd').value); document.querySelector('[data-t="objects"]').click(); };
 $('#lcolor').oninput = e => { S.light.color = parseInt(e.target.value.slice(1),16); applyScene(); setJSON(); };
 $('#bgcolor').oninput = e => { S.bg = parseInt(e.target.value.slice(1),16); applyScene(); setJSON(); };
 $('#flcolor').oninput = e => { S.floor = parseInt(e.target.value.slice(1),16); applyScene(); setJSON(); };
-$('#reset').onclick = ()=>{ S.pose = clone(DEFAULT.pose); applyPose(); buildPanels(); setJSON(); };
-$('#mirror').onclick = ()=>{ const p=S.pose; [p.armL,p.armR]=[p.armR,p.armL]; [p.legL,p.legR]=[p.legR,p.legL]; p.headYaw=-(p.headYaw||0); p.headTilt=-(p.headTilt||0); p.spineTwist=-(p.spineTwist||0); p.spineTilt=-(p.spineTilt||0); p.bodyYaw=-(p.bodyYaw||0); applyPose(); buildPanels(); setJSON(); };
+$('#reset').onclick = ()=>{ const f = figOf(activeFig); if (!f) return; const keep = f.pose.rootPos; f.pose = clone(BASE_POSE); f.pose.rootPos = keep; applyPoses(); buildPanels(); setJSON(); };
+$('#mirror').onclick = ()=>{ const p=activePose(); [p.armL,p.armR]=[p.armR,p.armL]; [p.legL,p.legR]=[p.legR,p.legL]; p.headYaw=-(p.headYaw||0); p.headTilt=-(p.headTilt||0); p.spineTwist=-(p.spineTwist||0); p.spineTilt=-(p.spineTilt||0); p.bodyYaw=-(p.bodyYaw||0); applyPoses(); buildPanels(); setJSON(); };
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = ()=>{ document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', t.id==='t-'+b.dataset.t)); });
 document.querySelectorAll('.chip[data-ex]').forEach(c => c.onclick = ()=>{ $('#ptext').value = c.dataset.ex; });
 
 // ---------- export ----------
 function exportState(){ const o = clone(S);
-  // legacy fields so the headless harness (poses.js / mannequin.html) can render it too
+  o.pose = clone(o.figures[0].pose); // legacy field for single-figure consumers
   const g = o.objects.find(x=>x.kind==='guitar'); o.guitar = g ? {mode: g.pos[2]<0?'back':'front', pos:g.pos, rot:g.rot} : {mode:'none'};
   o.props = o.objects.filter(x=>x.kind==='spot').map(x=>({type:'spot',pos:x.pos,target:x.target,intensity:x.intensity}));
   const w = o.objects.find(x=>x.kind==='wall'); o.wall = w ? {z:w.pos[2], color:w.color||0x7a4f3c} : null;
   return o; }
 function setJSON(){ $('#jtext').value = JSON.stringify(exportState(), null, 1).replace(/\n\s+(\-?[\d.]+),?/g, m=>m.trim()).replace(/\[\s*/g,'[').replace(/\s*\]/g,']'); }
 $('#copyj').onclick = async ()=>{ try{ await navigator.clipboard.writeText($('#jtext').value); $('#estat').textContent='คัดลอกแล้ว'; }catch(e){ $('#estat').textContent='คัดลอกอัตโนมัติไม่ได้ — เลือกข้อความในกล่องแล้ว copy เอง'; } };
-$('#loadj').onclick = ()=>{ try{ S = normalize(JSON.parse($('#jtext').value)); syncAll(); $('#estat').textContent='โหลดฉากแล้ว'; }catch(e){ $('#estat').textContent='JSON ไม่ถูกต้อง: '+e.message; } };
+$('#loadj').onclick = ()=>{ try{ S = normalize(JSON.parse($('#jtext').value)); activeFig = S.figures[0].id; syncAll(); $('#estat').textContent='โหลดฉากแล้ว'; }catch(e){ $('#estat').textContent='JSON ไม่ถูกต้อง: '+e.message; } };
 let lastPNG = null;
-$('#snap').onclick = ()=>{ const helper = gizmo.getHelper ? gizmo.getHelper() : gizmo; helper.visible=false; grid.visible=false; renderer.render(scene,cam); lastPNG = renderer.domElement.toDataURL('image/png'); helper.visible=true; grid.visible=true; $('#mimg').src = lastPNG; $('#modal').style.display='flex'; };
+function cleanRender(){ const helper = gizmo.getHelper ? gizmo.getHelper() : gizmo; helper.visible=false; grid.visible=false; renderer.render(scene,cam); const out = renderer.domElement; helper.visible=true; grid.visible=true; return out; }
+$('#snap').onclick = ()=>{ lastPNG = cleanRender().toDataURL('image/png'); $('#mimg').src = lastPNG; $('#modal').style.display='flex'; };
 $('#mclose').onclick = ()=>{ $('#modal').style.display='none'; };
 $('#mdl').onclick = async ()=>{ try{ const dl = window.claude ? await window.claude.use('downloads') : null; if(!dl) throw new Error('no-dl'); const blob = await (await fetch(lastPNG)).blob(); await dl.save({filename:'mannequin-pose.png', data:blob}); $('#mnote').textContent='บันทึกแล้ว'; }catch(e){ $('#mnote').textContent='บันทึกอัตโนมัติไม่ได้ในหน้านี้ — คลิกขวา/กดค้างที่ภาพ แล้ว Save image'; } };
 
 // ---------- prompt → scene ----------
-const SCHEMA = `Return ONLY a JSON object (no prose, no code fence). All keys optional; include a key only when the instruction changes it. Degrees for angles, metres for positions. Figure faces +Z (toward the camera at +Z); +X is the figure's LEFT (viewer's right); Y up; floor y=0.
+const SCHEMA = `Return ONLY a JSON object (no prose, no code fence). All keys optional; include a key only when the instruction changes it. Degrees for angles, metres for positions. Figures face +Z (toward the camera at +Z) before bodyYaw; +X is a figure's LEFT (viewer's right); Y up; floor y=0.
 {
- "pose": {"rootPos":[x,y,z] (standing hip y=0.98; seated on a 0.64 m stool y=0.72), "bodyYaw":deg,
-   "spineLean":deg(+forward), "spineTwist":deg, "spineTilt":deg, "chestLean":deg, "chestTwist":deg,
-   "headPitch":deg(+look down), "headYaw":deg(+turn to figure's left), "headTilt":deg,
-   "armL":{"fwd":deg(raise forward; 90 horizontal; 170 overhead), "out":deg(abduct), "twist":deg, "bend":deg(elbow 0-150), "foreTwist":deg}, "armR":{same},
-   "legL":{"fwd":deg(thigh forward; 85 seated), "out":deg, "twist":deg, "bend":deg(knee; 90 seated), "foot":deg}, "legR":{same}},
- "objects": [ ... ]  // the FULL list of scene objects after the change (keep existing ones you do not remove; keep their ids). Each: {"id":"unique","name":"Thai label","kind":"<library kind>"|"custom","pos":[x,y,z],"rot":[x,y,z] deg,"scale":1|[x,y,z],"color":decimalRGB (optional, tints all parts)}
-   library kinds (origin on the floor at their base): stool(h0.64) chair table(h0.74) amp speaker mic(1.58 tall) wall(10x4 plane facing +Z, put at z≈-0.9) box(0.5) sphere cylinder guitar spot
-   guitar: body origin at its centre, neck points +X before rot. Held in front: pos≈[0.02,0.95,0.26] rot≈[-10,0,22]; on lap seated: pos≈[-0.02,0.86,0.36] rot≈[-8,-10,32]; slung on back: pos≈[0.14,1.08,-0.26] rot≈[0,180,55].
+ "figures": [ {"id":"fig-1","name":"Thai label","pose":{...}}, ... ]  // the FULL list of characters after the change (keep ids of existing ones). pose:
+   {"rootPos":[x,y,z] (hip; standing y=0.98; seated on a 0.64 m stool y=0.72), "bodyYaw":deg,
+    "spineLean":deg(+forward), "spineTwist":deg, "spineTilt":deg, "chestLean":deg, "chestTwist":deg,
+    "headPitch":deg(+look down), "headYaw":deg(+turn to figure's left), "headTilt":deg,
+    "armL":{"fwd":deg(raise forward; 90 horizontal; 170 overhead), "out":deg(abduct), "twist":deg, "bend":deg(elbow 0-150), "foreTwist":deg}, "armR":{same},
+    "legL":{"fwd":deg(thigh forward; 85 seated), "out":deg, "twist":deg, "bend":deg(knee; 90 seated), "foot":deg}, "legR":{same}}
+   Keep figures ~0.9-1.2 m apart on x. Two people: put one at x≈-0.45 and one at x≈0.8, widen the camera (pos z≈4.7, fov≈42).
+ "objects": [ ... ]  // the FULL list of scene objects after the change. Each: {"id":"unique","name":"Thai label","kind":"<library kind>"|"custom","pos":[x,y,z],"rot":[x,y,z] deg,"scale":1|[x,y,z],"color":decimalRGB (optional)}
+   library kinds (origin on the floor at their base): stool(h0.64) chair table(h0.74) amp speaker mic(1.58 tall) drumpad(electronic pad on a stand, pad at 0.93 m, sticks included) wall(10x4 plane facing +Z, put at z≈-0.9) box(0.5) sphere cylinder guitar spot
+   guitar: body origin at its centre, neck points +X before rot; attach it to the figure holding it: held in front pos≈[figX+0.02, 0.95, figZ+0.26] rot≈[-10,0,22]; on lap seated pos≈[figX-0.02,0.86,figZ+0.36] rot≈[-8,-10,32]; slung on back pos≈[figX+0.14,1.08,figZ-0.26] rot≈[0,180,55].
+   mic: put the stand at [figX, 0, figZ+0.45] for a singer. drumpad: at [figX, 0, figZ+0.42], rotated to face the drummer.
    spot = spotlight: {"kind":"spot","pos":[x,y,z],"target":[x,y,z],"intensity":60}.
-   custom = any other object, built from primitives: "parts":[{"shape":"box"|"cylinder"|"sphere"|"cone"|"capsule"|"plane"|"torus","size":[...],"pos":[x,y,z] local,"rot":[x,y,z],"color":decimalRGB}]; sizes: box [w,h,d]; cylinder [rTop,rBottom,h]; sphere [r]; cone [r,h]; capsule [r,len]; plane [w,h]; torus [r,tube]. Build believable proportions (a coffee mug ≈ cylinder [0.04,0.035,0.1] + torus handle; a plant ≈ pot cylinder + green spheres). Place objects so they stand on the floor or on top of other objects (table top y=0.74·scale).
- "cam": {"pos":[x,y,z],"target":[x,y,z],"fov":deg} (full body ≈ pos[0.4,1.2,4.2] target[0,0.95,0] fov36; 3/4 ≈ pos[0.35,1.15,2.7] target[0,0.95,0.1]; close-up chest ≈ pos[0.3,1.6,2.0] target[0,1.45,0.1] fov34; low angle = cam y<1.0),
+   custom = any other object from primitives: "parts":[{"shape":"box"|"cylinder"|"sphere"|"cone"|"capsule"|"plane"|"torus","size":[...],"pos":[x,y,z] local,"rot":[x,y,z],"color":decimalRGB}]; sizes: box [w,h,d]; cylinder [rTop,rBottom,h]; sphere [r]; cone [r,h]; capsule [r,len]; plane [w,h]; torus [r,tube]. Believable proportions; objects stand on the floor or on other objects (table top y=0.74).
+ "cam": {"pos":[x,y,z],"target":[x,y,z],"fov":deg} (full body ≈ pos[0.4,1.2,4.2] target[0,0.95,0] fov36; 3/4 ≈ pos[0.35,1.15,2.7] target[0,0.95,0.1]; close-up chest ≈ pos[0.3,1.6,2.0] target[0,1.45,0.1] fov34; two-shot ≈ pos[0.25,1.35,4.7] target[0.15,1.0,0] fov42; low angle = cam y<1.0),
  "light": {"keyPos":[x,y,z] (camera-left = negative x; high y 2.5-4; warm sunset low y≈1.4),"color":decimalRGB,"intensity":0-5,"ambient":0-1.5,"rimPos":[x,y,z],"rimColor":decimalRGB,"rimIntensity":0-2},
  "bg": decimalRGB, "floor": decimalRGB
 }
-Playing guitar in front: fretting hand = armL out 50-60 fwd 25-35 bend 70; strumming = armR fwd 28-34 out 8-12 bend 48-55 twist 55. Keep angles natural for a human. "left/right" in the instruction refers to the figure's own left/right unless it says viewer's.`;
+Playing guitar in front: fretting armL out 50-60 fwd 25-35 bend 70; strumming armR fwd 28-34 out 8-12 bend 48-55 twist 55. Singing at a mic: headPitch -6..-10, spineLean 5. Drum pad player: spineLean 10, headPitch 18 (looking at the pad), armL fwd 62 out 18 bend 95, armR fwd 88 out 14 bend 60 (one stick raised). Walking: legL fwd 22 bend 8 foot 8, legR fwd -14 bend 28 foot -20, arms swing opposite. Keep angles natural. "left/right" refers to the figure's own side unless the instruction says viewer's.`;
 let sampleNS;
 async function getSample(){ if (sampleNS!==undefined) return sampleNS; try{ sampleNS = window.claude ? await window.claude.use('sample') : null; }catch(e){ sampleNS=null; } return sampleNS; }
 $('#pgo').onclick = async ()=>{
@@ -468,27 +460,33 @@ $('#pgo').onclick = async ()=>{
   }catch(e){ st.textContent = 'ไม่สำเร็จ: ' + (e.message||e.code||e); }
   finally{ $('#pgo').disabled = false; }
 };
-function applyPatch(o){ if(!o||typeof o!=='object') throw new Error('not an object'); const n = merge(S, o); if ('objects' in o) n.objects = clone(o.objects||[]); S = normalize(n); syncAll(); }
+function applyPatch(o){ if(!o||typeof o!=='object') throw new Error('not an object');
+  const n = merge(S, o);
+  if ('objects' in o) n.objects = clone(o.objects||[]);
+  if ('figures' in o) n.figures = clone(o.figures||[]);
+  else if (o.pose){ n.figures = clone(S.figures); const f = n.figures.find(x=>x.id===activeFig) || n.figures[0]; f.pose = merge(f.pose, o.pose); }
+  delete n.pose; S = normalize(n); if (!figOf(activeFig)) activeFig = S.figures[0].id; syncAll(); }
 
-// offline keyword parser (fallback, no Claude)
+// offline keyword parser (fallback, no Claude) — edits the active figure
 function localParse(t){
   t = t.toLowerCase(); const o = {pose:{}}; const has = (...ws)=>ws.some(w=>t.includes(w));
   let objects = clone(S.objects); const gi = objects.findIndex(x=>x.kind==='guitar');
   const setG = (pos,rot)=>{ if (gi>=0){ objects[gi].pos=pos; objects[gi].rot=rot; } else objects.push({id:'guitar',name:'กีตาร์',kind:'guitar',pos,rot,scale:1}); };
-  const addK = (kind,pos)=>{ let i=1; while(objects.some(x=>x.id===kind+'-'+i)) i++; objects.push({id:kind+'-'+i,name:LIBRARY[kind]?.th||kind,kind,pos,rot:[0,0,0],scale:1}); };
-  const right = has('ขวา','right') ? -1 : 1; // figure's right = -X
-  if (has('นั่ง','sit','seated')){ o.pose.rootPos=[0,0.72,0.02]; o.pose.legL={fwd:82,bend:92,out:10}; o.pose.legR={fwd:85,bend:88,out:14}; if(!objects.some(x=>x.kind==='stool')) addK('stool',[0,0,-0.02]); }
-  if (has('ยืน','stand')){ o.pose.rootPos=[0,0.98,0]; o.pose.legL={fwd:0,out:4}; o.pose.legR={fwd:0,out:4}; }
+  const addK = (kind,pos,rot=[0,0,0])=>{ let i=1; while(objects.some(x=>x.id===kind+'-'+i)) i++; objects.push({id:kind+'-'+i,name:LIBRARY[kind]?.th||kind,kind,pos,rot,scale:1}); };
+  const right = has('ขวา','right') ? -1 : 1;
+  let fx = (activePose().rootPos||[0,0.98,0])[0], fz = (activePose().rootPos||[0,0.98,0])[2];
+  if (has('เพิ่มหุ่น','เพิ่มตัวละคร','คนที่สอง','add figure','second person','add character')){ const x = fx + (has('ซ้าย','left') ? -1.2 : 1.2); addFigure({rootPos:[x,0.98,fz-0.2], bodyYaw: x>fx?-15:15}); objects = clone(S.objects); fx = x; fz = fz-0.2; }
+  if (has('นั่ง','sit','seated')){ o.pose.rootPos=[fx,0.72,fz]; o.pose.legL={fwd:82,bend:92,out:10}; o.pose.legR={fwd:85,bend:88,out:14}; if(!objects.some(x=>x.kind==='stool')) addK('stool',[fx,0,fz-0.02]); }
+  if (has('ยืน','stand')){ o.pose.rootPos=[fx,0.98,fz]; o.pose.legL={fwd:0,out:4}; o.pose.legR={fwd:0,out:4}; }
   if (has('เดิน','walk')){ o.pose.legL={fwd:22,bend:8,foot:8}; o.pose.legR={fwd:-14,bend:28,foot:-20}; o.pose.armR={fwd:-18,bend:12,out:8}; o.pose.armL={fwd:18,bend:15,out:6}; }
   if (has('ชูมือ','hands up')){ o.pose.armL={fwd:160,out:20,bend:10}; o.pose.armR={fwd:160,out:20,bend:10}; }
-  if (has('ยกแขนซ้าย','raise left arm')) o.pose.armL={fwd:90,out:10,bend:10};
-  if (has('ยกแขนขวา','raise right arm')) o.pose.armR={fwd:90,out:10,bend:10};
   if (has('กอดอก','cross arms')){ o.pose.armL={fwd:60,out:10,bend:120,twist:40}; o.pose.armR={fwd:60,out:10,bend:120,twist:40}; }
-  if (has('สะพายหลัง','on back')){ setG([0.14,1.08,-0.26],[0,180,55]); o.pose.armL={fwd:38,bend:105,out:6}; }
+  if (has('กลองแพด','drum pad','drumpad','ตีกลอง')){ if(!objects.some(x=>x.kind==='drumpad')) addK('drumpad',[fx,0,fz+0.42]); o.pose.spineLean=10; o.pose.headPitch=18; o.pose.armL={fwd:62,out:18,bend:95,twist:10}; o.pose.armR={fwd:88,out:14,bend:60,twist:10}; }
+  if (has('สะพายหลัง','on back')){ setG([fx+0.14,1.08,fz-0.26],[0,180,55]); o.pose.armL={fwd:38,bend:105,out:6}; }
   else if (has('ไม่มีกีตาร์','no guitar')){ objects = objects.filter(x=>x.kind!=='guitar'); }
-  else if (has('กีตาร์','guitar','ดีด','strum')){ if (has('นั่ง','sit')) setG([-0.02,0.86,0.36],[-8,-10,32]); else setG([0.02,0.95,0.26],[-10,0,22]); o.pose.armL={fwd:30,out:58,bend:70}; o.pose.armR={fwd:30,out:12,bend:48,twist:55}; }
-  if (has('ไมค์','mic')){ if(!objects.some(x=>x.kind==='mic')) addK('mic',[0.02,0,0.42]); o.pose.headPitch=-6; }
-  for (const [kind, ws] of [['amp',['แอมป์','amp']],['speaker',['ลำโพง','speaker']],['table',['โต๊ะ','table']],['chair',['เก้าอี้','chair']],['box',['กล่อง','box ']],['speaker',[]]]) if (ws.length && has(...ws)){ const back = has('หลัง','behind','back'); addK(kind,[right*0.9, 0, back?-0.7:0.1]); }
+  else if (has('กีตาร์','guitar','ดีด','strum')){ if (has('นั่ง','sit')) setG([fx-0.02,0.86,fz+0.36],[-8,-10,32]); else setG([fx+0.02,0.95,fz+0.26],[-10,0,22]); o.pose.armL={fwd:30,out:58,bend:70}; o.pose.armR={fwd:30,out:12,bend:48,twist:55}; }
+  if (has('ไมค์','mic','ร้องเพลง','sing')){ if(!objects.some(x=>x.kind==='mic')) addK('mic',[fx,0,fz+0.45]); o.pose.headPitch=-6; o.pose.spineLean=5; }
+  for (const [kind, ws] of [['amp',['แอมป์','amp']],['speaker',['ลำโพง','speaker']],['table',['โต๊ะ','table']],['chair',['เก้าอี้','chair']],['box',['กล่อง','box ']]]) if (has(...ws)){ const back = has('หลัง','behind','back'); addK(kind,[fx+right*0.9, 0, back?fz-0.7:fz+0.1]); }
   if (has('ผนัง','wall','brick','อิฐ') && !objects.some(x=>x.kind==='wall')) objects.push({id:'wall',name:'ผนัง',kind:'wall',pos:[0,0,-0.9],rot:[0,0,0],scale:1,color:0x7a4f3c});
   if (has('spotlight','สปอต') && !objects.some(x=>x.kind==='spot')) objects.push({id:'spot',name:'สปอตไลท์',kind:'spot',pos:[0.5,4.2,2],target:[0,1.2,0],intensity:60});
   o.objects = objects;
@@ -498,8 +496,9 @@ function localParse(t){
   if (has('เอียงหัว','tilt head')) o.pose.headTilt=12;
   if (has('โน้ม','lean forward')) o.pose.spineLean=15;
   if (has('หันตัว','turn body','เฉียง')) o.pose.bodyYaw=20;
-  if (has('close-up','ใกล้','ครึ่งตัว','chest')) o.cam={pos:[0.3,1.6,2.0],target:[0,1.45,0.1],fov:34};
+  if (has('close-up','ใกล้','ครึ่งตัว','chest')) o.cam={pos:[fx+0.3,1.6,fz+2.0],target:[fx,1.45,fz+0.1],fov:34};
   else if (has('full body','เต็มตัว')) o.cam={pos:[0.4,1.2,4.2],target:[0,0.95,0],fov:36};
+  else if (has('มุมกว้าง','wide','two-shot','2 คน','สองคน')) o.cam={pos:[0.25,1.35,4.7],target:[0.15,1.0,0],fov:42};
   const c = o.cam || clone(S.cam);
   if (has('มุมต่ำ','low angle')) o.cam={...c, pos:[c.pos[0],0.8,c.pos[2]]};
   if (has('มุมสูง','high angle')) o.cam={...c, pos:[c.pos[0],2.4,c.pos[2]]};
@@ -524,7 +523,7 @@ function showInbox(d){ $('#inboxTxt').textContent = 'Claude ส่งฉาก�
 async function watchInbox(){
   const db = await getDB(); if (!db) return;
   let pending = null;
-  $('#inboxLoad').onclick = ()=>{ if (!pending) return; try{ S = normalize(pending.scene); syncAll(); $('#pstat').textContent='โหลดฉากจาก Claude แล้ว: '+(pending.title||''); }catch(e){ $('#pstat').textContent='ฉากจาก Claude ไม่ถูกต้อง: '+e.message; } $('#inbox').style.display='none'; };
+  $('#inboxLoad').onclick = ()=>{ if (!pending) return; try{ S = normalize(pending.scene); activeFig = S.figures[0].id; syncAll(); $('#pstat').textContent='โหลดฉากจาก Claude แล้ว: '+(pending.title||''); }catch(e){ $('#pstat').textContent='ฉากจาก Claude ไม่ถูกต้อง: '+e.message; } $('#inbox').style.display='none'; };
   $('#inboxClose').onclick = ()=>{ $('#inbox').style.display='none'; };
   try{
     db.doc('poser/inbox').onSnapshot(snap => {
@@ -539,9 +538,8 @@ $('#sendc').onclick = async ()=>{
   const st = $('#sstat'); st.textContent = 'กำลังส่ง…';
   try{
     const db = await getDB(); if (!db) throw new Error('db ไม่พร้อม (ต้องเปิดจาก claude.ai ด้วยบัญชีเจ้าของ)');
-    const helper = gizmo.getHelper ? gizmo.getHelper() : gizmo; helper.visible=false; grid.visible=false; renderer.render(scene,cam);
-    let jpg = renderer.domElement.toDataURL('image/jpeg', 0.75); helper.visible=true; grid.visible=true;
-    if (jpg.length > 200000) jpg = renderer.domElement.toDataURL('image/jpeg', 0.5);
+    const cv = cleanRender(); let jpg = cv.toDataURL('image/jpeg', 0.75);
+    if (jpg.length > 200000) jpg = cv.toDataURL('image/jpeg', 0.5);
     if (jpg.length > 240000) jpg = null;
     await db.doc('poser/outbox').set({ scene: exportState(), image: jpg, sentAt: new Date().toISOString(), note: $('#ptext').value.slice(0,500) });
     st.textContent = 'ส่งแล้ว ' + new Date().toLocaleTimeString() + (jpg?'' : ' (ภาพใหญ่เกิน ส่งเฉพาะฉาก)');
@@ -553,7 +551,7 @@ function resize(){ const w = stage.clientWidth-8, h = stage.clientHeight-8; cons
 addEventListener('resize', resize); resize();
 syncAll();
 (function loop(){ requestAnimationFrame(loop); orbit.update(); renderer.render(scene, cam); })();
-window.__poser = { get state(){ return S; }, applyPatch, localParse, select, addObject, removeObject };
+window.__poser = { get state(){ return S; }, applyPatch, localParse, select, addObject, removeObject, addFigure, removeFigure };
 </script>
 </body>
 </html>

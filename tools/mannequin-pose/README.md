@@ -42,3 +42,11 @@ a fresh page); `poser/outbox` = page → Claude ("ส่งฉาก + ภาพ
 note). Claude Code writes/reads them with `mcp__claude-artifacts__db_write` / `db_get` (pass `ifVersion`
 when the doc exists). `render-json.sh <scene.json>` renders any exported scene headless (`mannequin.html?json=`).
 Skill: `skills/mannequin-poser/SKILL.md` (+ `references/scene-schema.md`). Example scene: `scenes/example-seated-amp.json`.
+
+## v4 (2026-11-06): multiple figures
+
+`mannequin-lib.js` (shared `buildMannequin` / `applyPoseTo` / `readBackJoint`) is used by both the harness and
+the poser. Scene JSON has `figures: [{id,name,pose}]`; the legacy single `pose` still loads and is exported as
+`figures[0].pose`. Poser: Pose tab has a character dropdown, + เพิ่มหุ่น / ลบ / ทำสำเนา; characters also appear
+as blue buttons in the Objects tab for whole-body move/rotate. New library object `drumpad`. Preset "Duo · guitar +
+drum pad" = `scenes/duo-guitar-drumpad.json`.
