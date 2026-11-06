@@ -54,3 +54,7 @@ drum pad" = `scenes/duo-guitar-drumpad.json`.
 ## v5 (2026-11-06): library
 
 แท็บ คลัง: Save / Save-as / list / load / delete, stored in the artifact db collection `scenes` (thumb jpeg 180×240, title, scene, savedAt, source, note); localStorage fallback when `db` is null. Inbox pushes from Claude are auto-archived as `claude-<sentAt>`.
+
+## v6 (2026-11-06): hand-attached objects
+
+`mannequin-lib.js` exposes `anchors.handL/handR`; `objlib.attachObject(g, obj, figures)` parents an object with `attach:{fig,anchor}` to that palm (local pos/rot). New `stick` object; drumpad no longer carries sticks. Poser: Objects tab has a "ติดกับ" dropdown per object.

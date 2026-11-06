@@ -11,7 +11,7 @@
 <script type="module">
 import * as THREE from './node_modules/three/build/three.module.js';
 import { POSES } from './poses.js';
-import { buildObject, legacyToObjects } from './objlib.js';
+import { buildObject, legacyToObjects, attachObject } from './objlib.js';
 import { buildMannequin, applyPoseTo } from './mannequin-lib.js';
 
 const q = new URLSearchParams(location.search);
@@ -40,12 +40,12 @@ scene.add(key, key.target);
 if (P.light.rimPos){ const rim=new THREE.DirectionalLight(P.light.rimColor||0xaaccff, P.light.rimIntensity||1.2); rim.position.set(...P.light.rimPos); scene.add(rim); }
 
 const sh = m => { m.castShadow = true; m.receiveShadow = true; return m; };
-for (const f of figures){ const mq = buildMannequin(THREE, sh); applyPoseTo(mq, f.pose || {}); scene.add(mq.root); }
+const FIGS = {}; for (const f of figures){ const mq = buildMannequin(THREE, sh); applyPoseTo(mq, f.pose || {}); scene.add(mq.root); FIGS[f.id] = mq; }
 
 const objs = P.objects || legacyToObjects(P);
 for (const ob of objs){
   if (ob.kind==='spot'){ const sp=new THREE.SpotLight(0xffffff, ob.intensity||40, 8, 0.45, 0.6, 1.2); sp.position.set(...ob.pos); sp.target.position.set(...(ob.target||[0,1.2,0])); sp.castShadow=true; scene.add(sp, sp.target); continue; }
-  const g = buildObject(THREE, ob, sh); if (g) scene.add(g);
+  const g = buildObject(THREE, ob, sh); if (g && !attachObject(g, ob, FIGS)) scene.add(g);
 }
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(14,14), new THREE.MeshStandardMaterial({color:P.floor ?? 0x3a3a3a, roughness:1}));
 floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);

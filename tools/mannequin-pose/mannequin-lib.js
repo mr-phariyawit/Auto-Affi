@@ -1,5 +1,5 @@
 // Shared jointed wooden mannequin (used by the headless harness and the poser page).
-// buildMannequin(THREE, shadowFn) -> { root, J:{name:{g,kind,side,ball,foot?}}, pickables:[meshes with userData.joint] }
+// buildMannequin(THREE, shadowFn) -> { root, J:{name:{g,kind,side,ball,foot?}}, pickables:[meshes with userData.joint], anchors:{handL,handR} (groups at the palms; parent objects here with attach:{fig,anchor}) }
 // applyPoseTo(mq, pose) sets joint rotations from the semantic pose object (see skills/mannequin-poser/references/scene-schema.md).
 const D = Math.PI/180;
 
@@ -7,7 +7,7 @@ export function buildMannequin(THREE, sh = m => m, opts = {}){
   const wood = new THREE.MeshStandardMaterial({color: opts.woodColor ?? 0xc9a06a, roughness:0.75});
   const jointM = new THREE.MeshStandardMaterial({color: opts.jointColor ?? 0x8c6a3f, roughness:0.6});
   const dark = new THREE.MeshStandardMaterial({color:0x2b1a10, roughness:0.5});
-  const J = {}, pickables = [];
+  const J = {}, pickables = [], anchors = {};
   const mkJoint = (name, kind, side, r) => { const g = new THREE.Group(); const b = sh(new THREE.Mesh(new THREE.SphereGeometry(r,20,14), jointM)); b.userData.joint = name; g.add(b); pickables.push(b); J[name] = {g, kind, side, ball:b}; return g; };
   const limbMesh = (len, r, name) => { const m = sh(new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(len-2*r,0.01), 6, 16), wood)); m.position.y = -len/2; m.userData.joint = name; pickables.push(m); return m; };
   const blob = (sx,sy,sz,y,name) => { const m = sh(new THREE.Mesh(new THREE.SphereGeometry(1,24,16), wood)); m.scale.set(sx,sy,sz); m.position.y=y; m.userData.joint=name; pickables.push(m); return m; };
@@ -29,12 +29,13 @@ export function buildMannequin(THREE, sh = m => m, opts = {}){
     const up = mkJoint('arm'+L,'arm',side,0.05); up.add(limbMesh(0.30,0.045,'arm'+L)); sh0.add(up);
     const fo = mkJoint('fore'+L,'fore',side,0.045); fo.position.y=-0.30; fo.add(limbMesh(0.27,0.04,'fore'+L)); up.add(fo);
     const hand = sh(new THREE.Mesh(new THREE.SphereGeometry(1,16,12), jointM)); hand.scale.set(0.04,0.07,0.025); hand.position.y=-0.33; hand.userData.joint='fore'+L; pickables.push(hand); fo.add(hand);
+    const anchor = new THREE.Group(); anchor.position.y = -0.35; anchor.name = 'hand'+L; fo.add(anchor); anchors['hand'+L] = anchor;
     const hip = new THREE.Group(); hip.position.set(side*0.10,-0.05,0); root.add(hip);
     const th = mkJoint('leg'+L,'leg',side,0.07); th.add(limbMesh(0.43,0.065,'leg'+L)); hip.add(th);
     const sn = mkJoint('shin'+L,'shin',side,0.055); sn.position.y=-0.43; sn.add(limbMesh(0.42,0.05,'shin'+L)); th.add(sn);
     const ft = sh(new THREE.Mesh(new THREE.BoxGeometry(0.08,0.05,0.25), jointM)); ft.position.set(0,-0.445,0.08); ft.userData.joint='shin'+L; pickables.push(ft); sn.add(ft); J['shin'+L].foot = ft;
   }
-  return { root, J, pickables, mats:{wood, jointM} };
+  return { root, J, pickables, anchors, mats:{wood, jointM} };
 }
 
 const setRot = (o,x,y,z,order) => { o.rotation.order = order; o.rotation.set(x*D,y*D,z*D); };

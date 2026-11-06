@@ -160,7 +160,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
-import { LIBRARY, buildObject, applyTransform, legacyToObjects } from './objlib.js';
+import { LIBRARY, buildObject, applyTransform, legacyToObjects, attachObject } from './objlib.js';
 import { buildMannequin, applyPoseTo, readBackJoint } from './mannequin-lib.js';
 
 const D = Math.PI/180, $ = s => document.querySelector(s);
@@ -206,9 +206,9 @@ const PRESETS = {
   'Duo · guitar + drum pad': { bg:0x060606, floor:0x0d0d0d,
     cam:{pos:[0.25,1.35,4.7], target:[0.15,1.0,0], fov:42},
     light:{keyPos:[-3,3.2,2.5], color:0xfff6d6, intensity:1.4, ambient:0.14, rimPos:[2.5,2.6,-2.8], rimColor:0xff5c3a, rimIntensity:1.8},
-    objects:[ G([-0.42,1.0,0.38],[-10,8,15]), {id:'mic', name:'ไมค์', kind:'mic', pos:[-0.47,0,0.55], rot:[0,0,0], scale:1}, {id:'drumpad', name:'กลองแพด', kind:'drumpad', pos:[0.9,0,0.12], rot:[0,-22,0], scale:[1,0.86,1]}, {id:'stool-2', name:'สตูลมือกลอง', kind:'stool', pos:[0.85,0,-0.37], rot:[0,0,0], scale:1}, {id:'amp-1', name:'แอมป์', kind:'amp', pos:[1.5,0,-1.0], rot:[0,-30,0], scale:1}, {id:'spot', name:'สปอตไลท์', kind:'spot', pos:[0.2,4.2,2.2], target:[0.15,1.2,0], intensity:70} ],
+    objects:[ G([-0.42,1.0,0.38],[-10,8,15]), {id:'mic', name:'ไมค์', kind:'mic', pos:[-0.47,0,0.55], rot:[0,0,0], scale:1}, {id:'drumpad', name:'กลองแพด', kind:'drumpad', pos:[0.9,0,0.12], rot:[0,-22,0], scale:[1,0.86,1]}, {id:'stool-2', name:'สตูลมือกลอง', kind:'stool', pos:[0.85,0,-0.37], rot:[0,0,0], scale:1}, {id:'stick-1', name:'ไม้กลองซ้าย', kind:'stick', attach:{fig:'fig-2',anchor:'handL'}, pos:[0,0,0], rot:[40,0,0], scale:1}, {id:'stick-2', name:'ไม้กลองขวา', kind:'stick', attach:{fig:'fig-2',anchor:'handR'}, pos:[0,0,0], rot:[40,0,0], scale:1}, {id:'amp-1', name:'แอมป์', kind:'amp', pos:[1.5,0,-1.0], rot:[0,-30,0], scale:1}, {id:'spot', name:'สปอตไลท์', kind:'spot', pos:[0.2,4.2,2.2], target:[0.15,1.2,0], intensity:70} ],
     figures:[ {id:'fig-1', name:'มือกีตาร์ (ร้อง)', pose:{ rootPos:[-0.45,0.98,0.1], bodyYaw:8, spineLean:5, headPitch:-8, headYaw:-4, headTilt:-3, armL:{fwd:26,out:54,bend:72}, armR:{fwd:30,out:10,bend:50,twist:55}, legL:{out:9,fwd:3}, legR:{out:9,fwd:-3,bend:4} }},
-              {id:'fig-2', name:'มือกลองแพด (นั่ง)', pose:{ rootPos:[0.85,0.72,-0.35], bodyYaw:-22, spineLean:8, headPitch:16, headYaw:6, armL:{fwd:58,out:16,bend:92,twist:10}, armR:{fwd:84,out:12,bend:62,twist:10}, legL:{fwd:78,bend:88,out:14}, legR:{fwd:80,bend:84,out:16} }} ] },
+              {id:'fig-2', name:'มือกลองแพด (นั่ง)', pose:{ rootPos:[0.85,0.72,-0.35], bodyYaw:-22, spineLean:10, headPitch:20, headYaw:6, armL:{fwd:32,out:16,bend:40,twist:10}, armR:{fwd:52,out:14,bend:60,twist:10}, legL:{fwd:78,bend:88,out:14}, legR:{fwd:80,bend:84,out:16} }} ] },
 };
 let S = clone(DEFAULT);
 function merge(base, over){ const o = clone(base);
@@ -259,13 +259,13 @@ function applyPoses(){ for (const f of S.figures){ const mq = FIGS.get(f.id); if
 // ---------- objects ----------
 const objGroups = new Map(); const objPick = [];
 function rebuildObjects(){
-  for (const g of objGroups.values()) scene.remove(g); objGroups.clear(); objPick.length = 0;
+  for (const g of objGroups.values()) g.removeFromParent(); objGroups.clear(); objPick.length = 0;
   let sp = null;
   for (const ob of S.objects){
     if (ob.kind === 'spot'){ sp = ob; continue; }
     const g = buildObject(THREE, ob, sh); if (!g) continue;
     g.traverse(m => { if (m.isMesh){ m.userData.obj = ob.id; objPick.push(m); } });
-    scene.add(g); objGroups.set(ob.id, g);
+    if (!attachObject(g, ob, FIGS)) scene.add(g); objGroups.set(ob.id, g);
   }
   spot.intensity = sp ? (sp.intensity||40) : 0; if (sp){ spot.position.set(...sp.pos); spot.target.position.set(...(sp.target||[0,1.2,0])); }
 }
@@ -328,8 +328,8 @@ function addObject(kind, extra={}){ const id = uid(kind); const ob = { id, name:
 function removeObject(id){ S.objects = S.objects.filter(o=>o.id!==id); select(null); rebuildObjects(); buildPanels(); setJSON(); }
 function duplicateObject(id){ const ob = S.objects.find(o=>o.id===id); if(!ob) return; const c = clone(ob); c.id = uid(ob.kind); c.pos = [ob.pos[0]+0.4, ob.pos[1], ob.pos[2]]; S.objects.push(c); rebuildObjects(); buildPanels(); setJSON(); select({type:'obj', id:c.id}); }
 function fuid(){ let i=1; while (S.figures.some(f=>f.id==='fig-'+i)) i++; return 'fig-'+i; }
-function addFigure(pose, name){ const id = fuid(); const p = merge(BASE_POSE, pose||{}); if (!pose || !pose.rootPos) p.rootPos = [0.9*S.figures.length, 0.98, 0]; S.figures.push({id, name: name || ('หุ่น '+id.slice(4)), pose:p}); activeFig = id; rebuildFigures(); buildPanels(); setJSON(); select({type:'figure', id}); return id; }
-function removeFigure(id){ if (S.figures.length<=1) return; S.figures = S.figures.filter(f=>f.id!==id); activeFig = S.figures[0].id; select(null); rebuildFigures(); buildPanels(); setJSON(); }
+function addFigure(pose, name){ const id = fuid(); const p = merge(BASE_POSE, pose||{}); if (!pose || !pose.rootPos) p.rootPos = [0.9*S.figures.length, 0.98, 0]; S.figures.push({id, name: name || ('หุ่น '+id.slice(4)), pose:p}); activeFig = id; rebuildFigures(); rebuildObjects(); buildPanels(); setJSON(); select({type:'figure', id}); return id; }
+function removeFigure(id){ if (S.figures.length<=1) return; S.figures = S.figures.filter(f=>f.id!==id); for (const o of S.objects) if (o.attach && o.attach.fig===id) delete o.attach; activeFig = S.figures[0].id; select(null); rebuildFigures(); rebuildObjects(); buildPanels(); setJSON(); }
 
 // ---------- panels ----------
 const LABEL = {head:'หัว',spine:'เอว/สันหลัง',chest:'อก',armL:'แขนซ้าย',foreL:'ปลายแขนซ้าย',armR:'แขนขวา',foreR:'ปลายแขนขวา',legL:'ขาซ้าย',shinL:'หน้าแข้งซ้าย',legR:'ขาขวา',shinR:'หน้าแข้งขวา'};
@@ -372,7 +372,15 @@ function buildObjSliders(){
   const ob = S.objects.find(o=>o.id===sel.id); if (!ob) return;
   const upd = ()=>{ const g=objGroups.get(ob.id); if (g) applyTransform(g, ob); if (ob.kind==='spot') rebuildObjects(); };
   const nm = document.createElement('div'); nm.className='row'; nm.innerHTML=`<label>ชื่อ</label><input type="text" value="${ob.name}"><span></span>`; nm.querySelector('input').oninput=e=>{ ob.name=e.target.value; buildObjButtons(); setJSON(); }; host.appendChild(nm);
-  ['x','y','z'].forEach((a,i)=>slider(host,'ตำแหน่ง '+a,-4,4,0.01,()=>ob.pos[i],v=>ob.pos[i]=v,upd));
+  if (ob.kind!=='spot'){
+    const at = document.createElement('div'); at.className='row'; const opts = ['<option value="">ไม่ติด (อิสระ)</option>'];
+    for (const f of S.figures) for (const [an,lab] of [['handL','มือซ้าย'],['handR','มือขวา']]) opts.push(`<option value="${f.id}|${an}" ${ob.attach&&ob.attach.fig===f.id&&ob.attach.anchor===an?'selected':''}>${f.name} · ${lab}</option>`);
+    at.innerHTML = `<label>ติดกับ</label><select>${opts.join('')}</select><span></span>`;
+    at.querySelector('select').onchange = e => { const v = e.target.value; if (!v){ delete ob.attach; ob.pos=[0.9,0,0]; ob.rot=[0,0,0]; } else { const [fig,anchor] = v.split('|'); ob.attach = {fig, anchor}; ob.pos=[0,0,0]; ob.rot = ob.kind==='stick' ? [55,0,0] : [0,0,0]; } rebuildObjects(); select({type:'obj', id:ob.id}); setJSON(); };
+    host.appendChild(at);
+  }
+  const rng = ob.attach ? 0.5 : 4;
+  ['x','y','z'].forEach((a,i)=>slider(host,(ob.attach?'ระยะจากมือ ':'ตำแหน่ง ')+a,-rng,rng,0.005,()=>ob.pos[i],v=>ob.pos[i]=v,upd));
   if (ob.kind!=='spot'){
     ['เอียง x','หมุน y','เอียง z'].forEach((a,i)=>slider(host,a,-180,180,1,()=>ob.rot[i],v=>ob.rot[i]=v,upd));
     const sc = ()=> Array.isArray(ob.scale)? ob.scale : [ob.scale,ob.scale,ob.scale];
@@ -452,9 +460,10 @@ const SCHEMA = `Return ONLY a JSON object (no prose, no code fence). All keys op
     "legL":{"fwd":deg(thigh forward; 85 seated), "out":deg, "twist":deg, "bend":deg(knee; 90 seated), "foot":deg}, "legR":{same}}
    Keep figures ~0.9-1.2 m apart on x. Two people: put one at x≈-0.45 and one at x≈0.8, widen the camera (pos z≈4.7, fov≈42).
  "objects": [ ... ]  // the FULL list of scene objects after the change. Each: {"id":"unique","name":"Thai label","kind":"<library kind>"|"custom","pos":[x,y,z],"rot":[x,y,z] deg,"scale":1|[x,y,z],"color":decimalRGB (optional)}
-   library kinds (origin on the floor at their base): stool(h0.64) chair table(h0.74) amp speaker mic(1.58 tall) drumpad(electronic pad on a stand, pad at 0.93 m, sticks included) wall(10x4 plane facing +Z, put at z≈-0.9) box(0.5) sphere cylinder guitar spot
+   library kinds (origin on the floor at their base): stool(h0.64) chair table(h0.74) amp speaker mic(1.58 tall) drumpad(electronic pad on a stand, pad at 0.93 m) stick(drumstick, attach to a hand) wall(10x4 plane facing +Z, put at z≈-0.9) box(0.5) sphere cylinder guitar spot
    guitar: body origin at its centre, neck points +X before rot; attach it to the figure holding it: held in front pos≈[figX+0.02, 0.95, figZ+0.26] rot≈[-10,0,22]; on lap seated pos≈[figX-0.02,0.86,figZ+0.36] rot≈[-8,-10,32]; slung on back pos≈[figX+0.14,1.08,figZ-0.26] rot≈[0,180,55].
    mic: put the stand at [figX, 0, figZ+0.45] for a singer. drumpad: at [figX, 0, figZ+0.42], rotated to face the drummer.
+   stick = one drumstick (grip at origin, tip along +Z). Hold it: {"kind":"stick","attach":{"fig":"<figure id>","anchor":"handR"|"handL"},"pos":[0,0,0],"rot":[55,0,0]} — any object may carry "attach" (pos/rot then are local to that hand, metres). A drummer holds two sticks, one per hand.
    spot = spotlight: {"kind":"spot","pos":[x,y,z],"target":[x,y,z],"intensity":60}.
    custom = any other object from primitives: "parts":[{"shape":"box"|"cylinder"|"sphere"|"cone"|"capsule"|"plane"|"torus","size":[...],"pos":[x,y,z] local,"rot":[x,y,z],"color":decimalRGB}]; sizes: box [w,h,d]; cylinder [rTop,rBottom,h]; sphere [r]; cone [r,h]; capsule [r,len]; plane [w,h]; torus [r,tube]. Believable proportions; objects stand on the floor or on other objects (table top y=0.74).
  "cam": {"pos":[x,y,z],"target":[x,y,z],"fov":deg} (full body ≈ pos[0.4,1.2,4.2] target[0,0.95,0] fov36; 3/4 ≈ pos[0.35,1.15,2.7] target[0,0.95,0.1]; close-up chest ≈ pos[0.3,1.6,2.0] target[0,1.45,0.1] fov34; two-shot ≈ pos[0.25,1.35,4.7] target[0.15,1.0,0] fov42; low angle = cam y<1.0),
@@ -497,7 +506,7 @@ function localParse(t){
   if (has('เดิน','walk')){ o.pose.legL={fwd:22,bend:8,foot:8}; o.pose.legR={fwd:-14,bend:28,foot:-20}; o.pose.armR={fwd:-18,bend:12,out:8}; o.pose.armL={fwd:18,bend:15,out:6}; }
   if (has('ชูมือ','hands up')){ o.pose.armL={fwd:160,out:20,bend:10}; o.pose.armR={fwd:160,out:20,bend:10}; }
   if (has('กอดอก','cross arms')){ o.pose.armL={fwd:60,out:10,bend:120,twist:40}; o.pose.armR={fwd:60,out:10,bend:120,twist:40}; }
-  if (has('กลองแพด','drum pad','drumpad','ตีกลอง')){ if(!objects.some(x=>x.kind==='drumpad')) addK('drumpad',[fx,0,fz+0.42]); o.pose.spineLean=10; o.pose.headPitch=18; o.pose.armL={fwd:62,out:18,bend:95,twist:10}; o.pose.armR={fwd:88,out:14,bend:60,twist:10}; }
+  if (has('กลองแพด','drum pad','drumpad','ตีกลอง')){ if(!objects.some(x=>x.kind==='drumpad')) addK('drumpad',[fx,0,fz+0.42]); for (const an of ['handL','handR']) if(!objects.some(x=>x.kind==='stick'&&x.attach&&x.attach.fig===activeFig&&x.attach.anchor===an)) objects.push({id:'stick-'+activeFig+'-'+an,name:'ไม้กลอง',kind:'stick',attach:{fig:activeFig,anchor:an},pos:[0,0,0],rot:[55,0,0],scale:1}); o.pose.spineLean=10; o.pose.headPitch=18; o.pose.armL={fwd:62,out:18,bend:95,twist:10}; o.pose.armR={fwd:88,out:14,bend:60,twist:10}; }
   if (has('สะพายหลัง','on back')){ setG([fx+0.14,1.08,fz-0.26],[0,180,55]); o.pose.armL={fwd:38,bend:105,out:6}; }
   else if (has('ไม่มีกีตาร์','no guitar')){ objects = objects.filter(x=>x.kind!=='guitar'); }
   else if (has('กีตาร์','guitar','ดีด','strum')){ if (has('นั่ง','sit')) setG([fx-0.02,0.86,fz+0.36],[-8,-10,32]); else setG([fx+0.02,0.95,fz+0.26],[-10,0,22]); o.pose.armL={fwd:30,out:58,bend:70}; o.pose.armR={fwd:30,out:12,bend:48,twist:55}; }

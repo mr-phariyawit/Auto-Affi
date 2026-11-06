@@ -28,9 +28,9 @@ export const LIBRARY = {
                               ...[0,1,2].map(i => ({shape:'cylinder', size:[0.012,0.012,0.45], pos:[Math.cos(i*2.094+1.57)*0.17,0.2,Math.sin(i*2.094+1.57)*0.17], rot:[Math.sin(i*2.094+1.57)*-28, 0, Math.cos(i*2.094+1.57)*28], color:0x444444, metalness:0.6})),
                               {shape:'cylinder', size:[0.015,0.015,0.55], pos:[0,0.62,0], color:0x444444, metalness:0.6},
                               {shape:'box', size:[0.52,0.07,0.38], pos:[0,0.93,0.02], rot:[-12,0,0], color:0x1a1a1a},
-                              ...[[-0.17,0.08],[0,0.08],[0.17,0.08],[-0.17,-0.08],[0,-0.08],[0.17,-0.08]].map(([x,z]) => ({shape:'box', size:[0.14,0.015,0.13], pos:[x,0.975-z*0.21,0.02+z], rot:[-12,0,0], color:0x3d3d3d})),
-                              {shape:'cylinder', size:[0.008,0.008,0.4], pos:[-0.3,1.0,0.3], rot:[70,0,30], color:0xd9b382},
-                              {shape:'cylinder', size:[0.008,0.008,0.4], pos:[0.3,1.0,0.3], rot:[70,0,-30], color:0xd9b382} ] },
+                              ...[[-0.17,0.08],[0,0.08],[0.17,0.08],[-0.17,-0.08],[0,-0.08],[0.17,-0.08]].map(([x,z]) => ({shape:'box', size:[0.14,0.015,0.13], pos:[x,0.975-z*0.21,0.02+z], rot:[-12,0,0], color:0x3d3d3d})) ] },
+  stick:   { th:'ไม้กลอง',  parts: () => [ {shape:'cylinder', size:[0.006,0.009,0.40], pos:[0,0,0.17], rot:[90,0,0], color:0xd9b382},
+                              {shape:'sphere', size:[0.009], pos:[0,0,0.38], color:0xe8caa0} ] }, // grip at origin, tip along +Z; attach to a hand: attach:{fig:'fig-2',anchor:'handR'} rot≈[55,0,0]
   guitar:  { th:'กีตาร์',   parts: null }, // built by buildGuitar
   spot:    { th:'สปอตไลท์', parts: null }, // light, handled by the scene
 };
@@ -90,6 +90,14 @@ export function applyTransform(g, obj){
   g.position.set(...(obj.pos || [0,0,0]));
   const r = obj.rot || [0,0,0]; g.rotation.order = 'YXZ'; g.rotation.set(r[0]*Math.PI/180, r[1]*Math.PI/180, r[2]*Math.PI/180);
   const s = obj.scale ?? 1; if (Array.isArray(s)) g.scale.set(s[0], s[1], s[2]); else g.scale.set(s, s, s);
+}
+
+// Parent an object group to a figure's hand anchor when obj.attach = {fig, anchor:'handL'|'handR'}; returns true if attached.
+export function attachObject(g, obj, figures){
+  const mq = obj.attach && figures && (figures.get ? figures.get(obj.attach.fig) : figures[obj.attach.fig]);
+  const a = mq && mq.anchors && mq.anchors[obj.attach.anchor];
+  if (!a) return false;
+  a.add(g); return true;
 }
 
 // Convert the legacy harness fields (props stool/mic/wall, guitar) into objects.

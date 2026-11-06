@@ -80,19 +80,19 @@
      -0.35
     ],
     "bodyYaw": -22,
-    "spineLean": 8,
-    "headPitch": 16,
+    "spineLean": 10,
+    "headPitch": 20,
     "headYaw": 6,
     "armL": {
-     "fwd": 58,
+     "fwd": 32,
      "out": 16,
-     "bend": 92,
+     "bend": 40,
      "twist": 10
     },
     "armR": {
-     "fwd": 84,
-     "out": 12,
-     "bend": 62,
+     "fwd": 52,
+     "out": 14,
+     "bend": 60,
      "twist": 10
     },
     "legL": {
@@ -172,6 +172,46 @@
    ],
    "rot": [
     0,
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "stick-1",
+   "name": "ไม้กลองซ้าย",
+   "kind": "stick",
+   "attach": {
+    "fig": "fig-2",
+    "anchor": "handL"
+   },
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    40,
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  {
+   "id": "stick-2",
+   "name": "ไม้กลองขวา",
+   "kind": "stick",
+   "attach": {
+    "fig": "fig-2",
+    "anchor": "handR"
+   },
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    40,
     0,
     0
    ],
