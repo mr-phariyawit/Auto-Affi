@@ -1,0 +1,17 @@
+{
+ "title": "example: seated with amp",
+ "bg": 1900544, "floor": 2039583,
+ "cam": {"pos": [0.35, 1.15, 2.7], "target": [0, 0.95, 0.1], "fov": 38},
+ "light": {"keyPos": [-2.5, 2.6, 2.4], "color": 16773856, "intensity": 2.4, "ambient": 0.18, "rimPos": [2.2, 2.4, -2.2], "rimColor": 10469631, "rimIntensity": 1.4},
+ "objects": [
+  {"id": "guitar", "name": "กีตาร์", "kind": "guitar", "pos": [-0.02, 0.86, 0.36], "rot": [-8, -10, 32], "scale": 1},
+  {"id": "stool", "name": "สตูล", "kind": "stool", "pos": [0, 0, -0.02], "rot": [0, 0, 0], "scale": 1},
+  {"id": "amp-1", "name": "แอมป์", "kind": "amp", "pos": [-1.0, 0, -0.6], "rot": [0, 25, 0], "scale": 1},
+  {"id": "mug-1", "name": "แก้วกาแฟ", "kind": "custom", "pos": [0.9, 0.74, 0.1], "rot": [0, 0, 0], "scale": 1,
+   "parts": [{"shape": "cylinder", "size": [0.04, 0.035, 0.1], "pos": [0, 0.05, 0], "color": 15658734}, {"shape": "torus", "size": [0.03, 0.008], "pos": [0.05, 0.05, 0], "rot": [0, 0, 0], "color": 15658734}]},
+  {"id": "table-1", "name": "โต๊ะ", "kind": "table", "pos": [0.9, 0, 0.1], "rot": [0, 0, 0], "scale": [0.6, 1, 0.6]}
+ ],
+ "pose": {"rootPos": [0, 0.72, 0.02], "bodyYaw": -8, "spineLean": 4, "headYaw": 8, "headPitch": 4,
+  "armL": {"fwd": 30, "out": 58, "bend": 70}, "armR": {"fwd": 30, "out": 12, "bend": 48, "twist": 55},
+  "legL": {"fwd": 82, "bend": 92, "out": 10}, "legR": {"fwd": 85, "bend": 88, "out": 14}}
+}

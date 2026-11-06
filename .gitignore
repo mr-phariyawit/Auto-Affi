@@ -75,3 +75,10 @@ out/
 
 # Keep the env TEMPLATE tracked (required key NAMES only, never values)
 !.env.example
+
+# mannequin poser harness
+tools/mannequin-pose/node_modules/
+tools/mannequin-pose/out/
+# musician shoot: operator face refs + generated likeness stay local (public repo)
+output/musician-shoot/refs/
+output/musician-shoot/round*/
