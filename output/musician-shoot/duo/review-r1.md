@@ -27,3 +27,15 @@ File: `duo-r2.png` 1152×1536. Refs reordered: IMAGE 1 = operator mannequin snap
 | Light | PASS — warm key left, red rim right, overhead beam in haze |
 
 Lesson: for camera/composition, put the mannequin FIRST and spell the camera out in numbers; identity still held with faces at IMAGE 2–3 and only 3 refs.
+
+# Round 3 (2026-11-06) — drummer face up
+
+File: `duo-r3.png` 1152×1536. Same recipe as round 2 (mannequin IMAGE 1 = new operator snapshot with the drummer's head lifted, Jiab face IMAGE 2, drummer face IMAGE 3) + prompt: head lifted, face toward camera, lit by the key, relaxed open-mouth grin, not looking at the pad. Cost [VERIFIED from API response]: $0.087.
+
+| Check | Verdict |
+|---|---|
+| Drummer face | PASS — head up, full face to camera, lit; mustache + goatee + middle-part hair + ear stud all readable; grin as prompted |
+| Drummer likeness | PLAUSIBLE — closest of the three rounds; cheeks slightly fuller than the selfie |
+| Camera vs mannequin | PASS — same high-left framing as round 2; singer large left, drummer right-back, mic base bottom-centre, floor visible |
+| Singer | unchanged, PLAUSIBLE; mouth open on a note |
+| Light | PASS — warm key left, red rim right, overhead beam; shadows again fall lower-right |
