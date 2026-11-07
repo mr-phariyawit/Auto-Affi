@@ -43,3 +43,18 @@ File: `duo-r3.png` 1152×1536. Same recipe as round 2 (mannequin IMAGE 1 = new o
 # Round 4 (2026-11-06) — low angle from the pit, concert-photo optics
 
 Model choice after the benchmark survey (`docs/reference/model-study/image-model-benchmark-2026-11-06.md`): gpt-image-2.5-sunburst still #1 on every board → kept. File: `duo-r4-lowangle.png` 1152×1536. Refs: IMAGE 1 operator low-angle mannequin snapshot, IMAGE 2 Jiab face, IMAGE 3 drummer face. Prompt: camera 0.9 m, tilted up 12°, 50 mm, focus on the singer's face, drummer softer, background bokeh + flares. Cost [VERIFIED from API]: $0.086.
+
+## Round 4 A/B — same prompt + refs, Nano Banana 2.1 vs GPT Image 2.5 Sunburst (2026-11-07)
+
+| | Sunburst (`duo-r4-lowangle.png`) | Nano Banana 2.1 (`duo-r4-nb21.png`) |
+|---|---|---|
+| Cost [VERIFIED: usage.cost in API response] | $0.086 | $0.061 |
+| Output size | 1152×1536 | 1792×2400 (2K) |
+| Camera (brief: low angle from the pit) | Held it: stage lip in frame, strong upward tilt, singer towers | Weaker: closer to eye level, mic stand cuts through the singer's torso |
+| Lighting (brief: warm key, amber-red rim, deep blacks) | Darker, higher contrast, red rim on drummer | Flatter and more front-lit, haze + lens flares good, rim weak |
+| Singer likeness vs `refs/face-front.jpg` | Smoother, slightly idealized, narrower face | Heavier brow, wider jaw, goatee stubble — closer to the real jaw/stubble, more "real photo" |
+| Drummer likeness vs `refs/drummer-face-front.jpg` | Close; fuller moustache | Close; centre-parted curtain hair matches the ref better |
+| Props | Both sticks, pad, amp OK | Left stick hidden/missing, amp carries a small badge (check before publishing) |
+
+Verdict (visual review, not a metric): **Sunburst for the shot** (camera + lighting follow the brief), **NB 2.1 is a real contender on faces** at ~70% of the price and higher resolution — worth a second pass when likeness matters more than lighting. Side-by-side: `ab-r4-sunburst-vs-nb21.jpg`, face crops: `ab-r4-faces.jpg`.
+Script note: NB 2.1 needs `--resolution 1K|2K|4K` instead of `--quality` (added to `tools/openrouter-imagegen.py`).

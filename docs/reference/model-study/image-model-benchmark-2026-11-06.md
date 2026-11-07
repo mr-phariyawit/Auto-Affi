@@ -34,3 +34,6 @@ Not on OpenRouter: MAI-Image-2.7, Kling, Midjourney.
 
 ## Verdict
 Keep **gpt-image-2.5-sunburst** for identity-preserving multi-ref work. Cheap A/B candidate: **nano-banana-2.1**. No board measures face-identity fidelity directly — our own two-face test is the real check.
+
+## Addendum 2026-11-07 — own A/B on the low-angle duo shot
+Same prompt + 3 refs through OpenRouter `/api/v1/images`. Sunburst $0.086 / 1152×1536; Nano Banana 2.1 $0.061 / 1792×2400 (`resolution: "2K"`). Sunburst followed the mannequin camera and the lighting brief; NB 2.1 drifted toward eye level and flat light but rendered both faces at least as close to the refs. Details: `output/musician-shoot/duo/review-r1.md` (round 4 A/B).

@@ -14,7 +14,7 @@ def to_data_uri(path, max_side=1536):
 ap = argparse.ArgumentParser()
 ap.add_argument("--model", required=True); ap.add_argument("--prompt-file", required=True)
 ap.add_argument("--out", required=True); ap.add_argument("--ref", action="append", default=[])
-ap.add_argument("--aspect", default="3:4"); ap.add_argument("--size", default="2K"); ap.add_argument("--quality", default="high"); ap.add_argument("--reasoning", default="low"); ap.add_argument("--endpoint", default="images", choices=["images","chat"])
+ap.add_argument("--aspect", default="3:4"); ap.add_argument("--size", default="2K"); ap.add_argument("--quality", default="high"); ap.add_argument("--reasoning", default="low"); ap.add_argument("--resolution", default=None, help="for Gemini/Nano Banana image models: 1K/2K/4K (replaces --quality)"); ap.add_argument("--endpoint", default="images", choices=["images","chat"])
 a = ap.parse_args()
 key = os.environ["OPENROUTER_API_KEY"]
 prompt = open(a.prompt_file).read().strip()
@@ -22,7 +22,9 @@ if a.endpoint == "images":
     uris = []; sizes = []
     for r in a.ref:
         uri, sz = to_data_uri(r); uris.append(uri); sizes.append((os.path.basename(r), sz))
-    body = {"model": a.model, "prompt": prompt, "n": 1, "quality": a.quality, "aspect_ratio": a.aspect}
+    body = {"model": a.model, "prompt": prompt, "n": 1, "aspect_ratio": a.aspect}
+    if a.resolution: body["resolution"] = a.resolution
+    else: body["quality"] = a.quality
     if uris: body["input_references"] = [{"type": "image_url", "image_url": {"url": u}} for u in uris]
     url_ep = "https://openrouter.ai/api/v1/images"
 else:
