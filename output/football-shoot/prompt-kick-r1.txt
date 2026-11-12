@@ -1,0 +1,16 @@
+Photorealistic sports action photograph, vertical 3:4, of one man kicking a football on a grass pitch.
+
+IMAGE 1 is a 3D wooden-mannequin blocking render: follow it for camera position, framing, body pose, limb angles and ball position ONLY. Do not render a mannequin, wood, or the flat green/blue backdrop.
+IMAGE 2 (front) and IMAGE 3 (side) are the same real man: use them for his face and head ONLY — same face shape, wide jaw, eyebrows, eyes, nose, lips, skin tone, light stubble, short dark hair swept to the side. Keep him recognisably this exact person, natural skin texture, no beautifying, no change of age. Ignore his clothes and the background in those photos.
+
+COMPOSITION (match IMAGE 1): camera low, about 0.85 m above the grass, to the player's right-front side, roughly 55 degrees off his facing direction, about 4 m away, ~70mm lens look. Full body in frame with headroom; the player stands in the left half of the frame, the ball is in the air in the right half at about thigh height, just leaving his foot. Horizon line low, around the lower third.
+
+ACTION (match IMAGE 1): right-footed instep strike frozen an instant after contact. Right leg swung forward and up, nearly straight, toe pointed along the shin. Left standing leg planted flat on the grass under the hip, knee slightly bent. Torso leaning back a little and rotated; left arm thrown out forward and wide for balance, right arm swung back with the elbow bent. Head tilted down, eyes locked on the ball, focused expression, mouth closed. A few blades of grass and a small spray of turf flying from the plant foot.
+
+WARDROBE: plain navy-blue short-sleeve football jersey, plain white shorts, navy knee socks, black football boots. No crest, no sponsor, no number, no brand marks anywhere. Ball: classic white football with black pentagon panels, no logo, no text.
+
+SETTING: well-kept natural grass pitch in late afternoon, out-of-focus white goal frame and a tree line far behind, empty of other people.
+
+LIGHTING: low warm sun from high camera-right and slightly in front of the player, lighting his face and chest; long soft shadow falling on the grass toward camera-left; gentle golden rim on hair and shoulders; blue sky fill in the shadows.
+
+STYLE / OPTICS: professional sports photography, shutter 1/2000 s freezing the motion, f/2.8, face and ball tack sharp, background softly blurred, natural colour, fine sensor grain. NO text, NO logos, NO watermark, NO extra people, correct anatomy with five fingers per hand.

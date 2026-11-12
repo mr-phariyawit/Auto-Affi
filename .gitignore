@@ -84,3 +84,7 @@ output/musician-shoot/refs/
 output/musician-shoot/round*/
 output/musician-shoot/duo/*.png
 output/musician-shoot/duo/*.jpg
+
+# football shoot: likeness images stay out of git
+output/football-shoot/*.png
+output/football-shoot/*.jpg
