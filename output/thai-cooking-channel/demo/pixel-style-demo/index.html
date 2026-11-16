@@ -112,7 +112,8 @@
     <h2>สิ่งที่เดโมนี้แสดง</h2>
     <ul>
       <li><b>ฉากครัวมุมข้าง</b> เชฟโขลก เท และผัดตามขั้นตอน แบบเดียวกับบาร์ซูชิใน Dave the Diver</li>
-      <li><b>วัตถุดิบครบบนโต๊ะ</b> ข้าว ไข่ หมูสับ พริก ครก กระเทียม กะเพรา น้ำปลา และพริกไทย มีลูกศรชี้ของที่กำลังใช้ และของจะหายจากโต๊ะเมื่อลงกระทะแล้ว</li>
+      <li><b>วัตถุดิบครบ ขนาดใหญ่ขึ้นสองเท่า</b> วางบนชั้นไม้สองข้างของเชฟ: ข้าว ไข่ หมูสับ พริก ทางซ้าย และกระเทียม กะเพรา น้ำปลา พริกไทย ทางขวา ส่วนครกกับกระทะอยู่บนโต๊ะ มีลูกศรชี้ของที่กำลังใช้ และของจะหายจากชั้นเมื่อลงกระทะแล้ว</li>
+      <li><b>อารมณ์ของเชฟเปลี่ยนตามขั้นตอน</b> ตาเป็นประกายตอนเปิด ขมวดคิ้วกัดฟันมีเหงื่อกระเด็นตอนโขลก จ้องกระทะตอนผัดหมู หรี่ตาแลบลิ้นตอนเทน้ำปลา จามตอนโรยพริกไทย หลับตายิ้มดมกลิ่นกะเพรา และชูแขนกระโดดดีใจตอนเสิร์ฟ</li>
       <li><b>ช่องภาพระยะใกล้</b> มุมขวาบน แสดงวัตถุดิบของขั้นนั้นเป็นสไปรต์ใหญ่ แบบหน้าจอสถานีใน Galaxy Burger และ Pixel Cafe</li>
       <li><b>กริดจริง 180×320 พิกเซล</b> ขยาย 2 เท่าบนหน้านี้ ถ้าเรนเดอร์เป็นวิดีโอ 1080×1920 จะขยาย 6 เท่าพอดี</li>
       <li><b>มุมบนแบบสมจริงใต้หน้าโต๊ะ</b> ใช้ภาพรอบแรกที่ออกมาเหมือนภาพถ่าย (กระทะเปล่า กระทะใส่กะเพรา ครก จานสำเร็จ) ที่ความละเอียดเต็ม ไม่ย่อเป็นพิกเซล</li>
@@ -235,32 +236,28 @@ function kitchen() {
   R(78, B + 47, 10, 5, C.steel); R(89, B + 47, 10, 5, C.steel);     // shoes
   R(84, B + 8, 9, 14, C.white); R(84, B + 20, 9, 2, C.shade);       // apron hem
 }
-function props(st, p, tick, idx) {          // every ingredient of the dish, laid out on the tabletop
-  const y = B, k = st.k, used = (i, thr) => idx > i || (idx === i && p > thr);   // idx 0 = intro: everything still full
-  // jasmine rice (bowl) and egg, far left
-  R(7, y - 4, 9, 4, C.plate); R(8, y - 1, 7, 1, C.plate2); R(8, y - 6, 7, 2, C.rice); R(9, y - 7, 5, 1, C.rice); R(10, y - 6, 1, 1, C.shade); R(13, y - 5, 1, 1, C.shade);
-  R(17, y - 3, 4, 3, '#ead9b8'); R(18, y - 4, 2, 1, '#ead9b8'); R(17, y - 1, 4, 1, '#cdb893');
-  // minced pork (bowl empties once it goes into the wok)
-  R(22, y - 4, 10, 4, C.plate); R(23, y - 1, 8, 1, C.plate2);
-  if (!used(2, 0.12)) { R(23, y - 6, 8, 2, C.pink); R(25, y - 7, 4, 1, C.pink); R(24, y - 6, 1, 1, C.white); R(28, y - 6, 2, 1, C.white); R(27, y - 7, 1, 1, C.pink2); }
-  // bird's-eye chillies (most go into the mortar)
-  R(33, y - 1, 5, 1, C.red); R(32, y - 1, 1, 1, C.green2);
-  if (!used(1, 0.25)) { R(34, y - 3, 5, 1, C.green); R(33, y - 3, 1, 1, C.green2); R(35, y - 2, 4, 1, C.red2); R(36, y - 4, 3, 1, C.red); }
-  if (k !== 'serve') { g.save(); g.translate(3, 0);      // shifted right so the resting hand does not cover the garlic
-    // garlic bulb
-    R(70, y - 4, 5, 4, C.white); R(71, y - 5, 3, 1, C.white); R(72, y - 6, 1, 1, C.shade); R(72, y - 4, 1, 4, C.shade); R(74, y - 2, 1, 2, C.shade);
-    if (used(1, 0.25)) R(70, y - 4, 2, 4, C.top);                                   // a clove taken
-    // holy basil bunch (gone once it is in the wok)
-    if (!used(5, 0.1)) { R(81, y - 3, 1, 3, '#7a4a6a'); R(78, y - 8, 7, 4, C.green); R(77, y - 6, 2, 2, C.green2); R(84, y - 7, 2, 2, C.green2); R(80, y - 10, 3, 2, C.green); R(81, y - 8, 1, 4, '#8fd07f'); R(79, y - 5, 1, 1, C.green2); R(83, y - 4, 1, 1, C.green2); }
-    // fish sauce bottle (in the chef's hand during its step)
-    if (k !== 'sauce') { R(88, y - 13, 3, 2, C.red); R(88, y - 11, 3, 2, C.glass); R(87, y - 9, 5, 9, C.amber); R(87, y - 9, 1, 9, C.amber2); R(88, y - 6, 3, 3, C.white); }
-    // peppercorns in a small dish
-    R(93, y - 2, 10, 2, C.plate); R(94, y - 3, 8, 1, C.plate2);
-    if (!used(4, 0.35)) { R(95, y - 4, 2, 1, C.pepK); R(98, y - 4, 1, 1, C.pepW); R(100, y - 4, 2, 1, C.pepK); R(97, y - 5, 2, 1, C.pepW); R(99, y - 5, 1, 1, C.pepK); }
-    g.restore();
-  }
-  const ax = { pound: 36, pork: 27, sauce: 121, pepper: 101, basil: 84, serve: 13 }[k];   // pointer above the ingredient in use
-  if (ax !== undefined) { const ay = y - (k === 'sauce' ? 40 : 19) - (tick % 8 < 4 ? 0 : 1); R(ax - 2, ay, 5, 1, C.accent); R(ax - 1, ay + 1, 3, 1, C.accent); R(ax, ay + 2, 1, 1, C.accent); }
+const SHELF = B - 38;                          // top of the two wall shelves beside the chef
+function props(st, p, tick, idx) {           // every ingredient, drawn at double size on the shelves
+  const k = st.k, used = (i, thr) => idx > i || (idx === i && p > thr);   // idx 0 = intro: everything still full
+  R(4, SHELF, 70, 2, C.topHi); R(4, SHELF + 2, 70, 1, C.front); R(10, SHELF + 3, 2, 4, C.front); R(66, SHELF + 3, 2, 4, C.front);
+  R(104, SHELF, 72, 2, C.topHi); R(104, SHELF + 2, 72, 1, C.front); R(110, SHELF + 3, 2, 4, C.front); R(168, SHELF + 3, 2, 4, C.front);
+  const at = (x, fn) => { g.save(); g.translate(x, SHELF); g.scale(2, 2); fn(); g.restore(); };
+  at(6, () => { R(0, -4, 9, 4, C.plate); R(1, -1, 7, 1, C.plate2); R(1, -6, 7, 2, C.rice); R(2, -7, 5, 1, C.rice); R(3, -6, 1, 1, C.shade); R(6, -5, 1, 1, C.shade); });          // jasmine rice
+  at(26, () => { R(0, -3, 4, 3, '#ead9b8'); R(1, -4, 2, 1, '#ead9b8'); R(0, -1, 4, 1, '#cdb893'); R(1, -3, 1, 1, '#f6ecd4'); });                                                    // egg
+  at(36, () => { R(0, -4, 10, 4, C.plate); R(1, -1, 8, 1, C.plate2);                                                                                                          // minced pork
+    if (!used(2, 0.12)) { R(1, -6, 8, 2, C.pink); R(3, -7, 4, 1, C.pink); R(2, -6, 1, 1, C.white); R(6, -6, 2, 1, C.white); R(5, -7, 1, 1, C.pink2); R(4, -5, 1, 1, C.pink2); } });
+  at(58, () => { R(1, -1, 5, 1, C.red); R(0, -1, 1, 1, C.green2);                                                                                                             // bird's-eye chillies
+    if (!used(1, 0.25)) { R(2, -3, 5, 1, C.green); R(1, -3, 1, 1, C.green2); R(3, -2, 4, 1, C.red2); R(4, -4, 3, 1, C.red); R(3, -4, 1, 1, C.green2); } });
+  at(108, () => { R(0, -4, 5, 4, C.white); R(1, -5, 3, 1, C.white); R(2, -6, 1, 1, C.shade); R(2, -4, 1, 4, C.shade); R(4, -2, 1, 2, C.shade);                                   // garlic
+    if (used(1, 0.25)) R(0, -4, 2, 4, C.wall); });
+  if (!used(5, 0.1)) at(121, () => { R(4, -3, 1, 3, '#7a4a6a'); R(1, -8, 7, 4, C.green); R(0, -6, 2, 2, C.green2); R(7, -7, 2, 2, C.green2); R(3, -10, 3, 2, C.green); R(4, -8, 1, 4, '#8fd07f'); R(2, -5, 1, 1, C.green2); R(6, -4, 1, 1, C.green2); });   // holy basil
+  if (k !== 'sauce') at(142, () => { R(1, -13, 3, 2, C.red); R(1, -11, 3, 2, C.glass); R(0, -9, 5, 9, C.amber); R(0, -9, 1, 9, C.amber2); R(1, -6, 3, 3, C.white); });        // fish sauce
+  at(154, () => { R(0, -2, 10, 2, C.plate); R(1, -3, 8, 1, C.plate2);                                                                                                         // peppercorns
+    if (!used(4, 0.35)) { R(2, -4, 2, 1, C.pepK); R(5, -4, 1, 1, C.pepW); R(7, -4, 2, 1, C.pepK); R(4, -5, 2, 1, C.pepW); R(6, -5, 1, 1, C.pepK); } });
+}
+function pointer(st, tick) {                 // arrow above the ingredient in use
+  const a = { pound: [65, 14], pork: [46, 20], pepper: [164, 16], basil: [130, 26], serve: [15, 20] }[st.k]; if (!a) return;
+  const ay = SHELF - a[1] - 6 - (tick % 8 < 4 ? 0 : 1); R(a[0] - 3, ay, 7, 2, C.accent); R(a[0] - 2, ay + 2, 5, 1, C.accent); R(a[0] - 1, ay + 3, 3, 1, C.accent); R(a[0], ay + 4, 1, 1, C.accent);
 }
 function tabletop() {                                            // only the top surface: no cabinet, no drawers
   R(6, B, W - 12, 3, C.topHi); R(6, B + 3, W - 12, 4, C.top); R(6, B + 7, W - 12, 1, C.front);
@@ -285,21 +282,60 @@ function wok(st, p, tick) {
     if (k === 'basil') { const n = Math.floor(3 + p * 9); for (let i = 0; i < n; i++) { const x = 116 + rnd(i + 70) * 28, y = B - 16 + rnd(i + 80) * 4; R(x, y, 4, 2, i % 2 ? C.green : C.green2); R(x + 1, y, 1, 1, '#8fd07f'); } }
     if (k !== 'pound') for (let i = 0; i < 5; i++) { const ph = (tick * 1.1 + i * 9) % 26; R(118 + i * 6 + Math.round(Math.sin((tick + i * 5) / 5) * 2), B - 20 - ph, 2, 2, C.steam); } }
 }
+/* ---------- chef emotions: face, emote icon and body bounce change with the step ---------- */
+const bobOf = (k, tick, p) => k === 'serve' ? (tick % 8 < 4 ? -2 : 0)                       // little jumps of joy
+  : (k === 'pepper' && p > 0.62 && p < 0.8) ? 2                                             // lurch forward on the sneeze
+  : ((k === 'pound') && tick % 6 < 2) ? 1 : (tick % 12 < 6 ? 0 : 1);
+function face(cx, y0, k, p, tick) {
+  const E = C.steel, M = '#7a2218', blink = tick % 40 < 2, eye = (x, y, w, h) => R(cx + x, y0 + y, w, h, E);
+  const blush = () => { R(cx - 6, y0 - 48, 2, 1, '#e58a7a'); R(cx + 5, y0 - 48, 2, 1, '#e58a7a'); };
+  const smile = () => { R(cx - 3, y0 - 47, 1, 1, M); R(cx - 2, y0 - 46, 5, 1, M); R(cx + 3, y0 - 47, 1, 1, M); };
+  const happyEyes = () => { R(cx - 5, y0 - 50, 1, 1, E); R(cx - 4, y0 - 51, 2, 1, E); R(cx - 2, y0 - 50, 1, 1, E); R(cx + 1, y0 - 50, 1, 1, E); R(cx + 2, y0 - 51, 2, 1, E); R(cx + 4, y0 - 50, 1, 1, E); };
+  if (k === 'target') { eye(-4, -51, 2, blink ? 1 : 2); eye(2, -51, 2, blink ? 1 : 2); R(cx - 4, y0 - 51, 1, 1, C.white); R(cx + 2, y0 - 51, 1, 1, C.white); smile(); }
+  else if (k === 'pound') {                                   // determined: slanted brows, gritted teeth, flying sweat
+    R(cx - 5, y0 - 54, 2, 1, E); R(cx - 3, y0 - 53, 1, 1, E); R(cx + 2, y0 - 53, 1, 1, E); R(cx + 3, y0 - 54, 2, 1, E);
+    eye(-4, -51, 2, 1); eye(2, -51, 2, 1); R(cx - 2, y0 - 46, 5, 1, C.white); R(cx - 2, y0 - 45, 5, 1, E); R(cx, y0 - 46, 1, 1, E);
+    const d = tick % 6; R(cx + 9 + d, y0 - 56 + d, 1, 2, C.glass); if (d > 2) R(cx - 10 - d, y0 - 55 + d, 1, 2, C.glass); }
+  else if (k === 'pork') { eye(-3, -50, 2, 2); eye(3, -50, 2, 2); R(cx - 5, y0 - 53, 3, 1, E); R(cx + 2, y0 - 53, 3, 1, E); R(cx, y0 - 46, 2, 2, M); }      // focused, watching the wok
+  else if (k === 'sauce') { R(cx - 4, y0 - 50, 2, 1, E); eye(3, -51, 2, 2); R(cx - 1, y0 - 46, 3, 1, E); R(cx + 2, y0 - 45, 1, 1, C.red); }             // careful: one eye shut, tongue out
+  else if (k === 'pepper') {
+    if (p < 0.5) { eye(-4, -52, 2, 3); eye(2, -52, 2, 3); R(cx - 1, y0 - 46, 2, 1, E); R(cx - 1, y0 - 48, 2, 1, '#e58a7a'); }                       // nose tickles
+    else if (p < 0.62) { R(cx - 5, y0 - 53, 3, 1, E); R(cx + 2, y0 - 53, 3, 1, E); eye(-4, -51, 2, 1); eye(2, -51, 2, 1); R(cx - 1, y0 - 47, 3, 3, M); }   // breath in
+    else if (p < 0.8) { R(cx - 5, y0 - 52, 1, 1, E); R(cx - 4, y0 - 51, 1, 1, E); R(cx - 3, y0 - 52, 1, 1, E); R(cx + 2, y0 - 52, 1, 1, E); R(cx + 3, y0 - 51, 1, 1, E); R(cx + 4, y0 - 52, 1, 1, E);
+      R(cx - 2, y0 - 47, 5, 3, M); const q = (p - 0.62) / 0.18;                                                                                     // ACHOO: puff flies right
+      for (let i = 0; i < 6; i++) R(cx + 9 + q * 22 + rnd(i) * 8, y0 - 48 + (rnd(i + 3) - 0.5) * 8, 2, 2, i % 2 ? C.white : C.steam); }
+    else { happyEyes(); smile(); R(cx + 9, y0 - 55, 1, 2, C.glass); }                                                                                   // relieved
+  }
+  else if (k === 'basil') { happyEyes(); smile(); blush(); }                                    // eyes closed, breathing in the aroma
+  else if (k === 'serve') { eye(-4, -51, 2, blink ? 1 : 2); eye(2, -51, 2, blink ? 1 : 2); R(cx - 4, y0 - 51, 1, 1, C.white); R(cx + 2, y0 - 51, 1, 1, C.white);
+    R(cx - 3, y0 - 47, 7, 2, M); R(cx - 3, y0 - 47, 7, 1, C.white); blush(); }                                                                          // big grin
+}
+function emote(cx, y0, k, p, tick) {                   // small icon beside the chef's head
+  const x = cx - 20, y = y0 - 66 - (tick % 10 < 5 ? 0 : 1), A = C.accent, H = '#e0553b';
+  const heart = (hx, hy) => { R(hx, hy, 2, 1, H); R(hx + 3, hy, 2, 1, H); R(hx - 1, hy + 1, 7, 2, H); R(hx, hy + 3, 5, 1, H); R(hx + 1, hy + 4, 3, 1, H); R(hx + 2, hy + 5, 1, 1, H); };
+  if (k === 'target') { R(x + 3, y, 1, 7, A); R(x, y + 3, 7, 1, A); R(x + 2, y + 2, 3, 3, A); }                                   // sparkle
+  if (k === 'pork') { R(x, y + 5, 1, 1, C.white); R(x + 3, y + 5, 1, 1, C.white); R(x + 6, y + 5, 1, 1, C.white); }                  // "..." concentrating
+  if (k === 'sauce') { R(x + 3, y, 2, 4, A); R(x + 3, y + 5, 2, 2, A); }                                                          // "!"
+  if (k === 'pepper' && p > 0.62 && p < 0.8) { R(x + 1, y, 2, 4, H); R(x + 1, y + 5, 2, 2, H); R(x + 5, y, 2, 4, H); R(x + 5, y + 5, 2, 2, H); }   // "!!"
+  if (k === 'basil') { heart(x + 1, y + 1); const q = (tick % 24) / 24; R(cx + 12 + Math.round(Math.sin(q * 6.28) * 2), y0 - 52 - q * 14, 2, 1, '#8fd07f'); R(cx + 15 - Math.round(Math.sin(q * 6.28) * 2), y0 - 46 - q * 14, 2, 1, '#8fd07f'); }   // heart + aroma wisps
+  if (k === 'serve') { heart(x + 1, y + 1); heart(cx + 13, y + 2 + (tick % 10 < 5 ? 1 : 0)); }
+}
 function chef(st, p, tick) {
-  const cx = 88, bob = (tick % 12 < 6) ? 0 : 1, k = st.k, y0 = B + bob;
-  R(cx - 11, y0 - 40, 23, 40, C.white); R(cx + 8, y0 - 40, 4, 40, C.shade); R(cx - 1, y0 - 34, 2, 2, C.shade); R(cx - 1, y0 - 26, 2, 2, C.shade); R(cx - 1, y0 - 18, 2, 2, C.shade);
+  const cx = 88, k = st.k, bob = bobOf(k, tick, p), y0 = B + bob;
+  R(cx - 11, y0 - 40, 23, 40 - Math.min(0, bob), C.white); R(cx + 8, y0 - 40, 4, 40, C.shade); R(cx - 1, y0 - 34, 2, 2, C.shade); R(cx - 1, y0 - 26, 2, 2, C.shade); R(cx - 1, y0 - 18, 2, 2, C.shade);
   R(cx - 7, y0 - 43, 15, 4, C.red); R(cx - 3, y0 - 44, 7, 2, C.skin2);
   R(cx - 7, y0 - 56, 15, 13, C.skin); R(cx + 5, y0 - 56, 3, 13, C.skin2);
-  const blink = tick % 40 < 2; R(cx - 4, y0 - 51, 2, blink ? 1 : 2, C.steel); R(cx + 2, y0 - 51, 2, blink ? 1 : 2, C.steel); R(cx - 2, y0 - 46, 5, 1, k === 'serve' || k === 'target' ? C.red : C.skin2);
+  face(cx, y0, k, p, tick);
   R(cx - 8, y0 - 60, 17, 5, C.white); R(cx - 10, y0 - 66, 21, 7, C.white); R(cx + 7, y0 - 66, 4, 11, C.shade);
 }
 function hands(st, p, tick) {
-  const cx = 88, bob = (tick % 12 < 6) ? 0 : 1, k = st.k, y0 = B + bob;
+  const cx = 88, k = st.k, bob = bobOf(k, tick, p), y0 = B + bob;
   let lh = [cx - 24, B - 4], rh = [cx + 20, B - 4], tool = null;           // hand targets
   if (k === 'pound' || k === 'pepper') { const up = tick % 6 < 3 ? 12 : 2; lh = [54, B - 16 - up]; tool = 'pestle'; }
   if (k === 'pork' || k === 'basil') { rh = [118 + Math.round(Math.sin(tick / 3) * 9) + 12, B - 22]; tool = 'spatula'; }
-  if (k === 'sauce') { rh = [124, B - 34 + Math.round(Math.sin(tick / 6) * 1)]; tool = 'bottle'; }
-  if (k === 'serve' || k === 'target') { lh = [cx - 18, B - 10]; rh = [cx + 18, B - 10]; }
+  if (k === 'sauce') { rh = [124, B - 29 + Math.round(Math.sin(tick / 6) * 1)]; tool = 'bottle'; }
+  if (k === 'target') { lh = [cx - 18, B - 10]; rh = [cx + 18, B - 10]; }
+  if (k === 'serve') { const up = tick % 8 < 4 ? 0 : 3; lh = [cx - 17, B - 50 - up]; rh = [cx + 15, B - 50 - up]; }      // arms up, cheering
   seg(cx - 10, y0 - 34, lh[0], lh[1], 4, C.white); seg(cx + 9, y0 - 34, rh[0], rh[1], 4, C.shade);
   R(lh[0] - 1, lh[1], 5, 4, C.skin); R(rh[0] - 1, rh[1], 5, 4, C.skin);
   if (tool === 'pestle') { R(lh[0], lh[1] + 3, 3, 12, C.stone2); R(lh[0] - 1, lh[1] + 13, 5, 3, C.stone); }
@@ -365,7 +401,7 @@ function drawFx(st, p) {
 function draw() {
   if (!(T >= 0)) T = 0;
   const idx = Math.floor(T / DUR) % STEPS.length, st = STEPS[idx], p = (T % DUR) / DUR, tick = Math.floor(T / 83);
-  kitchen(); chef(st, p, tick); tabletop(); props(st, p, tick, idx); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick);
+  kitchen(); props(st, p, tick, idx); chef(st, p, tick); tabletop(); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick); emote(88, B + bobOf(st.k, tick, p), st.k, p, tick); pointer(st, tick);
   if (st.k === 'serve') dishSprite(66, B - 22, 0.5);
   R(0, B + 8, W, H - B - 8, C.inset);
   drawFx(st, p);
