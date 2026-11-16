@@ -112,6 +112,7 @@
     <h2>สิ่งที่เดโมนี้แสดง</h2>
     <ul>
       <li><b>ฉากครัวมุมข้าง</b> เชฟโขลก เท และผัดตามขั้นตอน แบบเดียวกับบาร์ซูชิใน Dave the Diver</li>
+      <li><b>วัตถุดิบครบบนโต๊ะ</b> ข้าว ไข่ หมูสับ พริก ครก กระเทียม กะเพรา น้ำปลา และพริกไทย มีลูกศรชี้ของที่กำลังใช้ และของจะหายจากโต๊ะเมื่อลงกระทะแล้ว</li>
       <li><b>ช่องภาพระยะใกล้</b> มุมขวาบน แสดงวัตถุดิบของขั้นนั้นเป็นสไปรต์ใหญ่ แบบหน้าจอสถานีใน Galaxy Burger และ Pixel Cafe</li>
       <li><b>กริดจริง 180×320 พิกเซล</b> ขยาย 2 เท่าบนหน้านี้ ถ้าเรนเดอร์เป็นวิดีโอ 1080×1920 จะขยาย 6 เท่าพอดี</li>
       <li><b>มุมบนแบบสมจริงใต้หน้าโต๊ะ</b> ใช้ภาพรอบแรกที่ออกมาเหมือนภาพถ่าย (กระทะเปล่า กระทะใส่กะเพรา ครก จานสำเร็จ) ที่ความละเอียดเต็ม ไม่ย่อเป็นพิกเซล</li>
@@ -234,6 +235,33 @@ function kitchen() {
   R(78, B + 47, 10, 5, C.steel); R(89, B + 47, 10, 5, C.steel);     // shoes
   R(84, B + 8, 9, 14, C.white); R(84, B + 20, 9, 2, C.shade);       // apron hem
 }
+function props(st, p, tick, idx) {          // every ingredient of the dish, laid out on the tabletop
+  const y = B, k = st.k, used = (i, thr) => idx > i || (idx === i && p > thr);   // idx 0 = intro: everything still full
+  // jasmine rice (bowl) and egg, far left
+  R(7, y - 4, 9, 4, C.plate); R(8, y - 1, 7, 1, C.plate2); R(8, y - 6, 7, 2, C.rice); R(9, y - 7, 5, 1, C.rice); R(10, y - 6, 1, 1, C.shade); R(13, y - 5, 1, 1, C.shade);
+  R(17, y - 3, 4, 3, '#ead9b8'); R(18, y - 4, 2, 1, '#ead9b8'); R(17, y - 1, 4, 1, '#cdb893');
+  // minced pork (bowl empties once it goes into the wok)
+  R(22, y - 4, 10, 4, C.plate); R(23, y - 1, 8, 1, C.plate2);
+  if (!used(2, 0.12)) { R(23, y - 6, 8, 2, C.pink); R(25, y - 7, 4, 1, C.pink); R(24, y - 6, 1, 1, C.white); R(28, y - 6, 2, 1, C.white); R(27, y - 7, 1, 1, C.pink2); }
+  // bird's-eye chillies (most go into the mortar)
+  R(33, y - 1, 5, 1, C.red); R(32, y - 1, 1, 1, C.green2);
+  if (!used(1, 0.25)) { R(34, y - 3, 5, 1, C.green); R(33, y - 3, 1, 1, C.green2); R(35, y - 2, 4, 1, C.red2); R(36, y - 4, 3, 1, C.red); }
+  if (k !== 'serve') { g.save(); g.translate(3, 0);      // shifted right so the resting hand does not cover the garlic
+    // garlic bulb
+    R(70, y - 4, 5, 4, C.white); R(71, y - 5, 3, 1, C.white); R(72, y - 6, 1, 1, C.shade); R(72, y - 4, 1, 4, C.shade); R(74, y - 2, 1, 2, C.shade);
+    if (used(1, 0.25)) R(70, y - 4, 2, 4, C.top);                                   // a clove taken
+    // holy basil bunch (gone once it is in the wok)
+    if (!used(5, 0.1)) { R(81, y - 3, 1, 3, '#7a4a6a'); R(78, y - 8, 7, 4, C.green); R(77, y - 6, 2, 2, C.green2); R(84, y - 7, 2, 2, C.green2); R(80, y - 10, 3, 2, C.green); R(81, y - 8, 1, 4, '#8fd07f'); R(79, y - 5, 1, 1, C.green2); R(83, y - 4, 1, 1, C.green2); }
+    // fish sauce bottle (in the chef's hand during its step)
+    if (k !== 'sauce') { R(88, y - 13, 3, 2, C.red); R(88, y - 11, 3, 2, C.glass); R(87, y - 9, 5, 9, C.amber); R(87, y - 9, 1, 9, C.amber2); R(88, y - 6, 3, 3, C.white); }
+    // peppercorns in a small dish
+    R(93, y - 2, 10, 2, C.plate); R(94, y - 3, 8, 1, C.plate2);
+    if (!used(4, 0.35)) { R(95, y - 4, 2, 1, C.pepK); R(98, y - 4, 1, 1, C.pepW); R(100, y - 4, 2, 1, C.pepK); R(97, y - 5, 2, 1, C.pepW); R(99, y - 5, 1, 1, C.pepK); }
+    g.restore();
+  }
+  const ax = { pound: 36, pork: 27, sauce: 121, pepper: 101, basil: 84, serve: 13 }[k];   // pointer above the ingredient in use
+  if (ax !== undefined) { const ay = y - (k === 'sauce' ? 40 : 19) - (tick % 8 < 4 ? 0 : 1); R(ax - 2, ay, 5, 1, C.accent); R(ax - 1, ay + 1, 3, 1, C.accent); R(ax, ay + 2, 1, 1, C.accent); }
+}
 function tabletop() {                                            // only the top surface: no cabinet, no drawers
   R(6, B, W - 12, 3, C.topHi); R(6, B + 3, W - 12, 4, C.top); R(6, B + 7, W - 12, 1, C.front);
 }
@@ -267,7 +295,7 @@ function chef(st, p, tick) {
 }
 function hands(st, p, tick) {
   const cx = 88, bob = (tick % 12 < 6) ? 0 : 1, k = st.k, y0 = B + bob;
-  let lh = [cx - 20, B - 4], rh = [cx + 20, B - 4], tool = null;           // hand targets
+  let lh = [cx - 24, B - 4], rh = [cx + 20, B - 4], tool = null;           // hand targets
   if (k === 'pound' || k === 'pepper') { const up = tick % 6 < 3 ? 12 : 2; lh = [54, B - 16 - up]; tool = 'pestle'; }
   if (k === 'pork' || k === 'basil') { rh = [118 + Math.round(Math.sin(tick / 3) * 9) + 12, B - 22]; tool = 'spatula'; }
   if (k === 'sauce') { rh = [124, B - 34 + Math.round(Math.sin(tick / 6) * 1)]; tool = 'bottle'; }
@@ -337,8 +365,8 @@ function drawFx(st, p) {
 function draw() {
   if (!(T >= 0)) T = 0;
   const idx = Math.floor(T / DUR) % STEPS.length, st = STEPS[idx], p = (T % DUR) / DUR, tick = Math.floor(T / 83);
-  kitchen(); chef(st, p, tick); tabletop(); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick);
-  if (st.k === 'serve' || st.k === 'target') dishSprite(20, B - 22, 0.5);
+  kitchen(); chef(st, p, tick); tabletop(); props(st, p, tick, idx); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick);
+  if (st.k === 'serve') dishSprite(66, B - 22, 0.5);
   R(0, B + 8, W, H - B - 8, C.inset);
   drawFx(st, p);
   drawInset(st, tick);
