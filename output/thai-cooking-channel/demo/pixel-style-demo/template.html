@@ -97,6 +97,7 @@
     </div>
     <div class="ctl">
       <button id="play" type="button" aria-pressed="true">Pause</button>
+      <button id="snd" type="button" aria-pressed="false">Sound: off</button>
       <div class="seg" role="group" aria-label="Close-up art source">
         <button id="mR" type="button" aria-pressed="true">Realistic</button>
         <button id="mB" type="button" aria-pressed="false">Pixelated art</button>
@@ -133,7 +134,8 @@
     <ul>
       <li>ตัวเชฟ โต๊ะ (เหลือเฉพาะหน้าโต๊ะ) และสไปรต์ทั้งหมดวาดด้วยโค้ดเพื่อสาธิตแนวทาง ยังไม่ใช่งานศิลป์จริง นักวาดพิกเซลหรือเครื่องมืออย่าง Aseprite จะได้ผลละเอียดกว่านี้มาก</li>
       <li>ตัวหนังสือเป็นฟอนต์พิกเซลที่วางทับแบบความละเอียดสูง ไม่ได้อยู่บนกริด 180×320</li>
-      <li>ไม่มีเสียง และยังไม่ได้เรนเดอร์เป็นวิดีโอ</li>
+      <li>เสียงประกอบเป็นเสียงสังเคราะห์ชุดเดียวกับใน animatic (สากกระทบครก เสียงฉ่า เสียงเทน้ำปลา เสียงวางจาน) บวกเสียงที่สร้างด้วยโค้ด (เสียงจาม เสียงประกายตอนเปิด เสียงแตรสั้นตอนเสิร์ฟ) และดนตรีเบา ๆ วนลูป เสียงปิดไว้ก่อนจนกว่าจะกดปุ่ม Sound เพราะเบราว์เซอร์ไม่ให้เล่นเสียงเองโดยไม่มีการกด</li>
+      <li>ยังไม่ได้เรนเดอร์เป็นวิดีโอ และไม่มีเสียงพากย์ในเดโมนี้</li>
       <li>ใบกะเพราในเดโมวาดแบบทั่วไป ยังไม่ได้เทียบกับของจริง</li>
     </ul>
 
@@ -417,11 +419,58 @@ function draw() {
     [...rail.children].forEach((b, i) => { b.className = i < idx ? 'done' : (i === idx ? 'now' : ''); b.setAttribute('aria-current', i === idx ? 'step' : 'false'); });
   }
 }
+/* ---------- sound: effects synced to the steps, plus a quiet music loop (off until the viewer turns it on) ---------- */
+const SND = /*__SND__*/{};
+let actx = null, soundOn = false, bufs = {}, musicNode = null, master = null, fired = new Set(), stepSerial = -1, lastHit = -1;
+const sndLog = [];                       // names of the sounds triggered, kept for testing
+function b64buf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+async function soundInit() {
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+  actx = new AC(); master = actx.createGain(); master.gain.value = 0.9; master.connect(actx.destination);
+  await Promise.all(Object.keys(SND).map(k => new Promise(res => actx.decodeAudioData(b64buf(SND[k]), b => { bufs[k] = b; res(); }, () => res()))));
+  return true;
+}
+function playBuf(name, gain = 1, rate = 1, dur) { sndLog.push(name); if (!soundOn || !actx || !bufs[name]) return;
+  const src = actx.createBufferSource(), g2 = actx.createGain(); src.buffer = bufs[name]; src.playbackRate.value = rate; g2.gain.value = gain; src.connect(g2); g2.connect(master);
+  if (dur) { g2.gain.setValueAtTime(gain, actx.currentTime + dur * 0.6); g2.gain.linearRampToValueAtTime(0.0001, actx.currentTime + dur); src.start(0, 0, dur); } else src.start(); }
+function tone(name, freqs, step = 0.09, type = 'triangle', gain = 0.12) { sndLog.push(name); if (!soundOn || !actx) return;
+  freqs.forEach((fq, i) => { const o = actx.createOscillator(), g2 = actx.createGain(), t0 = actx.currentTime + i * step; o.type = type; o.frequency.value = fq;
+    g2.gain.setValueAtTime(0.0001, t0); g2.gain.linearRampToValueAtTime(gain, t0 + 0.01); g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35); o.connect(g2); g2.connect(master); o.start(t0); o.stop(t0 + 0.4); }); }
+function sneeze() { sndLog.push('sneeze'); if (!soundOn || !actx) return;
+  const n = Math.floor(actx.sampleRate * 0.45), b = actx.createBuffer(1, n, actx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.5);
+  const src = actx.createBufferSource(), bp = actx.createBiquadFilter(), g2 = actx.createGain(), t0 = actx.currentTime; src.buffer = b; bp.type = 'bandpass'; bp.Q.value = 1.2;
+  bp.frequency.setValueAtTime(900, t0); bp.frequency.exponentialRampToValueAtTime(3800, t0 + 0.12); bp.frequency.exponentialRampToValueAtTime(1500, t0 + 0.4);
+  g2.gain.value = 0.5; src.connect(bp); bp.connect(g2); g2.connect(master); src.start(); }
+const EVENTS = {                         // [time inside the step in ms, action]
+  target: [[150, () => tone('sparkle', [1319, 1568, 2093], 0.07, 'sine', 0.1)]],
+  pork:   [[220, () => playBuf('sizzle', 0.5)]],
+  sauce:  [[430, () => playBuf('pour', 0.9)], [700, () => playBuf('sizzle', 0.6, 1.1)]],
+  pepper: [[2230, () => sneeze()]],
+  basil:  [[360, () => playBuf('sizzle', 0.4, 0.9, 2.4)]],
+  serve:  [[200, () => playBuf('plate', 0.5)], [450, () => tone('fanfare', [784, 988, 1175, 1568], 0.11, 'triangle', 0.12)]]
+};
+function soundTick() {
+  const serial = Math.floor(T / DUR), k = STEPS[serial % STEPS.length].k, local = T % DUR, p = local / DUR;
+  if (serial !== stepSerial) { stepSerial = serial; fired = new Set(); lastHit = -1; }
+  (EVENTS[k] || []).forEach(([at, fn], i) => { if (local >= at && !fired.has(i)) { fired.add(i); if (local - at < 400) fn(); } });   // skip effects we jumped past
+  if (k === 'pound' || (k === 'pepper' && p < 0.5)) { const tick = Math.floor(T / 83), hit = Math.floor(tick / 6);                    // one thud per pestle stroke
+    if (tick % 6 < 2 && hit !== lastHit) { lastHit = hit; playBuf('thud', k === 'pound' ? 0.55 : 0.3, k === 'pound' ? 1 : 1.25); } }
+}
+function musicSync() { if (!actx) return;
+  if (soundOn && playing) { if (actx.state === 'suspended') actx.resume();
+    if (!musicNode && bufs.music) { musicNode = actx.createBufferSource(); const g2 = actx.createGain(); g2.gain.value = 0.16; musicNode.buffer = bufs.music; musicNode.loop = true; musicNode.connect(g2); g2.connect(master); musicNode.start(); } }
+  else if (actx.state === 'running') actx.suspend();
+}
 const rail = document.getElementById('rail');
 STEPS.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = i === 0 ? '★' : i; b.setAttribute('aria-label', 'Step: ' + s.l1);
-  b.addEventListener('click', () => { T = i * DUR + 1; shown = -1; draw(); }); rail.appendChild(b); });
+  b.addEventListener('click', () => { T = i * DUR + 1; shown = -1; stepSerial = -1; draw(); }); rail.appendChild(b); });
 const playBtn = document.getElementById('play'), mA = document.getElementById('mA'), mB = document.getElementById('mB');
-function setPlay(v) { playing = v; playBtn.textContent = v ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', v); last = performance.now(); }
+function setPlay(v) { playing = v; playBtn.textContent = v ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', v); last = performance.now(); musicSync(); }
+const sndBtn = document.getElementById('snd');
+sndBtn.addEventListener('click', async () => {
+  if (!actx) { sndBtn.textContent = 'Sound: loading'; const ok = await soundInit().catch(() => false); if (!ok) { sndBtn.textContent = 'Sound unavailable'; return; } }
+  soundOn = !soundOn; sndBtn.textContent = soundOn ? 'Sound: on' : 'Sound: off'; sndBtn.setAttribute('aria-pressed', soundOn); musicSync();
+});
 playBtn.addEventListener('click', () => setPlay(!playing));
 const mR = document.getElementById('mR'), insetImg = document.getElementById('insetimg');
 function setMode(m) { mode = m; mR.setAttribute('aria-pressed', m === 'R'); mA.setAttribute('aria-pressed', m === 'A'); mB.setAttribute('aria-pressed', m === 'B'); shown = -1; draw(); }
@@ -431,7 +480,7 @@ let lastRaf = 0;
 function frame(now) {
   if (playing) T += Math.max(0, Math.min(100, now - last));   // frame time can be earlier than the click time: never step backwards
   last = now;
-  try { draw(); } catch (e) { console.error(e); }               // one bad frame must not stop the animation
+  try { draw(); if (playing) soundTick(); } catch (e) { console.error(e); }   // one bad frame must not stop the animation
 }
 function loop(now) { lastRaf = performance.now(); frame(now); requestAnimationFrame(loop); }
 // Some viewers suspend requestAnimationFrame (background or embedded panes). Keep time moving with a timer when that happens.
