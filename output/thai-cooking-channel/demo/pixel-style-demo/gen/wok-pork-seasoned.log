@@ -1,0 +1,52 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 1663,
+  "completion_tokens": 1629,
+  "total_tokens": 3292,
+  "cost": 0.061541,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.061541,
+   "upstream_inference_prompt_cost": 0.012671,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 37.9,
+ "out": "output/thai-cooking-channel/demo/pixel-style-demo/gen/wok-pork-seasoned.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [
+  [
+   "r1.png",
+   [
+    1152,
+    1536
+   ]
+  ]
+ ],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "Photorealistic overhead food photograph, camera pointing straight down. Use IMAGE 1 as the exact wok, burner, camera position, framing and lighting: the same dark seasoned carbon-steel wok seen from directly above, the same size and position in the frame, the same cream background at the corners. Keep the wok and the framing identical and only add the food described.\n\nAcross the bottom of the wok: coarse minced pork stir-fried until browned and crumbly with roughly pounded red and green bird's-eye chilli and golden crushed garlic, now darker and glossy from fish sauce, with a thin savoury glaze pooling at the bottom and visible specks of coarsely pounded black and white peppercorns on the meat.\n\nNatural soft daylight from the upper left, realistic textures, a slight oil sheen, a few thin wisps of steam. No leaves, no other vegetables, no hands, no utensils, no text, no logos, nothing outside the wok.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 1,
+ "prompt_sha_len": 913,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

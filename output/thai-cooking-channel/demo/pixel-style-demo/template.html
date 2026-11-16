@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel kitchen demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout idea: one 9:16 "phone frame" (a 180x320 pixel grid, shown at 2x) beside a short notes column.
+     Single-theme page on purpose: the demo is a night-kitchen pixel world. */
+  :root {
+    color-scheme: dark;
+    --page: #151b22;
+    --panel: #1f2933;
+    --ink: #f2ead8;
+    --muted: #9fb0bf;
+    --accent: #ffd35a;
+    --chili: #e0553b;
+    --herb: #6cc05e;
+    --line: #34475a;
+    --display: "Pixelify Sans", "Courier New", monospace;
+    --body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--ink); font-family: var(--body); line-height: 1.6; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 48px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .stage { flex: 0 0 auto; width: min(100%, 360px); margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .notes { flex: 1 1 320px; min-width: 0; max-width: 62ch; }
+
+  .frame { position: relative; width: 100%; aspect-ratio: 9 / 16; container-type: inline-size;
+           border: 2px solid var(--line); background: #2b3a4a; overflow: hidden; font-family: var(--display); line-height: 1; font-variant-ligatures: none; }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  .frame #fx { inset: auto 0 0 0; top: 69.375%; height: 30.625%; image-rendering: auto; border-top: .7cqw solid #c98f4e; }
+  .frame #insetimg { position: absolute; left: 65.56%; top: 18.75%; width: 26.67%; height: auto; aspect-ratio: 1; display: block; object-fit: cover; }
+  .ov { position: absolute; left: 6%; right: 6%; color: var(--ink); }
+  .title { top: 5.2%; text-align: center; }
+  .title .t1 { font-size: 10.5cqw; font-weight: 700; line-height: 1; letter-spacing: .02em; }
+  .title .t2 { font-size: 4.2cqw; color: var(--accent); margin-top: 1.2cqw; }
+  .rail { top: 14.2%; display: flex; justify-content: space-between; align-items: center; }
+  .rail::before { content: ""; position: absolute; left: 2%; right: 2%; top: 50%; height: .7cqw; background: var(--line); transform: translateY(-50%); }
+  .rail button { position: relative; width: 6.4cqw; height: 6.4cqw; padding: 0; border: .7cqw solid var(--ink); background: #2b3a4a; color: var(--ink);
+                 font: 600 3.4cqw/1 var(--display); cursor: pointer; }
+  .rail button.done { background: var(--chili); }
+  .rail button.now { background: var(--accent); color: #151b22; }
+  .rail button:focus-visible, .ctl button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .meter { top: 18.6%; right: 40%; display: grid; gap: .9cqw; }
+  .meter .lab { font-size: 3.2cqw; color: var(--accent); letter-spacing: .06em; }
+  .meter .row { display: grid; grid-template-columns: 14cqw 1fr; align-items: center; gap: 1.5cqw; font-size: 3.3cqw; }
+  .meter .track { position: relative; height: 2.2cqw; background: #151b22; border: .5cqw solid var(--ink); }
+  .meter .fill { height: 100%; width: 0; background: var(--chili); transition: width .5s steps(8, end); }
+  .meter .fill.aroma { background: var(--herb); }
+  .meter .tick { position: absolute; top: -.7cqw; bottom: -.7cqw; width: .6cqw; background: var(--accent); }
+  .card { top: 35.6%; height: 11.4%; background: #151b22; border: .7cqw solid var(--ink); padding: 1.6cqw 2.6cqw; display: flex; flex-direction: column; justify-content: center; }
+  .card .l1 { font-size: 5.6cqw; font-weight: 700; line-height: 1.05; }
+  .card .l2 { font-size: 3.9cqw; color: var(--herb); line-height: 1.2; margin-top: .6cqw; }
+  .card .src { font-size: 2.8cqw; color: var(--muted); text-align: right; margin-top: .5cqw; min-height: 2.8cqw; }
+  .wm { top: 96.4%; text-align: center; font-size: 3.4cqw; color: var(--ink); text-shadow: 0 0 .8cqw #000, 0 0 .4cqw #000; }
+
+  .ctl { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ctl button { font: 600 15px/1 var(--display); padding: 10px 14px; background: var(--panel); color: var(--ink); border: 2px solid var(--line); cursor: pointer; }
+  .ctl button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .ctl .seg { display: flex; }
+  .ctl .seg button + button { border-left: 0; }
+
+  h1, h2, .ctl button { font-variant-ligatures: none; }
+  h1 { font: 700 30px/1.15 var(--display); margin: 0 0 6px; text-wrap: balance; }
+  h2 { font: 600 19px/1.25 var(--display); color: var(--accent); margin: 26px 0 6px; }
+  p, li { font-size: 15.5px; }
+  p { margin: 0 0 10px; }
+  ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  .lede { color: var(--muted); }
+  .tag { display: inline-block; font: 600 12px/1 var(--display); padding: 4px 7px; border: 1px solid var(--line); color: var(--muted); margin-right: 6px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { .meter .fill { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="180" height="320" role="img" aria-label="Pixel-art kitchen: a chef pounds chillies and stir-fries pad kra pao in a wok"></canvas>
+      <img id="insetimg" alt="" width="264" height="264">
+      <canvas id="fx" width="720" height="392" role="img" aria-label="Realistic top view of the mortar, wok or finished dish, with smoke and sizzle effects"></canvas>
+      <div class="ov title"><div class="t1">Pad Kra Pao</div><div class="t2">Thai holy basil stir-fry</div></div>
+      <div class="ov rail" id="rail"></div>
+      <div class="ov meter">
+        <div class="lab" id="mlab">TARGET</div>
+        <div class="row"><span>Salty</span><div class="track"><div class="fill" id="f0"></div><div class="tick" style="left:82%"></div></div></div>
+        <div class="row"><span>Sweet</span><div class="track"><div class="fill" id="f1"></div><div class="tick" style="left:22%"></div></div></div>
+        <div class="row"><span>Spicy</span><div class="track"><div class="fill" id="f2"></div><div class="tick" style="left:68%"></div></div></div>
+        <div class="row"><span>Aroma</span><div class="track"><div class="fill aroma" id="f3"></div><div class="tick" style="left:78%"></div></div></div>
+      </div>
+      <div class="ov card"><div class="l1" id="l1">Target taste</div><div class="l2" id="l2">Salty-led, hot, holy basil first</div><div class="src" id="src"></div></div>
+      <div class="ov wm">@channel-name</div>
+    </div>
+    <div class="ctl">
+      <button id="play" type="button" aria-pressed="true">Pause</button>
+      <div class="seg" role="group" aria-label="Close-up art source">
+        <button id="mR" type="button" aria-pressed="true">Realistic</button>
+        <button id="mB" type="button" aria-pressed="false">Pixelated art</button>
+        <button id="mA" type="button" aria-pressed="false">Code sprites</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h1>Pixel kitchen demo</h1>
+    <p class="lede">เดโมสไตล์พิกเซลของตอนผัดกะเพรา ใช้บทและข้อมูลชุดเดียวกับ animatic ที่ทำไว้ กดจุดบนแถบขั้นตอนเพื่อข้ามไปขั้นที่ต้องการได้</p>
+
+    <h2>สิ่งที่เดโมนี้แสดง</h2>
+    <ul>
+      <li><b>ฉากครัวมุมข้าง</b> เชฟโขลก เท และผัดตามขั้นตอน แบบเดียวกับบาร์ซูชิใน Dave the Diver</li>
+      <li><b>ช่องภาพระยะใกล้</b> มุมขวาบน แสดงวัตถุดิบของขั้นนั้นเป็นสไปรต์ใหญ่ แบบหน้าจอสถานีใน Galaxy Burger และ Pixel Cafe</li>
+      <li><b>กริดจริง 180×320 พิกเซล</b> ขยาย 2 เท่าบนหน้านี้ ถ้าเรนเดอร์เป็นวิดีโอ 1080×1920 จะขยาย 6 เท่าพอดี</li>
+      <li><b>มุมบนแบบสมจริงใต้หน้าโต๊ะ</b> ใช้ภาพรอบแรกที่ออกมาเหมือนภาพถ่าย (กระทะเปล่า กระทะใส่กะเพรา ครก จานสำเร็จ) ที่ความละเอียดเต็ม ไม่ย่อเป็นพิกเซล</li>
+      <li><b>เอฟเฟกต์วาดด้วยโค้ด</b> ควันและไอน้ำลอยขึ้น ประกายน้ำมันกระเด็น สายน้ำปลาและแอ่งซอส เม็ดพริกไทยร่วงลง และเศษพริกกระเด็นตอนโขลก</li>
+      <li><b>ขั้นหมู น้ำปลา และพริกไทย ใช้ภาพสมจริงที่สร้างเพิ่ม 3 ภาพ</b> (หมูดิบ หมูผัดจนเกรียม หมูปรุงรสแล้ว) จากกระทะและมุมกล้องเดียวกัน แล้วค่อย ๆ จางเปลี่ยนจากภาพหนึ่งไปอีกภาพตามจังหวะการผัด</li>
+      <li><b>ภาพขยับที่ 12 เฟรมต่อวินาที</b> ให้ความรู้สึกแบบสไปรต์วาดมือ</li>
+    </ul>
+
+    <h2>ปุ่มสลับที่มาของภาพระยะใกล้</h2>
+    <ul>
+      <li><span class="tag">Realistic</span>ภาพวัตถุดิบความละเอียดเต็มจากคลังภาพของเรา (ค่าเริ่มต้น) ภาพพริกเป็นภาพรอบแรกที่ออกมาเงาแบบภาพถ่าย ส่วนภาพกะเพราเป็นภาพที่ยังรอรูปอ้างอิงจากของจริง</li>
+      <li><span class="tag">Code sprites</span>สไปรต์ 48×48 ที่วาดด้วยโค้ดล้วน เป็นตัวแทนของทาง “วาดพิกเซลใหม่ทั้งหมด”</li>
+      <li><span class="tag">Pixelated art</span>ภาพวาดหมึกและสีโปสเตอร์ที่ผ่านการตรวจแล้วของเรา ย่อลงเหลือ 48 พิกเซลและลดเหลือ 20 สี เป็นตัวแทนของทาง “ใช้ภาพเดิมแล้วแปลงเป็นพิกเซล” ขั้นกะเพรายังไม่มีภาพที่ผ่าน จึงใช้สไปรต์แทน</li>
+    </ul>
+
+    <h2>สิ่งที่เป็นของชั่วคราว</h2>
+    <ul>
+      <li>ตัวเชฟ โต๊ะ (เหลือเฉพาะหน้าโต๊ะ) และสไปรต์ทั้งหมดวาดด้วยโค้ดเพื่อสาธิตแนวทาง ยังไม่ใช่งานศิลป์จริง นักวาดพิกเซลหรือเครื่องมืออย่าง Aseprite จะได้ผลละเอียดกว่านี้มาก</li>
+      <li>ตัวหนังสือเป็นฟอนต์พิกเซลที่วางทับแบบความละเอียดสูง ไม่ได้อยู่บนกริด 180×320</li>
+      <li>ไม่มีเสียง และยังไม่ได้เรนเดอร์เป็นวิดีโอ</li>
+      <li>ใบกะเพราในเดโมวาดแบบทั่วไป ยังไม่ได้เทียบกับของจริง</li>
+    </ul>
+
+    <h2>ข้อแลกเปลี่ยนถ้าจะใช้แนวนี้จริง</h2>
+    <p>แนวพิกเซลได้ตัวละครที่ขยับปรุงอาหารให้เห็น ซึ่งแนวภาพวาดนิ่งของเราไม่มี แต่ที่ 48 พิกเซล รายละเอียดอย่างฟันขอบใบหรือขนบนก้านกะเพราจะหายไป ซึ่งเป็นจุดขายเรื่องความถูกต้องของวัตถุดิบ ทางกลางที่เดโมนี้ลองให้ดูคือใช้ฉากพิกเซลเล่าขั้นตอน แล้วคงภาพวัตถุดิบละเอียดไว้ในช่องระยะใกล้</p>
+  </div>
+</div>
+
+<script>
+const IMGS = /*__IMGS__*/{};
+const UNDER = /*__UNDER__*/{};
+const REAL = /*__REAL__*/{};
+const INSET_REAL = /*__INSET_REAL__*/{};   // realistic ingredient close-ups, 264 px     // realistic top-view crops at full resolution (720x392)   // our generated top-view illustrations, reduced to the pixel grid
+const W = 180, H = 320, cv = document.getElementById('cv'), g = cv.getContext('2d');
+g.imageSmoothingEnabled = false;
+const C = { wall:'#2b3a4a', tile:'#34475a', floor:'#1a222b', top:'#c98f4e', topHi:'#e0aa66', front:'#8a5a2e', drawer:'#6f4622',
+  steel:'#1e2229', steel2:'#3a404b', flame:'#ff9a2e', flame2:'#ffd35a', white:'#f2ead8', shade:'#cfc5ae', skin:'#e0a878', skin2:'#b97f55',
+  red:'#d1432b', red2:'#a02e1c', green:'#4f9a45', green2:'#2f6b34', pink:'#e8908a', pink2:'#c9655f', brown:'#8a5330', brown2:'#6a3c20',
+  amber:'#d98a1e', amber2:'#f0b040', glass:'#9fd0d6', pepK:'#2a2622', pepK2:'#57504a', pepW:'#d8cdb4', pepW2:'#b3a88e', yolk:'#f5b21a',
+  rice:'#f7f3e8', plate:'#e9e4d6', plate2:'#b9b3a3', stone:'#7d8088', stone2:'#5c5f66', steam:'#5d7286', inset:'#1b2530', accent:'#ffd35a', ink:'#f2ead8' };
+const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+function ell(cx, cy, rx, ry, c, half) {
+  for (let y = -ry; y <= ry; y++) {
+    if (half === 'bottom' && y < 0) continue; if (half === 'top' && y > 0) continue;
+    const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry + 0.01)))); R(cx - w, cy + y, 2 * w + 1, 1, c);
+  }
+}
+function seg(x0, y0, x1, y1, th, c) {
+  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0;
+  for (let i = 0; i <= n; i++) R(x0 + (x1 - x0) * i / (n || 1), y0 + (y1 - y0) * i / (n || 1), th, th, c);
+}
+const rnd = i => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+const STEPS = [
+  { k:'target', l1:'Target taste', l2:'Salty-led, hot, holy basil first', src:'', m:[82,22,68,78], lab:'TARGET', inset:'finished dish' },
+  { k:'pound',  l1:'Chillies + garlic', l2:'Pound coarsely', src:'Krit · Pailin · Thompson', m:[0,0,68,0], lab:'NOW', inset:'chillies' },
+  { k:'pork',   l1:'Minced pork', l2:'With some fat, not extra lean', src:'Hot Thai Kitchen', m:[0,0,68,0], lab:'NOW', inset:'pork, with fat' },
+  { k:'sauce',  l1:'Genuine fish sauce', l2:'nam pla thae · nitrogen ≥ 9 g/L', src:'MoPH Notification 203', m:[82,22,68,0], lab:'NOW', inset:'fish sauce' },
+  { k:'pepper', l1:'Peppercorns', l2:'1954 recipe (beef): 20, pounded', src:'M.L. Tiw, 1954', m:[82,22,68,0], lab:'NOW', inset:'peppercorns' },
+  { k:'basil',  l1:'Holy basil', l2:'Goes in last, just until wilted', src:'Krit · Pailin', m:[82,22,68,78], lab:'NOW', inset:'holy basil' },
+  { k:'serve',  l1:'To serve', l2:'Rice · crisp fried egg · chilli fish sauce', src:'', m:[82,22,68,78], lab:'NOW', inset:'finished dish' }
+];
+const DUR = 3600, B = 214, IX = 118, IY = 60;   // step length (ms), counter-top y, inset origin
+const imgs = {}; for (const k in IMGS) { const im = new Image(); im.src = IMGS[k]; imgs[k] = im; }
+const under = {}; for (const k in UNDER) { const im = new Image(); im.src = UNDER[k].src; under[k] = im; }
+const UNDER_FOR = { target:'dish', pound:'mortar', pork:'wok', sauce:'wok', pepper:'wok', basil:'basil', serve:'dish' };
+let mode = 'R', playing = !matchMedia('(prefers-reduced-motion: reduce)').matches, T = 0, last = performance.now(), shown = -1;
+
+/* ---------- close-up sprites, 48x48, drawn in code ---------- */
+function chilli(ox, oy, x0, y0, x1, y1, bend, col, col2) {
+  for (let i = 0; i <= 22; i++) { const t = i / 22, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t + Math.sin(t * Math.PI) * bend, th = Math.max(1, Math.round(5 - 4 * t));
+    R(ox + x, oy + y - th / 2, 2, th, col); if (th > 2) R(ox + x, oy + y - th / 2, 2, 1, col2); }
+  R(ox + x0 - 3, oy + y0 - 2, 4, 2, C.green2); R(ox + x0 - 5, oy + y0 - 4, 2, 3, C.green2);
+}
+function leaf(ox, oy, cx, cy, len, wid, dx, dy) {
+  for (let i = 0; i < len; i++) { const t = i / (len - 1), w = Math.max(1, Math.round(wid * Math.sin(Math.PI * Math.pow(t, 0.8)))) + (i % 3 === 0 ? 1 : 0);
+    const x = cx + dx * i, y = cy + dy * i; R(ox + x - w * Math.abs(dy) , oy + y - w * Math.abs(dx), dy ? 2 * w + 1 : 1, dx ? 2 * w + 1 : 1, i % 3 === 0 ? C.green2 : C.green); }
+  for (let i = 0; i < len; i++) R(ox + cx + dx * i, oy + cy + dy * i, 1, 1, '#8fd07f');
+}
+function dishSprite(ox, oy, s) {            // s = 1 full size, used again small on the counter
+  const q = v => Math.round(v * s);
+  ell(ox + q(24), oy + q(28), q(22), q(14), C.plate2); ell(ox + q(24), oy + q(27), q(22), q(14), C.plate); ell(ox + q(24), oy + q(27), q(18), q(11), '#f4f0e4');
+  ell(ox + q(15), oy + q(29), q(9), q(6), C.rice);
+  ell(ox + q(32), oy + q(28), q(10), q(7), C.brown);
+  for (let i = 0; i < 14 * s; i++) { const a = rnd(i) * 6.28, r = rnd(i + 50); R(ox + q(32) + Math.cos(a) * q(8) * r, oy + q(28) + Math.sin(a) * q(5) * r, 1, 1, i % 3 ? (i % 2 ? C.red : C.green) : C.brown2); }
+  ell(ox + q(17), oy + q(21), q(8), q(5), C.white); ell(ox + q(17), oy + q(21), q(3), q(2), C.yolk);
+  if (s === 1) { for (let i = 0; i < 9; i++) { const a = i / 9 * 6.28; R(ox + 17 + Math.cos(a) * 8, oy + 21 + Math.sin(a) * 5, 2, 1, '#c98a3e'); }
+    R(ox + 29, oy + 24, 4, 2, C.green2); R(ox + 34, oy + 30, 4, 2, C.green2); R(ox + 37, oy + 25, 3, 2, C.green);
+    ell(ox + 40, oy + 11, 5, 3, C.plate); ell(ox + 40, oy + 11, 3, 1, C.amber); R(ox + 39, oy + 10, 1, 1, C.red); R(ox + 41, oy + 11, 1, 1, C.green); }
+}
+function insetSprite(k, ox, oy) {
+  if (k === 'target' || k === 'serve') dishSprite(ox, oy, 1);
+  else if (k === 'pound') { chilli(ox, oy, 8, 12, 40, 16, 5, C.red, '#ee7a5f'); chilli(ox, oy, 10, 26, 38, 30, -4, C.green, '#86c97a'); chilli(ox, oy, 12, 38, 42, 38, 4, C.red, '#ee7a5f');
+    ell(ox + 40, oy + 26, 4, 3, C.white); R(ox + 39, oy + 22, 2, 2, C.shade); }
+  else if (k === 'pork') { ell(ox + 24, oy + 29, 17, 10, C.pink2); ell(ox + 24, oy + 27, 17, 10, C.pink);
+    for (let i = 0; i < 46; i++) { const a = rnd(i) * 6.28, r = Math.sqrt(rnd(i + 9)); R(ox + 24 + Math.cos(a) * 15 * r, oy + 27 + Math.sin(a) * 8 * r, i % 4 === 0 ? 3 : 2, 1, i % 3 === 0 ? C.white : (i % 3 === 1 ? C.pink2 : '#f4b0aa')); } }
+  else if (k === 'sauce') { R(ox + 20, oy + 3, 8, 4, C.red); R(ox + 21, oy + 7, 6, 8, C.glass); R(ox + 15, oy + 15, 18, 29, C.amber); R(ox + 16, oy + 16, 2, 26, C.amber2);
+    R(ox + 31, oy + 16, 1, 27, '#a8660f'); R(ox + 18, oy + 23, 12, 13, C.white); R(ox + 20, oy + 26, 8, 1, C.shade); R(ox + 20, oy + 29, 6, 1, C.shade); R(ox + 20, oy + 32, 7, 1, C.shade); }
+  else if (k === 'pepper') { ell(ox + 14, oy + 31, 11, 7, C.pepK); ell(ox + 34, oy + 31, 11, 7, C.pepW);
+    for (let i = 0; i < 30; i++) { const a = rnd(i) * 6.28, r = Math.sqrt(rnd(i + 3)); R(ox + 14 + Math.cos(a) * 9 * r, oy + 30 + Math.sin(a) * 5 * r, 2, 2, C.pepK2); R(ox + 34 + Math.cos(a) * 9 * r, oy + 30 + Math.sin(a) * 5 * r, 2, 2, C.pepW2); }
+    R(ox + 5, oy + 40, 2, 2, C.pepK); R(ox + 43, oy + 41, 2, 2, C.pepW); R(ox + 24, oy + 41, 2, 2, C.pepK); }
+  else if (k === 'basil') { seg(ox + 24, oy + 44, ox + 24, oy + 10, 1, '#7a4a6a'); leaf(ox, oy, 23, 12, 16, 5, -1, 0); leaf(ox, oy, 25, 16, 16, 5, 1, 0); leaf(ox, oy, 23, 28, 14, 4, -1, 0); leaf(ox, oy, 25, 32, 14, 4, 1, 0);
+    for (let i = 0; i < 5; i++) R(ox + 23 + (i % 2) * 2, oy + 4 + i * 1.4, 2, 1, '#e7b6d0'); }
+}
+function drawInset(st, tick) {
+  R(IX - 2, IY - 2, 52, 52, C.accent); R(IX, IY, 48, 48, C.inset);
+  const bob = (tick % 12 < 6) ? 0 : 1, k = st.k, im = imgs[k];
+  if (mode === 'B' && im && im.complete && im.naturalWidth) g.drawImage(im, IX, IY + bob);
+  else insetSprite(k, IX, IY + bob);
+}
+
+/* ---------- kitchen diorama ---------- */
+function kitchen() {
+  R(0, 0, W, H, C.wall);
+  for (let y = 150; y < B; y += 16) R(0, y, W, 1, C.tile);
+  for (let x = 10; x < W; x += 20) R(x, 150, 1, B - 150, C.tile);
+  R(0, B + 52, W, H - B - 52, C.floor);                       // floor
+  ell(88, B + 52, 16, 2, '#141a21');                           // chef's shadow on the floor
+  R(80, B + 8, 7, 40, '#2a3038'); R(90, B + 8, 7, 40, '#232830');   // trousers, seen under the tabletop
+  R(78, B + 47, 10, 5, C.steel); R(89, B + 47, 10, 5, C.steel);     // shoes
+  R(84, B + 8, 9, 14, C.white); R(84, B + 20, 9, 2, C.shade);       // apron hem
+}
+function tabletop() {                                            // only the top surface: no cabinet, no drawers
+  R(6, B, W - 12, 3, C.topHi); R(6, B + 3, W - 12, 4, C.top); R(6, B + 7, W - 12, 1, C.front);
+}
+function mortar(pounding, tick) {
+  for (let i = 0; i < 12; i++) { const w = 12 - Math.round(i * 0.45); R(54 - 12 - 0 + (12 - w), B - 14 + i, 2 * w, 1, i < 2 ? C.stone : (i % 4 === 3 ? C.stone2 : C.stone)); }
+  R(40, B - 15, 28, 2, '#9a9da5'); R(50, B - 2, 8, 2, C.stone2);
+  R(47, B - 13, 14, 2, C.red2); R(49, B - 13, 2, 1, C.green); R(55, B - 13, 2, 1, C.white); R(58, B - 12, 2, 1, C.red);
+  if (pounding && tick % 6 < 2) { R(44, B - 19, 1, 1, C.red); R(63, B - 20, 1, 1, C.green); R(53, B - 21, 1, 1, C.white); }
+}
+function wok(st, p, tick) {
+  R(106, B - 4, 50, 4, C.steel2); R(110, B - 6, 42, 2, C.steel);
+  if (st.k !== 'target' && st.k !== 'serve') { const f = tick % 4 < 2; R(120, B - 8, 4, 2, f ? C.flame : C.flame2); R(128, B - 9, 4, 3, f ? C.flame2 : C.flame); R(136, B - 8, 4, 2, f ? C.flame : C.flame2); }
+  ell(131, B - 15, 23, 8, C.steel, 'bottom'); R(108, B - 16, 47, 2, C.steel2); R(154, B - 17, 12, 3, C.steel2); R(164, B - 17, 4, 3, '#7a4a2a');
+  const k = st.k; let col = null;
+  if (k === 'pound') col = '#3a3f2a';
+  if (k === 'pork') col = p < 0.55 ? C.pink : C.brown;
+  if (k === 'sauce' || k === 'pepper' || k === 'basil') col = C.brown;
+  if (col) { ell(131, B - 13, 18, 3, col);
+    if (k !== 'pound') for (let i = 0; i < 16; i++) { const sh = (k === 'pork' && p < 0.55) ? 0 : 1; R(115 + rnd(i) * 32 + ((tick >> 2) + i) % 2, B - 15 + rnd(i + 20) * 4, 2, 1, sh ? (i % 3 === 0 ? C.red : (i % 3 === 1 ? C.green : C.brown2)) : (i % 2 ? C.white : C.pink2)); }
+    if (k === 'pepper') for (let i = 0; i < 8; i++) R(116 + rnd(i + 40) * 30, B - 15 + rnd(i + 60) * 4, 1, 1, i % 2 ? C.pepK : C.pepW);
+    if (k === 'basil') { const n = Math.floor(3 + p * 9); for (let i = 0; i < n; i++) { const x = 116 + rnd(i + 70) * 28, y = B - 16 + rnd(i + 80) * 4; R(x, y, 4, 2, i % 2 ? C.green : C.green2); R(x + 1, y, 1, 1, '#8fd07f'); } }
+    if (k !== 'pound') for (let i = 0; i < 5; i++) { const ph = (tick * 1.1 + i * 9) % 26; R(118 + i * 6 + Math.round(Math.sin((tick + i * 5) / 5) * 2), B - 20 - ph, 2, 2, C.steam); } }
+}
+function chef(st, p, tick) {
+  const cx = 88, bob = (tick % 12 < 6) ? 0 : 1, k = st.k, y0 = B + bob;
+  R(cx - 11, y0 - 40, 23, 40, C.white); R(cx + 8, y0 - 40, 4, 40, C.shade); R(cx - 1, y0 - 34, 2, 2, C.shade); R(cx - 1, y0 - 26, 2, 2, C.shade); R(cx - 1, y0 - 18, 2, 2, C.shade);
+  R(cx - 7, y0 - 43, 15, 4, C.red); R(cx - 3, y0 - 44, 7, 2, C.skin2);
+  R(cx - 7, y0 - 56, 15, 13, C.skin); R(cx + 5, y0 - 56, 3, 13, C.skin2);
+  const blink = tick % 40 < 2; R(cx - 4, y0 - 51, 2, blink ? 1 : 2, C.steel); R(cx + 2, y0 - 51, 2, blink ? 1 : 2, C.steel); R(cx - 2, y0 - 46, 5, 1, k === 'serve' || k === 'target' ? C.red : C.skin2);
+  R(cx - 8, y0 - 60, 17, 5, C.white); R(cx - 10, y0 - 66, 21, 7, C.white); R(cx + 7, y0 - 66, 4, 11, C.shade);
+}
+function hands(st, p, tick) {
+  const cx = 88, bob = (tick % 12 < 6) ? 0 : 1, k = st.k, y0 = B + bob;
+  let lh = [cx - 20, B - 4], rh = [cx + 20, B - 4], tool = null;           // hand targets
+  if (k === 'pound' || k === 'pepper') { const up = tick % 6 < 3 ? 12 : 2; lh = [54, B - 16 - up]; tool = 'pestle'; }
+  if (k === 'pork' || k === 'basil') { rh = [118 + Math.round(Math.sin(tick / 3) * 9) + 12, B - 22]; tool = 'spatula'; }
+  if (k === 'sauce') { rh = [124, B - 34 + Math.round(Math.sin(tick / 6) * 1)]; tool = 'bottle'; }
+  if (k === 'serve' || k === 'target') { lh = [cx - 18, B - 10]; rh = [cx + 18, B - 10]; }
+  seg(cx - 10, y0 - 34, lh[0], lh[1], 4, C.white); seg(cx + 9, y0 - 34, rh[0], rh[1], 4, C.shade);
+  R(lh[0] - 1, lh[1], 5, 4, C.skin); R(rh[0] - 1, rh[1], 5, 4, C.skin);
+  if (tool === 'pestle') { R(lh[0], lh[1] + 3, 3, 12, C.stone2); R(lh[0] - 1, lh[1] + 13, 5, 3, C.stone); }
+  if (tool === 'spatula') { seg(rh[0] + 1, rh[1] + 3, rh[0] - 3, B - 15, 2, '#7a4a2a'); R(rh[0] - 6, B - 15, 7, 2, C.steel2); }
+  if (tool === 'bottle') { R(rh[0] - 6, rh[1] - 3, 5, 12, C.amber); R(rh[0] - 5, rh[1] - 1, 3, 5, C.white); R(rh[0] - 8, rh[1] + 6, 3, 3, C.red);
+    if (p > 0.15 && p < 0.8) for (let y = rh[1] + 10; y < B - 16; y += 2) R(rh[0] - 7 + ((y + tick) % 4 < 2 ? 0 : 1), y, 1, 2, C.amber2); }
+}
+function underTable(st, p, tick) {            // top-view panel covering everything below the tabletop
+  const y0 = B + 8, hh = H - y0; R(0, y0, W, hh, C.inset); R(0, y0, W, 1, C.tile);
+  const key = UNDER_FOR[st.k], u = UNDER[key], im = under[key]; if (!u || !im || !im.complete || !im.naturalWidth) return;
+  const ox = Math.round((W - u.w) / 2), oy = y0 + 2; g.drawImage(im, ox, oy);
+  if (key !== 'wok') return;
+  const cx = ox + u.cx, cy = oy + u.cy, r = u.r, k = st.k;        // food drawn in code inside the empty wok
+  if (k === 'pork') { const rr = Math.round(r * Math.min(1, 0.35 + p)); ell(cx, cy, rr, Math.round(rr * 0.9), p < 0.55 ? C.pink : C.brown);
+    for (let i = 0; i < 26; i++) { const a = rnd(i) * 6.28, q = Math.sqrt(rnd(i + 5)); R(cx + Math.cos(a) * rr * q * 0.85, cy + Math.sin(a) * rr * q * 0.75, 2, 1, p < 0.55 ? (i % 2 ? C.white : C.pink2) : (i % 3 === 0 ? C.red : (i % 3 === 1 ? C.green : C.brown2))); } }
+  if (k === 'sauce' || k === 'pepper') { ell(cx, cy, r, Math.round(r * 0.9), C.brown);
+    for (let i = 0; i < 30; i++) { const a = rnd(i) * 6.28, q = Math.sqrt(rnd(i + 5)); R(cx + Math.cos(a) * r * q * 0.85 + ((tick >> 2) + i) % 2, cy + Math.sin(a) * r * q * 0.75, 2, 1, i % 3 === 0 ? C.red : (i % 3 === 1 ? C.green : C.brown2)); }
+    if (k === 'sauce' && p > 0.15 && p < 0.8) { ell(cx + 4, cy - 3, 5, 3, C.amber2); R(cx + 3, cy - 14, 2, 11, C.amber2); }
+    if (k === 'pepper') for (let i = 0; i < 16; i++) { const a = rnd(i + 30) * 6.28, q = Math.sqrt(rnd(i + 45)) * Math.min(1, p * 2); R(cx + Math.cos(a) * r * q * 0.8, cy + Math.sin(a) * r * q * 0.7, 1, 1, i % 2 ? C.pepK : C.pepW); } }
+  for (let i = 0; i < 4; i++) { const ph = (tick * 0.9 + i * 8) % 22; R(cx - 9 + i * 6 + Math.round(Math.sin((tick + i * 4) / 5) * 2), cy - r - 2 - ph * 0.5, 2, 2, C.steam); }
+}
+
+/* ---------- realistic top view under the tabletop: full-resolution image + effects drawn in code ---------- */
+const fxc = document.getElementById('fx'), f = fxc.getContext('2d'), FW = 720, FH = 392;
+const real = {}; for (const k in REAL) { const im = new Image(); im.src = REAL[k]; real[k] = im; }
+const WOKC = { x: 360, y: 215, rx: 262, ry: 150 };                       // bowl of the empty wok inside the crop
+function puff(x, y, r, a, warm) { const gr = f.createRadialGradient(x, y, 0, x, y, r);
+  gr.addColorStop(0, `rgba(${warm ? '255,244,228' : '236,240,244'},${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); f.fillStyle = gr; f.beginPath(); f.arc(x, y, r, 0, 6.2832); f.fill(); }
+function smoke(t, strength, cx, cy, spread, warm) {                       // rising, widening, fading puffs
+  if (!strength) return; f.save(); f.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 16; i++) { const life = 2600 + rnd(i) * 1400, ph = ((t + rnd(i + 11) * life) % life) / life;
+    const x = cx + (rnd(i + 3) - 0.5) * spread + Math.sin(ph * 5 + i) * 26 * ph, y = cy - ph * 300 - 10, r = 34 + ph * 120;
+    puff(x, y, r, Math.sin(Math.PI * ph) * 0.2 * strength, warm); }
+  f.restore(); }
+function sizzle(t, n, cx, cy, rx, ry) { const b = Math.floor(t / 70); f.save(); f.globalCompositeOperation = 'screen';
+  for (let i = 0; i < n; i++) { const a = rnd(b * 13 + i) * 6.2832, q = Math.sqrt(rnd(b * 7 + i + 3)); f.fillStyle = `rgba(255,236,190,${0.25 + rnd(b + i) * 0.5})`;
+    f.beginPath(); f.arc(cx + Math.cos(a) * rx * q, cy + Math.sin(a) * ry * q, 1.2 + rnd(i + b) * 2.2, 0, 6.2832); f.fill(); }
+  f.restore(); }
+function drawFx(st, p) {
+  f.clearRect(0, 0, FW, FH); f.fillStyle = '#1b2530'; f.fillRect(0, 0, FW, FH);
+  const ok = im => im && im.complete && im.naturalWidth, img = (k, a) => { if (ok(real[k]) && a > 0) { f.globalAlpha = Math.min(1, a); f.drawImage(real[k], 0, 0, FW, FH); f.globalAlpha = 1; } };
+  const ramp = (v, a, b) => Math.min(1, Math.max(0, (v - a) / (b - a))), k = st.k, t = T, x = 360, y = 196, rx = 200, ry = 135;
+  if (k === 'target' || k === 'serve') { img('dish', 1); smoke(t, 0.5, 430, 230, 300, false); }
+  if (k === 'pound') { img('mortar', 1); const hit = (Math.floor(T / 83) % 6) < 2;
+    if (hit) for (let i = 0; i < 14; i++) { const a = rnd(i + Math.floor(T / 500)) * 6.2832, dd = 40 + rnd(i + 4) * 90;
+      f.fillStyle = i % 3 ? 'rgba(200,50,30,.85)' : 'rgba(70,130,55,.85)'; f.beginPath(); f.arc(330 + Math.cos(a) * dd, 205 + Math.sin(a) * dd * 0.6, 2 + rnd(i) * 2.5, 0, 6.2832); f.fill(); } }
+  if (k === 'pork') { img('wok', 1); img('raw', ramp(p, 0.04, 0.16)); img('browned', ramp(p, 0.45, 0.85));
+    if (p > 0.06) { sizzle(t, 50, x, y, rx * 0.8, ry * 0.8); smoke(t, 0.55 + 0.5 * ramp(p, 0.3, 0.8), x, y, 360, true); } }
+  if (k === 'sauce') { img('browned', 1); img('seasoned', ramp(p, 0.45, 0.9));
+    if (p > 0.12 && p < 0.78) { const g1 = ramp(p, 0.12, 0.6), gr = f.createRadialGradient(400, 186, 4, 400, 186, 120 * g1 + 10);
+      gr.addColorStop(0, 'rgba(214,132,24,.55)'); gr.addColorStop(0.6, 'rgba(150,80,10,.25)'); gr.addColorStop(1, 'rgba(120,60,10,0)'); f.fillStyle = gr; f.beginPath(); f.ellipse(400, 186, 130 * g1 + 10, 80 * g1 + 6, 0, 0, 6.2832); f.fill();
+      const wob = Math.sin(t / 60) * 3, gs = f.createLinearGradient(392, 0, 410, 0); gs.addColorStop(0, 'rgba(120,62,6,.9)'); gs.addColorStop(0.5, 'rgba(246,180,70,.96)'); gs.addColorStop(1, 'rgba(120,62,6,.9)');
+      f.fillStyle = gs; f.beginPath(); f.moveTo(393 + wob, 0); f.lineTo(409 + wob, 0); f.lineTo(406, 184); f.lineTo(396, 184); f.closePath(); f.fill(); sizzle(t, 70, 400, 186, 110, 66); }
+    sizzle(t, 30, x, y, rx * 0.8, ry * 0.8); smoke(t, p > 0.12 && p < 0.9 ? 1.25 : 0.7, 400, 196, 320, true); }
+  if (k === 'pepper') { img('seasoned', 1);
+    for (let i = 0; i < 110; i++) { const born = rnd(i + 1500) * 0.7; if (p < born) continue; const fall = Math.min(1, (p - born) / 0.08); if (fall >= 1 && i % 3) continue;
+      const q = Math.sqrt(rnd(i + 1600)), a = rnd(i + 1700) * 6.2832, gx = x + Math.cos(a) * rx * q * 0.8, gy = y + Math.sin(a) * ry * q * 0.8 - (1 - fall) * 70, s2 = (i % 3 ? 2.4 : 3.2) * (1.7 - 0.7 * fall);
+      f.fillStyle = i % 2 ? `rgba(30,26,22,${fall})` : `rgba(226,214,184,${fall})`; f.beginPath(); f.arc(gx, gy, s2, 0, 6.2832); f.fill(); }
+    sizzle(t, 28, x, y, rx * 0.8, ry * 0.8); smoke(t, 0.75, x, y, 360, true); }
+  if (k === 'basil') { img('seasoned', 1); img('basil', ramp(p, 0.03, 0.3)); sizzle(t, 34, 360, 200, 250, 130); smoke(t, 0.7 + 0.5 * ramp(p, 0.05, 0.4), 360, 210, 420, false); }
+  const vg = f.createRadialGradient(FW / 2, FH / 2, FH * 0.35, FW / 2, FH / 2, FW * 0.62); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.38)'); f.fillStyle = vg; f.fillRect(0, 0, FW, FH);
+}
+function draw() {
+  if (!(T >= 0)) T = 0;
+  const idx = Math.floor(T / DUR) % STEPS.length, st = STEPS[idx], p = (T % DUR) / DUR, tick = Math.floor(T / 83);
+  kitchen(); chef(st, p, tick); tabletop(); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick);
+  if (st.k === 'serve' || st.k === 'target') dishSprite(20, B - 22, 0.5);
+  R(0, B + 8, W, H - B - 8, C.inset);
+  drawFx(st, p);
+  drawInset(st, tick);
+  if (idx !== shown) { shown = idx;
+    { const im = document.getElementById('insetimg'), src = INSET_REAL[st.k]; if (mode === 'R' && src) { if (im.getAttribute('src') !== src) im.src = src; im.alt = st.inset; im.style.display = 'block'; } else im.style.display = 'none'; }
+    document.getElementById('l1').textContent = st.l1; document.getElementById('l2').textContent = st.l2;
+    document.getElementById('src').textContent = st.src ? 'Source: ' + st.src : ''; document.getElementById('mlab').textContent = st.lab;
+    st.m.forEach((v, i) => document.getElementById('f' + i).style.width = v + '%');
+    [...rail.children].forEach((b, i) => { b.className = i < idx ? 'done' : (i === idx ? 'now' : ''); b.setAttribute('aria-current', i === idx ? 'step' : 'false'); });
+  }
+}
+const rail = document.getElementById('rail');
+STEPS.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = i === 0 ? '★' : i; b.setAttribute('aria-label', 'Step: ' + s.l1);
+  b.addEventListener('click', () => { T = i * DUR + 1; shown = -1; draw(); }); rail.appendChild(b); });
+const playBtn = document.getElementById('play'), mA = document.getElementById('mA'), mB = document.getElementById('mB');
+function setPlay(v) { playing = v; playBtn.textContent = v ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', v); last = performance.now(); }
+playBtn.addEventListener('click', () => setPlay(!playing));
+const mR = document.getElementById('mR'), insetImg = document.getElementById('insetimg');
+function setMode(m) { mode = m; mR.setAttribute('aria-pressed', m === 'R'); mA.setAttribute('aria-pressed', m === 'A'); mB.setAttribute('aria-pressed', m === 'B'); shown = -1; draw(); }
+mR.addEventListener('click', () => setMode('R')); mA.addEventListener('click', () => setMode('A')); mB.addEventListener('click', () => setMode('B'));
+setPlay(playing);
+let lastRaf = 0;
+function frame(now) {
+  if (playing) T += Math.max(0, Math.min(100, now - last));   // frame time can be earlier than the click time: never step backwards
+  last = now;
+  try { draw(); } catch (e) { console.error(e); }               // one bad frame must not stop the animation
+}
+function loop(now) { lastRaf = performance.now(); frame(now); requestAnimationFrame(loop); }
+// Some viewers suspend requestAnimationFrame (background or embedded panes). Keep time moving with a timer when that happens.
+setInterval(() => { const n = performance.now(); if (n - lastRaf > 300) frame(n); }, 100);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
