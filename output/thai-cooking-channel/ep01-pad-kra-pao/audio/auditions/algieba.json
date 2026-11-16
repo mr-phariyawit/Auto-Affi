@@ -1,0 +1,27 @@
+{
+ "model": "gemini-3.8-flash-tts",
+ "voice": "Algieba",
+ "text": "Pad kra pao. Salty, fiery, holy basil first.",
+ "style": "Read as a warm, confident cooking-show narrator. Clear, unhurried, friendly:",
+ "mime": "audio/wav",
+ "seconds": 10.8,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 34,
+  "candidatesTokenCount": 270,
+  "totalTokenCount": 304,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 34
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 270
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

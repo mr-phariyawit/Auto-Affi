@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 346,
+  "completion_tokens": 1629,
+  "total_tokens": 1975,
+  "cost": 0.0506,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0506,
+   "upstream_inference_prompt_cost": 0.00173,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 36.9,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/05-cooking-scenes/cook-mortar-chilli-garlic/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "A heavy stone mortar with its stone pestle, seen from a high three-quarter angle looking down into the bowl, standing alone and centred on the page. The mortar is a thick, rough, dark-grey granite bowl on a short foot; the stone pestle leans against the rim. Inside the bowl is a small amount of coarsely pounded chilli and garlic: still chunky and rough rather than a smooth paste, with clearly visible broken pieces of red and green chilli, flattened pale cloves of garlic that are bruised and split but not fully crushed, scattered loose chilli seeds, and a little free juice gathering at the bottom. A smear of the crushed mixture clings up the inner wall of the mortar. The whole texture reads as roughly bruised and broken, so it is obvious the paste has only been pounded a few times. Only the faintest hint of moisture, no steam. The granite is matte with a gritty, hand-carved surface.\n\nDetailed botanical-plate illustration in ink and gouache. Fine brown-black ink linework with varied line weight: heavier outer contours, hair-thin interior veins. Opaque matte gouache colour in two to three flat tonal steps with slight visible brush texture; no smooth 3D gradients, no photographic rendering, no glossy highlights. Plain warm cream paper background, completely empty, with only a faint soft contact shadow under the subject. Soft even light from the upper left. Scientific-plate accuracy: every vein, hair, tooth and node is drawn deliberately and legibly. No text, no letters, no numbers, no labels, no captions, no arrows, no borders, no watermark, no signature, no hands, no people.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 1598,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

@@ -1,0 +1,115 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "directive": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: ",
+ "lines": [
+  {
+   "line": 1,
+   "text": "Pad kra pao. Salty, fiery, holy basil first.",
+   "seconds": 4.07,
+   "stt": "Pad kra pow, salty, fiery, holy basil first."
+  },
+  {
+   "line": 2,
+   "text": "Pound chillies and garlic. Keep it coarse.",
+   "seconds": 2.81,
+   "stt": "Pound chillies and garlic. Keep it coarse."
+  },
+  {
+   "line": 3,
+   "text": "Minced pork with some fat. Extra lean dries out.",
+   "seconds": 3.46,
+   "stt": "Minced pork with some fat, extra lean dries out."
+  },
+  {
+   "line": 4,
+   "text": "Season with fish sauce. Look for nam pla thae.",
+   "seconds": 3.41,
+   "stt": "Season with fish sauce. Look for nam pla tae."
+  },
+  {
+   "line": 5,
+   "text": "A little pepper. The 1954 recipe pounds twenty peppercorns.",
+   "seconds": 4.62,
+   "stt": "A little pepper. The 1954 recipe pounds 20 peppercorns.",
+   "note": "take b used; first take transcribed once as \"calls for\" and once as \"pounds\""
+  },
+  {
+   "line": 6,
+   "text": "Holy basil goes in last. Stir until just wilted.",
+   "seconds": 3.88,
+   "stt": "Holy basil goes in last. Stir until just wilted."
+  },
+  {
+   "line": 7,
+   "text": "On rice. Crisp fried egg. Chilli fish sauce.",
+   "seconds": 4.0,
+   "stt": "On Rice, Crisp Fried Egg, Chili Fish Sauce."
+  },
+  {
+   "line": 8,
+   "text": "In Thailand? Affiliate link in bio. Elsewhere, try your Asian grocer.",
+   "seconds": 4.74,
+   "stt": "In Thailand, affiliate link in bio. Elsewhere, try your Asian grocer."
+  }
+ ],
+ "timing_plan": [
+  {
+   "line": 1,
+   "seg_start": 0,
+   "seg_dur": 5.0,
+   "vo_start": 0.35,
+   "vo_end": 4.42
+  },
+  {
+   "line": 2,
+   "seg_start": 5.0,
+   "seg_dur": 4.1,
+   "vo_start": 5.35,
+   "vo_end": 8.16
+  },
+  {
+   "line": 3,
+   "seg_start": 9.1,
+   "seg_dur": 4.4,
+   "vo_start": 9.45,
+   "vo_end": 12.91
+  },
+  {
+   "line": 4,
+   "seg_start": 13.5,
+   "seg_dur": 4.3,
+   "vo_start": 13.85,
+   "vo_end": 17.26
+  },
+  {
+   "line": 5,
+   "seg_start": 17.8,
+   "seg_dur": 5.5,
+   "vo_start": 18.15,
+   "vo_end": 22.77
+  },
+  {
+   "line": 6,
+   "seg_start": 23.3,
+   "seg_dur": 4.8,
+   "vo_start": 23.65,
+   "vo_end": 27.53
+  },
+  {
+   "line": 7,
+   "seg_start": 28.1,
+   "seg_dur": 4.9,
+   "vo_start": 28.45,
+   "vo_end": 32.45
+  },
+  {
+   "line": 8,
+   "seg_start": 33.0,
+   "seg_dur": 5.9,
+   "vo_start": 33.35,
+   "vo_end": 38.09
+  }
+ ],
+ "total_seconds": 38.9
+}

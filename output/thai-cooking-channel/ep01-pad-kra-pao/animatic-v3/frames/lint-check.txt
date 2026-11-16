@@ -1,0 +1,69 @@
+== lint ==
+◆  Linting animatic-v3/index.html
+
+◇  0 errors, 0 warnings
+
+  2 HyperFrames skills out of date or missing.
+  For the user: npx hyperframes skills update refreshes them.
+
+== check ==
+◆  Checking animatic-v3
+[hyperframes] check: the report is saved to /Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/ep01-pad-kra-pao/animatic-v3/.hyperframes/artifacts/checks/0a7495f4-a9a8-436a-b0f0-21df836525d8.json when the check ends, unless a warning says it could not be saved
+[HyperFrames] Not inlining "assets/img/dish.png" (2.5 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/mortar.png" (2.9 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/chillies.png" (2.3 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/wok.png" (2.5 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/wok-b.png" (2.5 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/dish.png" (2.5 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/mortar.png" (2.9 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/chillies.png" (2.3 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/wok.png" (2.5 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[HyperFrames] Not inlining "assets/img/wok-b.png" (2.5 MB exceeds the 2 MB inline limit). The bundle may not be self-contained.
+[hyperframes] check: starting Chrome
+[hyperframes] browserGpuMode probe → hardware (WebGL renderer vendor="Google Inc. (Apple)" renderer="ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)")
+[hyperframes] check: loading the page
+[hyperframes] check: waiting for the page to be ready
+[hyperframes] check: checking samples
+[hyperframes] check: samples 1/9
+[hyperframes] check: samples 2/9
+[hyperframes] check: samples 3/9
+[hyperframes] check: samples 4/9
+[hyperframes] check: samples 5/9
+[hyperframes] check: samples 6/9
+[hyperframes] check: samples 7/9
+[hyperframes] check: samples 8/9
+[hyperframes] check: samples 9/9
+[hyperframes] check: running the overlap pass
+[hyperframes] check: checking samples
+
+Lint
+  ◇ 0 errors, 0 warnings
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 9 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 119/119 text checks pass WCAG AA
+
+Craft
+  ⚠ film_silent: This 39 s film has no sound source (no <audio>, no <video> with sound): add a music bed and sounds on the visible actions unless the person asked for silence; see references/sound.md.
+    index.html [data-composition-id] t=0s
+  0 error(s), 1 warning(s), 0 info(s)
+
+Audio
+  ℹ audio_none: The film has no sound: no clip in it plays audio.
+    index.html [data-composition-id] t=0s
+  0 error(s), 0 warning(s), 1 info(s)
+
+Snapshots
+  ◇ disabled
+
+◇  Check passed
+Report: /Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/ep01-pad-kra-pao/animatic-v3/.hyperframes/artifacts/checks/0a7495f4-a9a8-436a-b0f0-21df836525d8.json
+Revision: none (inputs-changed)

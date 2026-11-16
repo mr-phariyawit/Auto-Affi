@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 343,
+  "completion_tokens": 1629,
+  "total_tokens": 1972,
+  "cost": 0.050585,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.050585,
+   "upstream_inference_prompt_cost": 0.001715,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 32.9,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/04-thai-meats/meat-egg-and-fried-egg/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "A single whole raw egg and a single Thai-style fried egg shown side by side on the page, equal scale, clearly separated with a band of empty cream paper between them, not touching.\n\nOn the left, one whole egg in its shell: a plain, smooth oval with a matte natural shell, resting on its side.\n\nOn the right, one fried egg cooked the Thai way in hot oil: a round of set white whose outer rim is ruffled, lacy, blistered and browned to a deep, crisp golden-brown, with a raised, puffed, frilly edge. In the centre sits a domed, soft orange-yellow yolk that still looks runny and unset. The fried egg is a single piece, and its crisp edge is drawn with small irregular bubbles and frills so the deep-fried texture is unmistakable, the colours laid in a few flat tonal steps from pale set white to the dark browned rim.\n\nDetailed botanical-plate illustration in ink and gouache. Fine brown-black ink linework with varied line weight: heavier outer contours, hair-thin interior veins. Opaque matte gouache colour in two to three flat tonal steps with slight visible brush texture; no smooth 3D gradients, no photographic rendering, no glossy highlights. Plain warm cream paper background, completely empty, with only a faint soft contact shadow under the subject. Soft even light from the upper left. Scientific-plate accuracy: every vein, hair, tooth and node is drawn deliberately and legibly. No text, no letters, no numbers, no labels, no captions, no arrows, no borders, no watermark, no signature, no hands, no people.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 1519,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

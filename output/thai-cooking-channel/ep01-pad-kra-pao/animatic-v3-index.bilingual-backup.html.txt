@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>Thai cooking channel — EP01 Pad Kra Pao — animatic v3 (retimed to EN voice-over)</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      /* Fonts are local files (no network). Thai + Latin subsets of Noto Sans Thai, split by unicode-range. */
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 400; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-thai-400-normal.woff2") format("woff2");
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 500; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-thai-500-normal.woff2") format("woff2");
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 700; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-thai-700-normal.woff2") format("woff2");
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 400; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 500; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-latin-500-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 700; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-latin-700-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Noto Sans"; font-weight: 400; font-display: block;
+        src: url("assets/fonts/noto-sans-v27-latin-regular.ttf") format("truetype"); }
+      :root {
+        --paper: #F4ECD8; --ink: #2B2118; --red: #C8321E; --green: #3F6B3A;
+        --yellow: #D9A21B; /* fill behind ink text ONLY — never a text colour */
+        --card: #FBF7EC; --grey: #756C61;
+      }
+      body { margin: 0; background: #F4ECD8; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--paper);
+              font-family: "Noto Sans Thai", "Noto Sans", sans-serif; color: var(--ink); }
+      .abs { position: absolute; }
+      .th { color: var(--ink); }
+      .en { color: var(--green); }
+
+      /* SAFE AREA used for all TEXT (intersection of the tool's TikTok / Reels / Shorts bands at 1080x1920):
+         y 288–1248; x 120–888 above y 840, x 120–780 from y 840 down. Illustrations may sit lower, never below y 1536. */
+
+      /* ── TOP: bilingual title (fixed) ── */
+      #title { left: 60px; right: 60px; top: 304px; text-align: center; }
+      #title .t1 { font-size: 80px; font-weight: 700; line-height: 96px; }
+      #title .t2 { font-size: 30px; font-weight: 500; line-height: 42px; color: var(--green); }
+
+      /* ── progress rail: 6 step dots (fixed) ── */
+      #rail { left: 216px; width: 648px; top: 456px; height: 48px; }
+      #rail .line { position: absolute; left: 0; right: 0; top: 21px; height: 6px; border-radius: 3px; background: rgba(43,33,24,0.22); }
+      #railFill { position: absolute; left: 0; width: 648px; top: 21px; height: 6px; border-radius: 3px; background: var(--red);
+                  transform-origin: 0 50%; }
+      .dot { position: absolute; top: 0; width: 48px; height: 48px; margin-left: -24px; border-radius: 50%;
+             box-sizing: border-box; border: 4px solid var(--ink); background: var(--card); color: var(--ink);
+             font-size: 28px; font-weight: 700; line-height: 40px; text-align: center; }
+
+      /* ── meter head: state label (Target / Now) + watermark ── */
+      #mhead { left: 120px; width: 840px; top: 512px; height: 40px; }
+      .mlab { position: absolute; left: 0; top: 0; height: 40px; line-height: 40px; white-space: nowrap; }
+      .mlab i { display: inline-block; vertical-align: middle; margin-right: 12px; position: relative; top: -2px; }
+      #mlTarget i { width: 5px; height: 26px; background: var(--ink); border-radius: 2px; }
+      #mlNow i { width: 30px; height: 14px; background: var(--red); border-radius: 7px; }
+      .mlab .th { font-size: 30px; font-weight: 700; }
+      .mlab .en { font-size: 28px; font-weight: 500; margin-left: 8px; }
+      #wm { position: absolute; right: 74px; top: 0; height: 40px; line-height: 40px; font-size: 28px; font-weight: 500;
+            color: var(--ink); opacity: 0.55; white-space: nowrap; }
+
+      /* ── taste meter: 4 bars (fixed) ── */
+      #meter { left: 120px; width: 840px; top: 554px; }
+      .mrow { position: relative; height: 44px; }
+      .mrow .lab { position: absolute; left: 0; top: 0; width: 250px; height: 44px; line-height: 44px; white-space: nowrap; }
+      .mrow .lab .th { font-size: 32px; font-weight: 700; }
+      .mrow .lab .en { font-size: 28px; font-weight: 500; margin-left: 10px; }
+      .mrow .track { position: absolute; left: 260px; right: 0; top: 9px; height: 26px; border-radius: 13px;
+                     box-sizing: border-box; border: 3px solid var(--ink); background: var(--card); overflow: hidden; }
+      .mrow .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--red);
+                    transform-origin: 0 50%; }
+      .mrow .tick { position: absolute; top: 0; bottom: 0; width: 5px; margin-left: -5px; background: var(--ink); }  /* target mark */
+      #fAroma { background: var(--green); }
+
+      /* ── LOWER-TOP: one info card (y 742–978), text kept inside x 128–776 ── */
+      .card { left: 96px; width: 888px; top: 742px; height: 236px; box-sizing: border-box; padding: 14px 28px;
+              background: var(--card); border: 4px solid var(--ink); border-radius: 28px; }
+      .card .l1 { font-size: 56px; font-weight: 700; line-height: 70px; color: var(--ink); white-space: nowrap; }
+      .card .l2 { font-size: 30px; font-weight: 500; line-height: 42px; color: var(--green); max-width: 640px; }
+      .card .src { position: absolute; left: 28px; bottom: 12px; font-size: 28px; font-weight: 400; line-height: 40px; color: var(--green); white-space: nowrap; }
+
+      /* ── end card: two boxes (y 742–866, 878–1002) ── */
+      .box { left: 96px; width: 888px; height: 124px; box-sizing: border-box; padding: 10px 28px 10px 44px;
+             background: var(--card); border: 4px solid var(--ink); border-radius: 28px; overflow: hidden; }
+      .box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 16px; }
+      #box1 { top: 742px; } #box1::before { background: var(--red); }
+      #box2 { top: 878px; } #box2::before { background: var(--green); }
+      .box .hd { font-size: 40px; font-weight: 700; line-height: 56px; white-space: nowrap; }
+      .box .bd { font-size: 30px; font-weight: 500; line-height: 42px; white-space: nowrap; }
+      .box .tag { position: absolute; right: 84px; top: 12px; padding: 2px 18px; border: 3px solid var(--ink); border-radius: 12px;
+                  font-size: 28px; font-weight: 700; line-height: 40px; color: var(--ink); background: var(--yellow); white-space: nowrap; }
+
+      /* ── STAGE (y 990–1500): illustration cutouts; nothing at or below y 1536 ── */
+      .sp { position: absolute; }
+      .sp img { display: block; width: 100%; height: auto; }
+      #overlay { left: 0; top: 0; width: 1080px; height: 1920px; }
+      #pending { left: 560px; top: 1105px; width: 240px; height: 140px; box-sizing: border-box;
+                 border: 5px dashed var(--grey); border-radius: 24px; color: var(--grey);
+                 font-size: 30px; font-weight: 500; line-height: 40px; text-align: center; padding-top: 25px; }
+      /* pork heap sitting in the wok: squashed to 85 % + dark contact shadow so no pale edge shows on the dark steel */
+      #sFat .squash { position: relative; transform: scaleY(0.85); transform-origin: 50% 50%; }
+      #sFat .contact { position: absolute; left: -4%; right: -4%; top: 6%; bottom: -8%; border-radius: 50%;
+                       background: radial-gradient(closest-side, rgba(14,10,8,0.85) 0%, rgba(14,10,8,0.7) 62%, rgba(14,10,8,0) 100%); }
+      #sFat img { position: relative; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="38.9">
+
+      <!-- STAGE: accepted illustrations only (cutouts with transparent background) -->
+      <div id="sDish"     class="sp" style="left:300px; top:990px; width:480px"><img class="drift" src="assets/img/dish.png" alt=""></div>
+      <div id="sMortar"   class="sp" style="left:190px; top:995px; width:393px"><img class="drift" src="assets/img/mortar.png" alt=""></div>
+      <div id="sChillies" class="sp" style="left:640px; top:1070px; width:270px"><img class="drift" src="assets/img/chillies.png" alt=""></div>
+      <div id="sWokA"     class="sp" style="left:200px; top:995px; width:378px"><img class="drift" src="assets/img/wok.png" alt=""></div>
+      <div id="sFat"      class="sp" style="left:289px; top:1071px; width:200px">
+        <div class="squash"><div class="contact"></div><img class="drift" src="assets/img/pork-fat-wok.png" alt=""></div>
+      </div>
+      <div id="sLean"     class="sp" style="left:700px; top:1090px; width:220px">
+        <img src="assets/img/pork-lean.png" alt="" style="filter: grayscale(1); opacity: 0.6">
+        <svg id="leanX" viewBox="0 0 100 100" style="position:absolute; left:60px; top:57px; width:100px; height:100px">
+          <path d="M14,14 L86,86 M86,14 L14,86" fill="none" stroke="#C8321E" stroke-width="14" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div id="sBottles"  class="sp" style="left:240px; top:1005px; width:600px"><img class="drift" src="assets/img/bottles.png" alt=""></div>
+      <div id="sPepper"   class="sp" style="left:90px; top:1110px; width:900px"><img class="drift" src="assets/img/pepper.png" alt=""></div>
+      <div id="sWokB"     class="sp" style="left:150px; top:995px; width:378px"><img class="drift" src="assets/img/wok-b.png" alt=""></div>
+      <div id="pending"   class="abs">illustration<br>pending</div>
+      <div id="sEgg"      class="sp" style="left:70px; top:1050px; width:190px"><img class="drift" src="assets/img/egg-fried.png" alt=""></div>
+      <div id="sRice"     class="sp" style="left:820px; top:1230px; width:190px"><img class="drift" src="assets/img/rice-cooked.png" alt=""></div>
+      <div id="sBottles2" class="sp" style="left:120px; top:1040px; width:380px"><img class="drift" src="assets/img/bottles-end.png" alt=""></div>
+      <div id="sPepper2"  class="sp" style="left:560px; top:1190px; width:420px"><img class="drift" src="assets/img/pepper-end.png" alt=""></div>
+
+      <!-- leader line: card → first (amber) bottle -->
+      <svg id="overlay" class="abs" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+        <g id="lead">
+          <path id="leadLine" d="M150,976 L150,1280 L268,1280" pathLength="1" fill="none" stroke="#C8321E" stroke-width="6"
+                stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 1.2" stroke-dashoffset="1.1" />
+          <circle id="leadDot" cx="272" cy="1280" r="13" fill="#C8321E" stroke="#FBF7EC" stroke-width="4" />
+        </g>
+      </svg>
+
+      <!-- TOP: bilingual title — fixed for the whole clip -->
+      <div id="title" class="abs">
+        <div class="t1">ผัดกะเพรา</div>
+        <div class="t2">Pad Kra Pao · Holy basil stir-fry</div>
+      </div>
+
+      <!-- progress rail — 6 step dots -->
+      <div id="rail" class="abs">
+        <div class="line"></div>
+        <div id="railFill"></div>
+        <div class="dot" id="d1" style="left:0px">1</div>
+        <div class="dot" id="d2" style="left:129.6px">2</div>
+        <div class="dot" id="d3" style="left:259.2px">3</div>
+        <div class="dot" id="d4" style="left:388.8px">4</div>
+        <div class="dot" id="d5" style="left:518.4px">5</div>
+        <div class="dot" id="d6" style="left:648px">6</div>
+      </div>
+
+      <!-- meter head: what the bars currently show + placeholder watermark -->
+      <div id="mhead" class="abs">
+        <div class="mlab" id="mlTarget"><i></i><span class="th">เป้าหมาย</span><span class="en">· Target</span></div>
+        <div class="mlab" id="mlNow"><i></i><span class="th">ตอนนี้</span><span class="en">· Now</span></div>
+        <div id="wm">@channel-name</div>
+      </div>
+
+      <!-- taste meter (ink tick on each track = target level) -->
+      <div id="meter" class="abs">
+        <div class="mrow"><div class="lab"><span class="th">เค็ม</span><span class="en">Salty</span></div><div class="track"><div class="fill" id="fSalty"></div><div class="tick" style="left:82%"></div></div></div>
+        <div class="mrow"><div class="lab"><span class="th">หวาน</span><span class="en">Sweet</span></div><div class="track"><div class="fill" id="fSweet"></div><div class="tick" style="left:22%"></div></div></div>
+        <div class="mrow"><div class="lab"><span class="th">เผ็ด</span><span class="en">Spicy</span></div><div class="track"><div class="fill" id="fSpicy"></div><div class="tick" style="left:68%"></div></div></div>
+        <div class="mrow"><div class="lab"><span class="th">หอม</span><span class="en">Aroma</span></div><div class="track"><div class="fill" id="fAroma"></div><div class="tick" style="left:78%"></div></div></div>
+      </div>
+
+      <!-- info cards (one visible at a time) -->
+      <div id="c1" class="abs card">
+        <div class="l1">รสเป้าหมาย <span class="en">· Target taste</span></div>
+        <div class="l2">Salty-led, hot, basil aroma first</div>
+      </div>
+      <div id="c2" class="abs card">
+        <div class="l1">พริก + กระเทียม</div>
+        <div class="l2">chillies + garlic — pound coarsely</div>
+        <div class="src">Source: Krit · Pailin · Thompson</div>
+      </div>
+      <div id="c3" class="abs card">
+        <div class="l1">หมูสับติดมัน</div>
+        <div class="l2">minced pork — not extra lean</div>
+        <div class="src">Source: Hot Thai Kitchen</div>
+      </div>
+      <div id="c4" class="abs card">
+        <div class="l1">น้ำปลาแท้</div>
+        <div class="l2">genuine fish sauce · nitrogen ≥ 9 g/L</div>
+        <div class="src">Source: MoPH Notification 203</div>
+      </div>
+      <div id="c5" class="abs card">
+        <div class="l1">พริกไทย</div>
+        <div class="l2">peppercorns — 1954 recipe (beef): 20, pounded</div>
+        <div class="src">Source: M.L. Tiw, 1954</div>
+      </div>
+      <div id="c6" class="abs card">
+        <div class="l1">กะเพรา <span class="en">· holy basil</span></div>
+        <div class="l2">goes in last — just until wilted</div>
+      </div>
+      <div id="c7" class="abs card">
+        <div class="l1">ข้าว · ไข่ดาว · พริกน้ำปลา</div>
+        <div class="l2">rice · crisp fried egg · chilli fish sauce</div>
+      </div>
+
+      <!-- two-box end card -->
+      <div id="box1" class="abs box">
+        <div class="hd"><span class="en">In Thailand?</span> · <span class="th">อยู่ไทย</span></div>
+        <div class="bd"><span class="en">Shopee affiliate link in bio</span></div>
+        <div class="tag">Ad · affiliate link</div>
+      </div>
+      <div id="box2" class="abs box">
+        <div class="hd"><span class="en">Elsewhere</span> · <span class="th">อยู่ที่อื่น</span></div>
+        <div class="bd"><span class="en">Look for</span> <span class="th">น้ำปลาแท้</span> <span class="en">at your Asian grocer</span></div>
+      </div>
+    </div>
+
+    <script>
+      // Deterministic, seek-safe: one paused GSAP timeline, no wall-clock timers, no Math.random.
+      window.__timelines = window.__timelines || {};
+      const RED = "#C8321E", INK = "#2B2118", CARD = "#FBF7EC";
+      const TARGET = { fSalty: 0.82, fSweet: 0.22, fSpicy: 0.68, fAroma: 0.78 };   // finished-dish profile (= the ink ticks)
+      const DUR = 38.9;                                   // total length (= vo.json timing_plan total)
+      const S = [0, 5.0, 9.1, 13.5, 17.8, 23.3, 28.1, 33.0];   // = vo.json timing_plan seg_start; durations 5.0 4.1 4.4 4.3 5.5 4.8 4.9 5.9;   // segment starts; segment 8 (end card) holds to the last frame; the loop is a straight cut back to frame 0
+      const IN = 0.25, OUT = 0.2;                        // card enter / exit tween lengths
+      const tl = gsap.timeline({ paused: true });
+
+      // ── opening state (frame 0 = complete layout, finished dish, target taste, card 1) ──
+      gsap.set("#d1", { backgroundColor: RED, color: CARD });
+      gsap.set("#railFill", { scaleX: 0 });
+      for (const id in TARGET) gsap.set("#" + id, { scaleX: TARGET[id] });
+      gsap.set("#mlNow", { opacity: 0 });
+      gsap.set(".sp, #pending, #lead", { opacity: 0 });
+      gsap.set("#leadDot", { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set("#sDish", { opacity: 1, scale: 0.93 });
+      gsap.set(".card, .box", { opacity: 0, y: 40 });
+      gsap.set("#c1", { opacity: 1, y: 0 });
+
+      // slow continuous drift on every illustration (14 yoyo legs → back at the start pose exactly on DUR)
+      tl.fromTo(".drift", { y: -6, rotation: -0.5, scale: 1 },
+                { y: 6, rotation: 0.5, scale: 1.03, duration: DUR / 14, ease: "sine.inOut", repeat: 13, yoyo: true }, 0);
+
+      const step = (n, t) => {                 // advance the progress rail to dot n at time t
+        tl.to("#railFill", { scaleX: (n - 1) / 5, duration: 0.35, ease: "power2.out" }, t);
+        tl.to("#d" + n, { backgroundColor: RED, color: CARD, duration: 0.2 }, t + 0.15);
+        tl.fromTo("#d" + n, { scale: 1 }, { scale: 1.25, duration: 0.18, yoyo: true, repeat: 1, ease: "power1.out", immediateRender: false }, t + 0.15);
+      };
+      const show = (sel, t, from) => tl.fromTo(sel, Object.assign({ opacity: 0, x: 0, y: 0, scale: 1 }, from),
+        { opacity: 1, x: 0, y: 0, scale: 1, duration: 0.5, ease: "power3.out", immediateRender: false }, t);
+      const hide = (sel, t) => tl.to(sel, { opacity: 0, duration: 0.25, ease: "power1.in" }, t);
+      const cardIn = (sel, t) => tl.fromTo(sel, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: IN, ease: "power3.out", immediateRender: false }, t);
+      const cardOut = (sel, t) => tl.to(sel, { opacity: 0, y: 40, duration: OUT, ease: "power2.in" }, t);
+      const bar = (id, v, t) => tl.to("#" + id, { scaleX: v, duration: 0.8, ease: "power2.out" }, t);
+
+      // ── 1 · 0–5.0 s: finished dish; meter shows the TARGET taste ──
+      tl.to("#sDish", { scale: 1, duration: 1.6, ease: "power2.out" }, 0);
+      cardOut("#c1", S[1] - OUT);
+      hide("#sDish", S[1] - 0.25);
+
+      // ── 2 · 5.0–9.1 s: cooking starts → meter drops to zero, label Target → Now; mortar + chillies → Spicy ──
+      tl.to(".fill", { scaleX: 0, duration: 0.6, ease: "power2.inOut" }, S[1]);
+      tl.to("#mlTarget", { opacity: 0, duration: 0.25, ease: "power1.in" }, S[1]);
+      tl.to("#mlNow", { opacity: 1, duration: 0.3, ease: "power1.out" }, S[1] + 0.25);
+      show("#sMortar", S[1], { scale: 0.85 });
+      show("#sChillies", S[1] + 0.4, { x: 220 });
+      cardIn("#c2", S[1]);
+      step(2, S[1] + 0.1);
+      bar("fSpicy", TARGET.fSpicy, S[1] + 0.9);
+      cardOut("#c2", S[2] - OUT);
+      hide("#sMortar, #sChillies", S[2] - 0.25);
+
+      // ── 3 · 9.1–13.5 s: wok + fatty minced pork (lean heap briefly, greyed, crossed) ──
+      show("#sWokA", S[2], { y: 60 });
+      cardIn("#c3", S[2]);
+      step(3, S[2]);
+      show("#sFat", S[2] + 0.5, { y: -70, scale: 0.8 });
+      show("#sLean", S[2] + 1.3, { x: 160 });
+      tl.fromTo("#leanX", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "back.out(2)", immediateRender: false }, S[2] + 1.7);
+      hide("#sLean", S[2] + 3.4);
+      cardOut("#c3", S[3] - OUT);
+      hide("#sWokA, #sFat", S[3] - 0.25);
+
+      // ── 4 · 13.5–17.8 s: sauce bottles, leader to the amber fish-sauce bottle → Salty, small Sweet ──
+      show("#sBottles", S[3], { x: 260 });
+      cardIn("#c4", S[3]);
+      step(4, S[3]);
+      tl.set("#lead", { opacity: 1 }, S[3] + 0.5);
+      tl.to("#leadLine", { strokeDashoffset: 0, duration: 0.45, ease: "power1.inOut" }, S[3] + 0.5);
+      tl.to("#leadDot", { scale: 1, duration: 0.35, ease: "back.out(2)" }, S[3] + 0.9);
+      bar("fSalty", TARGET.fSalty, S[3] + 0.9);
+      bar("fSweet", TARGET.fSweet, S[3] + 1.7);
+      tl.to("#lead", { opacity: 0, duration: 0.25 }, S[4] - 0.55);
+      cardOut("#c4", S[4] - OUT);
+      hide("#sBottles", S[4] - 0.25);
+
+      // ── 5 · 17.8–23.3 s: peppercorns ──
+      show("#sPepper", S[4], { x: -200 });
+      cardIn("#c5", S[4]);
+      step(5, S[4]);
+      cardOut("#c5", S[5] - OUT);
+      hide("#sPepper", S[5] - 0.25);
+
+      // ── 6 · 23.3–28.1 s: holy basil (no accepted illustration yet → dashed placeholder) → Aroma ──
+      show("#sWokB", S[5], { y: 60 });
+      show("#pending", S[5] + 0.3, { scale: 0.85 });
+      cardIn("#c6", S[5]);
+      step(6, S[5]);
+      bar("fAroma", TARGET.fAroma, S[5] + 0.6);
+      cardOut("#c6", S[6] - OUT);
+      hide("#sWokB, #pending", S[6] - 0.25);
+
+      // ── 7 · 28.1–33.0 s: finished dish + fried egg + rice (bars sit on their target ticks again) ──
+      show("#sDish", S[6], { scale: 0.9 });
+      show("#sEgg", S[6] + 0.3, { scale: 0.5 });
+      show("#sRice", S[6] + 0.5, { scale: 0.5 });
+      cardIn("#c7", S[6]);
+      cardOut("#c7", S[7] - OUT);
+      hide("#sDish, #sEgg, #sRice", S[7] - 0.25);
+
+      // ── 8 · 33.0–38.9 s: two-box end card (held to the end) ──
+      show("#sBottles2", S[7], { y: 50 });
+      show("#sPepper2", S[7] + 0.15, { y: 50 });
+      cardIn("#box1", S[7]);
+      cardIn("#box2", S[7] + 0.1);
+      // The end card holds to the final frame and the loop cuts straight to frame 0 (finished dish, target meter, card 1).
+      // No fade-back: re-showing card 1 for a fraction of a second would be an unreadable line.
+
+      tl.set({}, {}, DUR);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{
+ "mortar": {
+  "taskId": "e8de7301c31c5ed784ff9790a18eeba4",
+  "prompt": "three dull thuds of a stone pestle pounding in a granite mortar, close, dry kitchen"
+ },
+ "sizzle": {
+  "taskId": "52dd60fd244dee5a892bd9a0878398b7",
+  "prompt": "raw minced meat dropped into a very hot oiled steel wok, loud sizzle that settles, close microphone, kitchen"
+ },
+ "pour": {
+  "taskId": "8a45934f64d6be4da5ffb42ecae9c1cd",
+  "prompt": "a short splash of thin liquid poured from a glass bottle into a hot pan, brief hiss"
+ },
+ "leaves": {
+  "taskId": "2714980b4a93cb2b05d3181ff7eb38f6",
+  "prompt": "a handful of fresh leaves tossed into a hot pan, soft sizzle and gentle stir with a metal spatula"
+ },
+ "plate": {
+  "taskId": "62a0b60558a1c7fc509de15b5782bb6f",
+  "prompt": "a ceramic plate set down gently on a wooden table, single soft clink"
+ }
+}

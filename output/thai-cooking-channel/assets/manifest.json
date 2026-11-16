@@ -1,0 +1,278 @@
+{
+ "channel": "thai-cooking-channel",
+ "model": "openai/gpt-image-2.5-sunburst",
+ "route": "OpenRouter /api/v1/images",
+ "aspect": "3:4",
+ "quality": "high",
+ "spend_cap_usd": 5.0,
+ "max_tries_per_asset": 3,
+ "created": "2026-11-16",
+ "assets": [
+  {
+   "id": "veg-holy-basil-red-white",
+   "pillar": "02-thai-vegetables",
+   "name_th": "กะเพราแดง กับ กะเพราขาว",
+   "name_en": "Red and white holy basil sprigs side by side",
+   "draft_ref": "A1",
+   "dir": "library/02-thai-vegetables/veg-holy-basil-red-white",
+   "status": "needs-reference",
+   "tries": 1,
+   "cost_usd": 0.0507,
+   "final": null,
+   "qa": {
+    "round": 1,
+    "verdict": "needs-reference",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   },
+   "candidate": "candidates/r1.png"
+  },
+  {
+   "id": "veg-three-basils",
+   "pillar": "02-thai-vegetables",
+   "name_th": "เทียบ กะเพรา / โหระพา / แมงลัก",
+   "name_en": "Holy basil vs Thai sweet basil vs lemon basil",
+   "draft_ref": "A2",
+   "dir": "library/02-thai-vegetables/veg-three-basils",
+   "status": "needs-reference",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": null,
+   "qa": {
+    "round": 1,
+    "verdict": "needs-reference",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   },
+   "candidate": "candidates/r1.png"
+  },
+  {
+   "id": "veg-thai-chillies",
+   "pillar": "02-thai-vegetables",
+   "name_th": "พริกไทยสด (พริกขี้หนู/พริกจินดา)",
+   "name_en": "Fresh Thai chillies, red and green",
+   "draft_ref": "A3",
+   "dir": "library/02-thai-vegetables/veg-thai-chillies",
+   "status": "qa-pass",
+   "tries": 2,
+   "cost_usd": 0.1013,
+   "final": "final.png",
+   "qa": {
+    "round": 2,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16, full-size"
+   },
+   "candidate": "candidates/r2.png"
+  },
+  {
+   "id": "veg-thai-garlic",
+   "pillar": "02-thai-vegetables",
+   "name_th": "กระเทียมไทย เทียบกระเทียมหัวใหญ่",
+   "name_en": "Thai garlic vs large-bulb garlic",
+   "draft_ref": "A4",
+   "dir": "library/02-thai-vegetables/veg-thai-garlic",
+   "status": "needs-reference",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": null,
+   "qa": {
+    "round": 1,
+    "verdict": "needs-reference",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   },
+   "candidate": "candidates/r1.png"
+  },
+  {
+   "id": "sea-sauce-bottles",
+   "pillar": "01-seasonings",
+   "name_th": "น้ำปลา ซอสหอยนางรม ซีอิ๊วขาว ซีอิ๊วดำ",
+   "name_en": "Four unbranded sauce bottles",
+   "draft_ref": "A5",
+   "dir": "library/01-seasonings/sea-sauce-bottles",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "sea-jasmine-rice",
+   "pillar": "01-seasonings",
+   "name_th": "ข้าวหอมมะลิ เมล็ดดิบและข้าวสวย",
+   "name_en": "Jasmine rice, raw grains and cooked",
+   "draft_ref": "A6",
+   "dir": "library/01-seasonings/sea-jasmine-rice",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "meat-minced-pork-fat-vs-lean",
+   "pillar": "04-thai-meats",
+   "name_th": "หมูสับติดมัน เทียบหมูสับไร้มัน",
+   "name_en": "Minced pork with fat vs lean",
+   "draft_ref": "B3",
+   "dir": "library/04-thai-meats/meat-minced-pork-fat-vs-lean",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "meat-egg-and-fried-egg",
+   "pillar": "04-thai-meats",
+   "name_th": "ไข่ และไข่ดาวขอบกรอบ",
+   "name_en": "Raw egg and Thai crisp-edged fried egg",
+   "draft_ref": "A7",
+   "dir": "library/04-thai-meats/meat-egg-and-fried-egg",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "spice-peppercorns",
+   "pillar": "03-thai-spices",
+   "name_th": "พริกไทยเม็ดดำ ขาว และป่น",
+   "name_en": "Black and white peppercorns, whole and ground",
+   "draft_ref": "B4",
+   "dir": "library/03-thai-spices/spice-peppercorns",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0507,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "cook-mortar-chilli-garlic",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ครกหินกับพริกกระเทียมโขลกหยาบ",
+   "name_en": "Stone mortar with coarsely pounded chilli and garlic",
+   "draft_ref": "B2",
+   "dir": "library/05-cooking-scenes/cook-mortar-chilli-garlic",
+   "status": "qa-pass-coordinator-only",
+   "tries": 3,
+   "cost_usd": 0.1529,
+   "final": "final.png",
+   "qa": {
+    "round": 3,
+    "verdict": "looks fixed (flat grey with sparse flecks, matte contents, inside frame)",
+    "by": "coordinator 2026-11-16 at ~78% scale; NOT re-audited by audit-lead; r1 and r2 failed for photoreal granite"
+   },
+   "candidate": "candidates/r3.png"
+  },
+  {
+   "id": "cook-wok-empty",
+   "pillar": "05-cooking-scenes",
+   "name_th": "กระทะเหล็กบนเตา มุมบน (ว่าง)",
+   "name_en": "Empty carbon-steel wok on a burner, from above",
+   "draft_ref": "A9",
+   "dir": "library/05-cooking-scenes/cook-wok-empty",
+   "status": "qa-pass",
+   "tries": 2,
+   "cost_usd": 0.1014,
+   "final": "final.png",
+   "qa": {
+    "round": 2,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16, full-size"
+   },
+   "candidate": "candidates/r2.png"
+  },
+  {
+   "id": "cook-wok-basil-in",
+   "pillar": "05-cooking-scenes",
+   "name_th": "กระทะตอนใส่กะเพรา",
+   "name_en": "Wok at the moment holy basil goes in",
+   "draft_ref": "B1",
+   "dir": "library/05-cooking-scenes/cook-wok-basil-in",
+   "status": "needs-reference",
+   "tries": 3,
+   "cost_usd": 0.1531,
+   "final": null,
+   "qa": {
+    "round": 3,
+    "verdict": "framing and matte style fixed; basil leaves broader but still clearly serrated, mince drawn as clustered beads; max tries (3) reached",
+    "by": "coordinator 2026-11-16 at ~78% scale; NOT re-audited by audit-lead"
+   },
+   "candidate": "candidates/r3.png"
+  },
+  {
+   "id": "dish-pad-kra-pao",
+   "pillar": "06-dishes",
+   "name_th": "ผัดกะเพราราดข้าว ไข่ดาว พริกน้ำปลา",
+   "name_en": "Finished pad kra pao on rice with fried egg and prik nam pla",
+   "draft_ref": "A8",
+   "dir": "library/06-dishes/dish-pad-kra-pao",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0504,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "veg-frozen-and-potted-basil",
+   "pillar": "02-thai-vegetables",
+   "name_th": "กะเพราแช่แข็งก้อน และกระถางกะเพรา",
+   "name_en": "Frozen holy basil cubes and a potted holy basil plant",
+   "draft_ref": "A10",
+   "dir": "library/02-thai-vegetables/veg-frozen-and-potted-basil",
+   "status": "needs-reference",
+   "tries": 1,
+   "cost_usd": 0.0506,
+   "final": null,
+   "qa": {
+    "round": 1,
+    "verdict": "needs-reference",
+    "by": "audit-lead 2026-11-16",
+    "file": "qa.md"
+   },
+   "candidate": "candidates/r1.png"
+  }
+ ],
+ "generation_authorisation": "Operator ordered asset generation with Sunburst via OpenRouter in chat on 2026-11-16 (explicit command). The operator did not review the individual prompts; they were written by creative-lead and audited by audit-lead on 2026-11-16 (12 PASS, 2 PASS-WITH-FIXES, fixes applied). No reference photos.",
+ "needs_reference_after_generation": [
+  "veg-holy-basil-red-white",
+  "veg-three-basils",
+  "veg-frozen-and-potted-basil",
+  "veg-thai-chillies",
+  "veg-thai-garlic"
+ ],
+ "spent_usd": 1.0148,
+ "images_generated": 20
+}

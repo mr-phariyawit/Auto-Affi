@@ -1,0 +1,18 @@
+ silence_start: 0
+ silence_end: 0.396792 | silence_duration: 0.396792
+ silence_start: 4.391125
+ silence_end: 5.397479 | silence_duration: 1.006354
+ silence_start: 8.120938
+ silence_end: 9.482833 | silence_duration: 1.361896
+ silence_start: 12.874937
+ silence_end: 13.887875 | silence_duration: 1.012938
+ silence_start: 17.259875
+ silence_end: 18.195417 | silence_duration: 0.935542
+ silence_start: 22.733083
+ silence_end: 23.672146 | silence_duration: 0.939063
+ silence_start: 27.510917
+ silence_end: 28.488812 | silence_duration: 0.977896
+ silence_start: 32.419021
+ silence_end: 33.397458 | silence_duration: 0.978437
+ silence_start: 38.060292
+ silence_end: 38.912 | silence_duration: 0.851708

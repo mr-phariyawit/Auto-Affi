@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: On rice. Crisp fried egg. Chilli fish sauce.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 4.411,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 28,
+  "candidatesTokenCount": 110,
+  "totalTokenCount": 138,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 28
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 110
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

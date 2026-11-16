@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>Thai cooking channel — 9:16 layout prototype (placeholder shapes only)</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      /* Fonts are local files (no network). Thai + Latin subsets of Noto Sans Thai, split by unicode-range. */
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 400; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-thai-400-normal.woff2") format("woff2");
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 500; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-thai-500-normal.woff2") format("woff2");
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 700; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-thai-700-normal.woff2") format("woff2");
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 400; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 500; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-latin-500-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Noto Sans Thai"; font-weight: 700; font-display: block;
+        src: url("assets/fonts/noto-sans-thai-latin-700-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Noto Sans"; font-weight: 400; font-display: block;
+        src: url("assets/fonts/noto-sans-v27-latin-regular.ttf") format("truetype"); }
+
+      :root {
+        --paper: #F4ECD8; --ink: #2B2118; --red: #C8321E; --green: #3F6B3A;
+        --yellow: #D9A21B; /* fill behind ink text ONLY — never a text colour */
+        --card: #FBF7EC;
+      }
+      body { margin: 0; background: #F4ECD8; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--paper);
+              font-family: "Noto Sans Thai", "Noto Sans", sans-serif; color: var(--ink); }
+      .abs { position: absolute; }
+      .th { color: var(--ink); }
+      .en { color: var(--green); }
+
+      /* ── TOP: bilingual title (fixed) ───────────────────────────── */
+      #title { left: 60px; right: 60px; top: 56px; text-align: center; }
+      #title .t1 { font-size: 104px; font-weight: 700; line-height: 1.4; }
+      #title .t2 { font-size: 36px; font-weight: 500; line-height: 1.4; color: var(--green); margin-top: 2px; }
+
+      /* ── progress rail: 6 step dots (fixed) ─────────────────────── */
+      #rail { left: 120px; width: 840px; top: 300px; height: 48px; }
+      #rail .line { position: absolute; left: 0; right: 0; top: 21px; height: 6px; border-radius: 3px; background: rgba(43,33,24,0.22); }
+      #railFill { position: absolute; left: 0; width: 840px; top: 21px; height: 6px; border-radius: 3px; background: var(--red);
+                  transform-origin: 0 50%; }
+      .dot { position: absolute; top: 0; width: 48px; height: 48px; margin-left: -24px; border-radius: 50%;
+             box-sizing: border-box; border: 4px solid var(--ink); background: var(--card); color: var(--ink);
+             font-size: 24px; font-weight: 700; line-height: 40px; text-align: center; }
+
+      /* ── taste meter: 4 bars (fixed) ────────────────────────────── */
+      #meter { left: 60px; right: 60px; top: 392px; }
+      .mrow { position: relative; height: 56px; }
+      .mrow .lab { position: absolute; left: 0; top: 0; width: 330px; height: 56px; line-height: 56px; white-space: nowrap; }
+      .mrow .lab .th { font-size: 34px; font-weight: 700; }
+      .mrow .lab .en { font-size: 28px; font-weight: 500; margin-left: 12px; }
+      .mrow .track { position: absolute; left: 340px; right: 0; top: 14px; height: 28px; border-radius: 14px;
+                     box-sizing: border-box; border: 3px solid var(--ink); background: var(--card); overflow: hidden; }
+      .mrow .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--red);
+                    transform-origin: 0 50%; }
+      #fAroma { background: var(--green); }
+
+      /* ── STAGE: placeholder vector shapes ───────────────────────── */
+      #stage { left: 0; top: 0; width: 1080px; height: 1920px; }
+
+      /* ── LOWER STAGE: info cards ────────────────────────────────── */
+      .card { left: 60px; width: 960px; top: 1010px; height: 440px; box-sizing: border-box; padding: 26px 36px;
+              background: var(--card); border: 4px solid var(--ink); border-radius: 28px; }
+      .card .l1 { font-size: 60px; font-weight: 700; line-height: 1.4; color: var(--ink); }
+      .card .l2 { font-size: 32px; font-weight: 500; line-height: 1.4; color: var(--green); }
+      .card .l3 { font-size: 26px; font-weight: 400; line-height: 1.4; font-style: italic; color: var(--ink); opacity: 0.8; }
+      .card .fact { font-size: 30px; font-weight: 500; line-height: 1.45; margin-top: 12px; color: var(--ink); }
+      .card .chip { display: inline-block; margin-top: 14px; padding: 9px 22px; border-radius: 14px;
+                    background: var(--yellow); color: var(--ink); font-size: 28px; font-weight: 700; line-height: 1.45; }
+      .card .src { position: absolute; right: 30px; bottom: 16px; font-size: 22px; font-weight: 400; line-height: 1.4; color: var(--green); }
+
+      /* ── end card: two boxes ────────────────────────────────────── */
+      .box { left: 60px; width: 960px; height: 210px; box-sizing: border-box; padding: 20px 36px 20px 48px;
+             background: var(--card); border: 4px solid var(--ink); border-radius: 28px; overflow: hidden; }
+      .box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 16px; }
+      #box1 { top: 1010px; } #box1::before { background: var(--red); }
+      #box2 { top: 1240px; } #box2::before { background: var(--green); }
+      .box .hd { font-size: 40px; font-weight: 700; line-height: 1.4; }
+      .box .bd { font-size: 31px; font-weight: 500; line-height: 1.45; margin-top: 4px; color: var(--ink); }
+      .box .tag { position: absolute; right: 26px; top: 24px; padding: 3px 16px; border: 3px solid var(--ink); border-radius: 12px;
+                  font-size: 22px; font-weight: 700; line-height: 1.5; color: var(--ink); background: var(--paper); }
+
+      /* ── watermark, just above the empty bottom 20% (y >= 1536 stays empty) ── */
+      #wm { left: 0; right: 0; top: 1474px; text-align: center; font-size: 28px; font-weight: 500; line-height: 1.4; color: var(--ink); opacity: 0.55; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="14">
+
+      <!-- STAGE (vector placeholders only) -->
+      <svg id="stage" class="abs" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+        <g id="wok">
+          <g id="steam" fill="none" stroke="#2B2118" stroke-width="6" stroke-linecap="round" opacity="0.45">
+            <path class="st" d="M420,748 q-22,-22 0,-44 q22,-22 0,-44" />
+            <path class="st" d="M540,742 q-22,-22 0,-44 q22,-22 0,-44" />
+            <path class="st" d="M660,748 q-22,-22 0,-44 q22,-22 0,-44" />
+          </g>
+          <!-- handle -->
+          <rect x="858" y="778" width="170" height="34" rx="17" fill="#2B2118" />
+          <!-- bowl -->
+          <path d="M210,800 Q540,1070 870,800 Z" fill="#FBF7EC" stroke="#2B2118" stroke-width="8" stroke-linejoin="round" />
+          <!-- rim / cooking surface -->
+          <ellipse cx="540" cy="800" rx="330" ry="72" fill="#F4ECD8" stroke="#2B2118" stroke-width="8" />
+          <!-- placeholder ingredient blobs (appear in sequence) -->
+          <g id="bChili">
+            <ellipse cx="400" cy="792" rx="34" ry="13" fill="#C8321E" stroke="#2B2118" stroke-width="5" transform="rotate(-18 400 792)" />
+            <ellipse cx="452" cy="822" rx="30" ry="12" fill="#C8321E" stroke="#2B2118" stroke-width="5" transform="rotate(14 452 822)" />
+          </g>
+          <g id="bGarlic">
+            <circle cx="520" cy="776" r="17" fill="#FBF7EC" stroke="#2B2118" stroke-width="5" />
+            <circle cx="556" cy="796" r="14" fill="#FBF7EC" stroke="#2B2118" stroke-width="5" />
+            <circle cx="512" cy="812" r="12" fill="#FBF7EC" stroke="#2B2118" stroke-width="5" />
+          </g>
+          <g id="bSauce">
+            <path d="M560,826 q30,-24 66,-8 q30,16 4,30 q-40,14 -70,-2 q-16,-10 0,-20 Z" fill="#2B2118" opacity="0.82" />
+          </g>
+          <g id="bLeaf">
+            <path d="M640,800 Q680,730 770,752 Q742,826 640,800 Z" fill="#3F6B3A" stroke="#2B2118" stroke-width="5" stroke-linejoin="round" />
+            <path d="M648,797 Q700,772 762,755" fill="none" stroke="#2B2118" stroke-width="4" stroke-linecap="round" />
+          </g>
+        </g>
+
+        <!-- leader lines: card → point of interest -->
+        <g id="leadA">
+          <path id="leadAline" d="M790,1010 L790,900 L716,790" pathLength="1" fill="none" stroke="#C8321E" stroke-width="6"
+                stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 1.2" stroke-dashoffset="1.1" />
+          <circle id="leadAdot" cx="716" cy="790" r="13" fill="#C8321E" stroke="#FBF7EC" stroke-width="4" />
+        </g>
+        <g id="leadB">
+          <path id="leadBline" d="M300,1010 L300,930 L590,842" pathLength="1" fill="none" stroke="#C8321E" stroke-width="6"
+                stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 1.2" stroke-dashoffset="1.1" />
+          <circle id="leadBdot" cx="590" cy="842" r="13" fill="#C8321E" stroke="#FBF7EC" stroke-width="4" />
+        </g>
+
+        <!-- three placeholder bottles (end card) -->
+        <g id="bottles">
+          <g class="bottle" id="bt1">
+            <rect x="300" y="676" width="56" height="26" rx="6" fill="#C8321E" stroke="#2B2118" stroke-width="6" />
+            <rect x="306" y="700" width="44" height="60" fill="#FBF7EC" stroke="#2B2118" stroke-width="6" />
+            <rect x="268" y="758" width="120" height="210" rx="22" fill="#2B2118" opacity="0.85" />
+            <rect x="268" y="758" width="120" height="210" rx="22" fill="none" stroke="#2B2118" stroke-width="6" />
+            <rect x="282" y="824" width="92" height="84" rx="8" fill="#FBF7EC" stroke="#2B2118" stroke-width="4" />
+          </g>
+          <g class="bottle" id="bt2">
+            <rect x="512" y="646" width="56" height="26" rx="6" fill="#3F6B3A" stroke="#2B2118" stroke-width="6" />
+            <rect x="518" y="670" width="44" height="70" fill="#FBF7EC" stroke="#2B2118" stroke-width="6" />
+            <rect x="476" y="738" width="128" height="230" rx="22" fill="#FBF7EC" stroke="#2B2118" stroke-width="6" />
+            <rect x="490" y="808" width="100" height="96" rx="8" fill="#3F6B3A" stroke="#2B2118" stroke-width="4" />
+          </g>
+          <g class="bottle" id="bt3">
+            <rect x="724" y="696" width="56" height="26" rx="6" fill="#2B2118" stroke="#2B2118" stroke-width="6" />
+            <rect x="730" y="720" width="44" height="50" fill="#FBF7EC" stroke="#2B2118" stroke-width="6" />
+            <rect x="692" y="768" width="120" height="200" rx="22" fill="#C8321E" stroke="#2B2118" stroke-width="6" />
+            <rect x="706" y="826" width="92" height="80" rx="8" fill="#FBF7EC" stroke="#2B2118" stroke-width="4" />
+          </g>
+        </g>
+      </svg>
+
+      <!-- TOP: bilingual title — fixed for the whole clip -->
+      <div id="title" class="abs">
+        <div class="t1">ผัดกะเพรา</div>
+        <div class="t2">Pad Kra Pao · Holy basil stir-fry</div>
+      </div>
+
+      <!-- progress rail — 6 step dots -->
+      <div id="rail" class="abs">
+        <div class="line"></div>
+        <div id="railFill"></div>
+        <div class="dot" id="d1" style="left:0px">1</div>
+        <div class="dot" id="d2" style="left:168px">2</div>
+        <div class="dot" id="d3" style="left:336px">3</div>
+        <div class="dot" id="d4" style="left:504px">4</div>
+        <div class="dot" id="d5" style="left:672px">5</div>
+        <div class="dot" id="d6" style="left:840px">6</div>
+      </div>
+
+      <!-- taste meter -->
+      <div id="meter" class="abs">
+        <div class="mrow"><div class="lab"><span class="th">เค็ม</span><span class="en">Salty</span></div><div class="track"><div class="fill" id="fSalty"></div></div></div>
+        <div class="mrow"><div class="lab"><span class="th">หวาน</span><span class="en">Sweet</span></div><div class="track"><div class="fill" id="fSweet"></div></div></div>
+        <div class="mrow"><div class="lab"><span class="th">เผ็ด</span><span class="en">Spicy</span></div><div class="track"><div class="fill" id="fSpicy"></div></div></div>
+        <div class="mrow"><div class="lab"><span class="th">หอม</span><span class="en">Aroma</span></div><div class="track"><div class="fill" id="fAroma"></div></div></div>
+      </div>
+
+      <!-- Scene A card: red holy basil -->
+      <div id="cardA" class="abs card clip" data-start="0.3" data-duration="4.7" data-track-index="1">
+        <div class="l1">กะเพราแดง</div>
+        <div class="l2">kaphrao daeng · red holy basil</div>
+        <div class="l3">Ocimum tenuiflorum</div>
+        <div class="fact"><span class="en">Stems and leaves flushed purple-red</span> · <span class="th">ก้านและใบอมม่วงแดง</span></div>
+        <div class="chip">Can't find it? → frozen holy basil / grow from seed</div>
+        <div class="src">Source: PROSEA; Thai journal (see notes)</div>
+      </div>
+
+      <!-- Scene B card: genuine fish sauce -->
+      <div id="cardB" class="abs card clip" data-start="5" data-duration="4.5" data-track-index="2">
+        <div class="l1">น้ำปลาแท้</div>
+        <div class="l2">nam pla thae · genuine fish sauce</div>
+        <div class="fact" style="margin-top:22px"><span class="en">Thai law: total nitrogen ≥ 9 g/L</span></div>
+        <div class="chip" style="margin-top:24px">Label says น้ำปลาแท้</div>
+        <div class="src">Source: MoPH Notification 203</div>
+      </div>
+
+      <!-- Scene C: two-box end card -->
+      <div id="box1" class="abs box clip" data-start="9.5" data-duration="4" data-track-index="3">
+        <div class="hd"><span class="en">In Thailand?</span> · <span class="th">อยู่ไทย</span></div>
+        <div class="bd"><span class="en">Shopee link in bio — seasonings &amp; spices</span></div>
+        <div class="tag">Ad · affiliate link</div>
+      </div>
+      <div id="box2" class="abs box clip" data-start="9.5" data-duration="4" data-track-index="4">
+        <div class="hd"><span class="en">Elsewhere</span> · <span class="th">อยู่ที่อื่น</span></div>
+        <div class="bd"><span class="en">Look for:</span> น้ำปลาแท้ · ซีอิ๊วขาว · <span class="en">at your local Asian grocer</span></div>
+      </div>
+
+      <!-- placeholder watermark (sits above the empty bottom 20%) -->
+      <div id="wm" class="abs">@channel-name</div>
+    </div>
+
+    <script>
+      // Deterministic, seek-safe: one paused GSAP timeline, no wall-clock timers, no Math.random.
+      window.__timelines = window.__timelines || {};
+      const RED = "#C8321E", INK = "#2B2118", CARD = "#FBF7EC";
+      const BASE = 0.12;                       // resting level of every taste bar
+      const tl = gsap.timeline({ paused: true });
+
+      // ── opening state (frame 0 = complete layout, empty wok, no card) ──
+      gsap.set("#d1", { backgroundColor: RED, color: CARD });
+      gsap.set("#railFill", { scaleX: 0 });
+      gsap.set(".fill", { scaleX: BASE });
+      gsap.set(["#bChili", "#bGarlic", "#bLeaf", "#bSauce"], { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set(["#leadAdot", "#leadBdot"], { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set(".bottle", { opacity: 0, y: 40 });
+      gsap.set(["#cardA", "#cardB", "#box1", "#box2"], { y: 90, opacity: 0 });
+
+      // steam drifts for the whole clip (14 one-second yoyo legs → back at rest on 14.0)
+      tl.fromTo(".st", { y: 0 }, { y: -14, duration: 1, ease: "sine.inOut", repeat: 13, yoyo: true, stagger: 0 }, 0);
+
+      const step = (n, t) => {                 // advance the progress rail to dot n at time t
+        tl.to("#railFill", { scaleX: (n - 1) / 5, duration: 0.35, ease: "power2.out" }, t);
+        tl.to("#d" + n, { backgroundColor: RED, color: CARD, duration: 0.2 }, t + 0.15);
+        tl.fromTo("#d" + n, { scale: 1 }, { scale: 1.25, duration: 0.18, yoyo: true, repeat: 1, ease: "power1.out", immediateRender: false }, t + 0.15);
+      };
+      const pop = (sel, t) => tl.to(sel, { scale: 1, duration: 0.35, ease: "back.out(2)" }, t);
+      const cardIn = (sel, t) => tl.to(sel, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, t);
+      const cardOut = (sel, t) => tl.to(sel, { y: 90, opacity: 0, duration: 0.4, ease: "power2.in" }, t);
+
+      // ── Scene A (0–5 s): chilli + garlic in, then red holy basil ──
+      pop("#bChili", 0.1);
+      tl.to("#fSpicy", { scaleX: 0.62, duration: 0.7, ease: "power2.out" }, 0.25);
+      pop("#bGarlic", 0.45);
+      cardIn("#cardA", 0.3);
+      step(2, 1.0);
+      pop("#bLeaf", 1.0);
+      tl.to("#leadAline", { strokeDashoffset: 0, duration: 0.45, ease: "power1.inOut" }, 1.25);
+      pop("#leadAdot", 1.6);
+      tl.to("#fAroma", { scaleX: 0.8, duration: 0.9, ease: "power2.out" }, 1.5);
+      tl.to("#leadA", { opacity: 0, duration: 0.3 }, 4.45);
+      cardOut("#cardA", 4.55);
+
+      // ── Scene B (5–9.5 s): genuine fish sauce ──
+      step(3, 5.0);
+      cardIn("#cardB", 5.05);
+      pop("#bSauce", 5.3);
+      tl.to("#leadBline", { strokeDashoffset: 0, duration: 0.45, ease: "power1.inOut" }, 5.6);
+      pop("#leadBdot", 5.95);
+      tl.to("#fSalty", { scaleX: 0.72, duration: 0.9, ease: "power2.out" }, 6.0);
+      step(4, 7.6);
+      tl.to("#fSweet", { scaleX: 0.3, duration: 0.7, ease: "power2.out" }, 7.7);
+      tl.to("#leadB", { opacity: 0, duration: 0.3 }, 8.95);
+      cardOut("#cardB", 9.05);
+
+      // ── Scene C (9.5–13 s): two-box end card + three bottles ──
+      step(5, 9.5);
+      tl.to("#wok", { opacity: 0, duration: 0.35, ease: "power1.in" }, 9.4);
+      tl.to("#bt1", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 9.7);
+      tl.to("#bt2", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 9.85);
+      tl.to("#bt3", { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.6)" }, 10.0);
+      cardIn("#box1", 9.75);
+      cardIn("#box2", 9.95);
+      step(6, 10.8);
+
+      // ── 13–14 s: return to the opening state so the clip loops ──
+      cardOut("#box2", 13.0);
+      cardOut("#box1", 13.05);
+      tl.to(".bottle", { opacity: 0, y: 40, duration: 0.35, ease: "power1.in" }, 13.05);
+      tl.set(["#bChili", "#bGarlic", "#bLeaf", "#bSauce"], { scale: 0 }, 13.3);   // wok is hidden here
+      tl.to("#wok", { opacity: 1, duration: 0.45, ease: "power1.out" }, 13.35);
+      tl.to(["#fSalty", "#fSweet", "#fSpicy", "#fAroma"], { scaleX: BASE, duration: 0.6, ease: "power2.inOut" }, 13.2);
+      tl.to("#railFill", { scaleX: 0, duration: 0.5, ease: "power2.inOut" }, 13.25);
+      tl.to(["#d2", "#d3", "#d4", "#d5", "#d6"], { backgroundColor: CARD, color: INK, duration: 0.3 }, 13.4);
+
+      tl.set({}, {}, 14);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

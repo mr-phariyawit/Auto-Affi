@@ -1,0 +1,35 @@
+{
+ "taskId": "1499f0f36e3e06ab4a2f0aebe71456bc",
+ "credits": 12.0,
+ "result": {
+  "code": 200,
+  "data": [
+   {
+    "audio_url": "https://tempfile.aiquickdraw.com/r/b2ed9ead-2723-44b1-b90a-ef85017827e7.mp3",
+    "createTime": 1794840876849,
+    "duration": 42.72,
+    "id": "b2ed9ead-2723-44b1-b90a-ef85017827e7",
+    "image_url": "https://cdn2.suno.ai/image_b2ed9ead-2723-44b1-b90a-ef85017827e7.jpeg",
+    "model_name": "chirp-hawk",
+    "prompt": "",
+    "stream_audio_url": "https://audiostream.kie.ai/stream/b2ed9ead-2723-44b1-b90a-ef85017827e7.mp3",
+    "tags": "light instrumental, Thai traditional instruments: ranat ek xylophone and khim hammered dulcimer melody, soft hand percussion, warm acoustic, playful cooking-show mood, medium tempo 104 bpm, clean and uncluttered, no vocals, no singing",
+    "title": "Pad Kra Pao kitchen"
+   },
+   {
+    "audio_url": "https://tempfile.aiquickdraw.com/r/89b21e2f-0685-4183-8bd9-0c294cb4d71f.mp3",
+    "createTime": 1794840876849,
+    "duration": 43.16,
+    "id": "89b21e2f-0685-4183-8bd9-0c294cb4d71f",
+    "image_url": "https://cdn2.suno.ai/image_89b21e2f-0685-4183-8bd9-0c294cb4d71f.jpeg",
+    "model_name": "chirp-hawk",
+    "prompt": "",
+    "stream_audio_url": "https://audiostream.kie.ai/stream/89b21e2f-0685-4183-8bd9-0c294cb4d71f.mp3",
+    "tags": "light instrumental, Thai traditional instruments: ranat ek xylophone and khim hammered dulcimer melody, soft hand percussion, warm acoustic, playful cooking-show mood, medium tempo 104 bpm, clean and uncluttered, no vocals, no singing",
+    "title": "Pad Kra Pao kitchen"
+   }
+  ],
+  "msg": "success",
+  "task_id": "1499f0f36e3e06ab4a2f0aebe71456bc"
+ }
+}

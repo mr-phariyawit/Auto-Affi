@@ -1,0 +1,27 @@
+{
+ "model": "gemini-3.8-flash-tts",
+ "voice": "Kore",
+ "text": "Pad kra pao. Salty, fiery, holy basil first.",
+ "style": "",
+ "mime": "audio/wav",
+ "seconds": 6.0,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 14,
+  "candidatesTokenCount": 150,
+  "totalTokenCount": 164,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 14
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 150
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

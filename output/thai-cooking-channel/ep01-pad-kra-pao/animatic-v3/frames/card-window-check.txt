@@ -1,0 +1,12 @@
+CARD WINDOW CHECK: card region at vo_start and at vo_end+0.3 vs mid-line reference frame (max channel diff; 0-3 = identical apart from codec noise)
+  line 1: frame 10 (t=0.35) diff=3; frame 142 (t=4.72) diff=4
+  line 2: frame 160 (t=5.35) diff=8; frame 254 (t=8.46) diff=15
+  line 3: frame 284 (t=9.45) diff=6; frame 396 (t=13.21) diff=21
+  line 4: frame 416 (t=13.85) diff=38; frame 527 (t=17.56) diff=18
+  line 5: frame 544 (t=18.15) diff=26; frame 692 (t=23.07) diff=5
+  line 6: frame 710 (t=23.65) diff=6; frame 835 (t=27.83) diff=13
+  line 7: frame 854 (t=28.45) diff=4; frame 982 (t=32.75) diff=4
+  line 8: frame 1000 (t=33.35) diff=45; frame 1152 (t=38.39) diff=0
+Localisation of the larger diffs (pixels differing by >6 levels inside the card region): 2a=33 px, 3b=17, 4a=2, 5a=18, 8a=22,
+2b=1499 px (0.7 % of the card, max diff 15), 4b=842, 6b=674 — scattered, no uniform shift as a fading/moving card would give.
+Timeline math: card-in ends seg_start+0.25 (vo_start = seg_start+0.35); card-out starts seg_end-0.20; smallest margin to vo_end+0.3 is 0.03 s (line 5).

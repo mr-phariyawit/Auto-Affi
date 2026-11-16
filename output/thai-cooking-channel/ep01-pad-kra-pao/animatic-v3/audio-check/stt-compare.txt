@@ -1,0 +1,2 @@
+ref words 70 stt words 69
+replace ['kra', 'pao'] -> ['krapow']

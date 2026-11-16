@@ -1,0 +1,10 @@
+8 speech intervals (silencedetect -45dB, d=0.25, on audio extracted from final MP4)
+line seg_start seg_end | plan vo_start vo_end | detected start end | inside_seg gap_to_next card_out(seg_end-0.2)>=det_end+0.3
+1 0 5.0 | 0.35 4.42 | 0.397 4.391 | True 1.006 True
+2 5.0 9.1 | 5.35 8.16 | 5.397 8.121 | True 1.362 True
+3 9.1 13.5 | 9.45 12.91 | 9.483 12.875 | True 1.013 True
+4 13.5 17.8 | 13.85 17.26 | 13.888 17.26 | True 0.936 True
+5 17.8 23.3 | 18.15 22.77 | 18.195 22.733 | True 0.939 True
+6 23.3 28.1 | 23.65 27.53 | 23.672 27.511 | True 0.978 True
+7 28.1 33.0 | 28.45 32.45 | 28.489 32.419 | True 0.978 True
+8 33.0 38.9 | 33.35 38.09 | 33.397 38.06 | True None True

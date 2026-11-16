@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 319,
+  "completion_tokens": 1629,
+  "total_tokens": 1948,
+  "cost": 0.050465,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.050465,
+   "upstream_inference_prompt_cost": 0.001595,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 28.8,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/02-thai-vegetables/veg-thai-chillies/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "A small loose scatter of fresh Thai cooking chillies laid flat on the page for a botanical study, shown at equal scale. Several small slender bird's-eye chillies, each only a few centimetres long and tapering to a fine point, some matte green and some ripened to a deep red, each with a short green stalk and a small star-shaped calyx at the stem end. Most are shown whole; two are split lengthways to reveal the pale inner membrane and a cluster of small flat seeds. The chillies lie separated from one another with clear cream paper between them, none touching, arranged so the red and the green fruits alternate and can be counted individually. Each fruit has a smooth, firm, gently curved body, the surface shown in a few flat tonal steps so the rounded form reads without any shine.\n\nDetailed botanical-plate illustration in ink and gouache. Fine brown-black ink linework with varied line weight: heavier outer contours, hair-thin interior veins. Opaque matte gouache colour in two to three flat tonal steps with slight visible brush texture; no smooth 3D gradients, no photographic rendering, no glossy highlights. Plain warm cream paper background, completely empty, with only a faint soft contact shadow under the subject. Soft even light from the upper left. Scientific-plate accuracy: every vein, hair, tooth and node is drawn deliberately and legibly. No text, no letters, no numbers, no labels, no captions, no arrows, no borders, no watermark, no signature, no hands, no people.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 1491,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

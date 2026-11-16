@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: In Thailand? Affiliate link in bio. Elsewhere, try your Asian grocer.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 5.211,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 33,
+  "candidatesTokenCount": 130,
+  "totalTokenCount": 163,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 33
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 130
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}
