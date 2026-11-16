@@ -248,16 +248,19 @@ function props(st, p, tick, idx) {           // every ingredient, drawn at doubl
     if (!used(2, 0.12)) { R(1, -6, 8, 2, C.pink); R(3, -7, 4, 1, C.pink); R(2, -6, 1, 1, C.white); R(6, -6, 2, 1, C.white); R(5, -7, 1, 1, C.pink2); R(4, -5, 1, 1, C.pink2); } });
   at(58, () => { R(1, -1, 5, 1, C.red); R(0, -1, 1, 1, C.green2);                                                                                                             // bird's-eye chillies
     if (!used(1, 0.25)) { R(2, -3, 5, 1, C.green); R(1, -3, 1, 1, C.green2); R(3, -2, 4, 1, C.red2); R(4, -4, 3, 1, C.red); R(3, -4, 1, 1, C.green2); } });
-  at(108, () => { R(0, -4, 5, 4, C.white); R(1, -5, 3, 1, C.white); R(2, -6, 1, 1, C.shade); R(2, -4, 1, 4, C.shade); R(4, -2, 1, 2, C.shade);                                   // garlic
-    if (used(1, 0.25)) R(0, -4, 2, 4, C.wall); });
+  at(108, () => {                                                                                                                                                         // garlic
+    if (!used(1, 0.25)) { R(0, -4, 5, 4, C.white); R(1, -5, 3, 1, C.white); R(2, -6, 1, 1, C.shade); R(2, -4, 1, 4, C.shade); R(4, -2, 1, 2, C.shade); }
+    else { R(1, -3, 4, 3, C.white); R(2, -4, 2, 1, C.white); R(2, -5, 1, 1, C.shade); R(3, -3, 1, 3, C.shade); R(-1, -1, 2, 1, C.shade); } });   // a smaller bulb once cloves are taken, with a bit of peel beside it
   if (!used(5, 0.1)) at(121, () => { R(4, -3, 1, 3, '#7a4a6a'); R(1, -8, 7, 4, C.green); R(0, -6, 2, 2, C.green2); R(7, -7, 2, 2, C.green2); R(3, -10, 3, 2, C.green); R(4, -8, 1, 4, '#8fd07f'); R(2, -5, 1, 1, C.green2); R(6, -4, 1, 1, C.green2); });   // holy basil
   if (k !== 'sauce') at(142, () => { R(1, -13, 3, 2, C.red); R(1, -11, 3, 2, C.glass); R(0, -9, 5, 9, C.amber); R(0, -9, 1, 9, C.amber2); R(1, -6, 3, 3, C.white); });        // fish sauce
   at(154, () => { R(0, -2, 10, 2, C.plate); R(1, -3, 8, 1, C.plate2);                                                                                                         // peppercorns
     if (!used(4, 0.35)) { R(2, -4, 2, 1, C.pepK); R(5, -4, 1, 1, C.pepW); R(7, -4, 2, 1, C.pepK); R(4, -5, 2, 1, C.pepW); R(6, -5, 1, 1, C.pepK); } });
 }
-function pointer(st, tick) {                 // arrow above the ingredient in use
+function pointer(st, tick, p) {              // arrow above the ingredient in use; it follows the ingredient into the wok
   const a = { pound: [65, 14], pork: [46, 20], pepper: [164, 16], basil: [130, 26], serve: [15, 20] }[st.k]; if (!a) return;
-  const ay = SHELF - a[1] - 6 - (tick % 8 < 4 ? 0 : 1); R(a[0] - 3, ay, 7, 2, C.accent); R(a[0] - 2, ay + 2, 5, 1, C.accent); R(a[0] - 1, ay + 3, 3, 1, C.accent); R(a[0], ay + 4, 1, 1, C.accent);
+  const gone = { pork: 0.12, pepper: 0.35, basil: 0.1 }[st.k], inWok = gone !== undefined && p > gone;
+  if (inWok) a[0] = 131;
+  const ay = (inWok ? B - 30 : SHELF - a[1] - 6) - (tick % 8 < 4 ? 0 : 1); R(a[0] - 3, ay, 7, 2, C.accent); R(a[0] - 2, ay + 2, 5, 1, C.accent); R(a[0] - 1, ay + 3, 3, 1, C.accent); R(a[0], ay + 4, 1, 1, C.accent);
 }
 function tabletop() {                                            // only the top surface: no cabinet, no drawers
   R(6, B, W - 12, 3, C.topHi); R(6, B + 3, W - 12, 4, C.top); R(6, B + 7, W - 12, 1, C.front);
@@ -401,7 +404,7 @@ function drawFx(st, p) {
 function draw() {
   if (!(T >= 0)) T = 0;
   const idx = Math.floor(T / DUR) % STEPS.length, st = STEPS[idx], p = (T % DUR) / DUR, tick = Math.floor(T / 83);
-  kitchen(); props(st, p, tick, idx); chef(st, p, tick); tabletop(); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick); emote(88, B + bobOf(st.k, tick, p), st.k, p, tick); pointer(st, tick);
+  kitchen(); props(st, p, tick, idx); chef(st, p, tick); tabletop(); mortar(st.k === 'pound' || st.k === 'pepper', tick); wok(st, p, tick); hands(st, p, tick); emote(88, B + bobOf(st.k, tick, p), st.k, p, tick); pointer(st, tick, p);
   if (st.k === 'serve') dishSprite(66, B - 22, 0.5);
   R(0, B + 8, W, H - B - 8, C.inset);
   drawFx(st, p);
