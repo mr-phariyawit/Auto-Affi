@@ -506,7 +506,7 @@ requestAnimationFrame(loop);
 
 /* ---------- render mode (?render=1): frames are driven by __seek(seconds), timed to the recorded voice-over ---------- */
 if (new URLSearchParams(location.search).has('render')) {
-  playing = false; document.documentElement.classList.add('render'); document.querySelector('.wm').textContent = '@mr_jiap';
+  playing = false; document.documentElement.classList.add('render'); document.querySelector('.wm').textContent = '@saitum528';
   const SEG = [0, 5.0, 9.1, 13.5, 17.8, 23.3, 28.1, 33.0];
   window.__seek = s => { let i = 0; while (i < 6 && s >= SEG[i + 1]) i++;
     T = (i + Math.min(0.9999, (s - SEG[i]) / (SEG[i + 1] - SEG[i]))) * DUR; draw();
