@@ -58,6 +58,19 @@
   .card .src { font-size: 2.8cqw; color: var(--muted); text-align: right; margin-top: .5cqw; min-height: 2.8cqw; }
   .wm { top: 96.4%; text-align: center; font-size: 3.4cqw; color: var(--ink); text-shadow: 0 0 .8cqw #000, 0 0 .4cqw #000; }
 
+  /* render mode (?render=1): bare 1080x1920 frame for video export */
+  html.render body { background: #000; }
+  html.render .wrap { padding: 0; max-width: none; display: block; }
+  html.render .stage { width: 1080px; margin: 0; gap: 0; }
+  html.render .frame { border: 0; }
+  html.render .ctl, html.render .notes { display: none; }
+  html.render .meter .fill { transition: none; }
+  #endcard { display: none; position: absolute; inset: 0; background: rgba(21,27,34,.95); flex-direction: column; justify-content: center; gap: 5cqw; padding: 0 20% 0 11%; }
+  #endcard .bx { border: .7cqw solid var(--ink); background: #2b3a4a; padding: 3.4cqw; }
+  #endcard .hd { font-size: 6.6cqw; font-weight: 700; color: var(--accent); }
+  #endcard .bd { font-size: 4.7cqw; line-height: 1.25; margin-top: 1.8cqw; }
+  #endcard .tag { font-size: 3.3cqw; color: var(--muted); margin-top: 1.8cqw; }
+
   .ctl { display: flex; flex-wrap: wrap; gap: 10px; }
   .ctl button { font: 600 15px/1 var(--display); padding: 10px 14px; background: var(--panel); color: var(--ink); border: 2px solid var(--line); cursor: pointer; }
   .ctl button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
@@ -93,6 +106,10 @@
         <div class="row"><span>Aroma</span><div class="track"><div class="fill aroma" id="f3"></div><div class="tick" style="left:78%"></div></div></div>
       </div>
       <div class="ov card"><div class="l1" id="l1">Target taste</div><div class="l2" id="l2">Salty-led, hot, holy basil first</div><div class="src" id="src"></div></div>
+      <div id="endcard">
+        <div class="bx"><div class="hd">In Thailand?</div><div class="bd">Shopee affiliate link in bio</div><div class="tag">Ad · affiliate link</div></div>
+        <div class="bx"><div class="hd">Elsewhere?</div><div class="bd">Look for nam pla thae at your Asian grocer</div></div>
+      </div>
       <div class="ov wm">@channel-name</div>
     </div>
     <div class="ctl">
@@ -486,6 +503,15 @@ function loop(now) { lastRaf = performance.now(); frame(now); requestAnimationFr
 // Some viewers suspend requestAnimationFrame (background or embedded panes). Keep time moving with a timer when that happens.
 setInterval(() => { const n = performance.now(); if (n - lastRaf > 300) frame(n); }, 100);
 requestAnimationFrame(loop);
+
+/* ---------- render mode (?render=1): frames are driven by __seek(seconds), timed to the recorded voice-over ---------- */
+if (new URLSearchParams(location.search).has('render')) {
+  playing = false; document.documentElement.classList.add('render'); document.querySelector('.wm').textContent = '@mr_jiap';
+  const SEG = [0, 5.0, 9.1, 13.5, 17.8, 23.3, 28.1, 33.0];
+  window.__seek = s => { let i = 0; while (i < 6 && s >= SEG[i + 1]) i++;
+    T = (i + Math.min(0.9999, (s - SEG[i]) / (SEG[i + 1] - SEG[i]))) * DUR; draw();
+    document.getElementById('endcard').style.display = s >= SEG[7] ? 'flex' : 'none'; return true; };
+}
 </script>
 </body>
 </html>
