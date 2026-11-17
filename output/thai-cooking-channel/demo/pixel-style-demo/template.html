@@ -33,27 +33,27 @@
            border: 2px solid var(--line); background: #2b3a4a; overflow: hidden; font-family: var(--display); line-height: 1; font-variant-ligatures: none; }
   .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
   .frame #fx { inset: auto 0 0 0; top: 69.375%; height: 30.625%; image-rendering: auto; border-top: .7cqw solid #c98f4e; }
-  .frame #insetimg { position: absolute; left: 65.56%; top: 18.75%; width: 26.67%; height: auto; aspect-ratio: 1; display: block; object-fit: cover; }
+  .frame #insetimg { position: absolute; left: 65.56%; top: 16.25%; width: 26.67%; height: auto; aspect-ratio: 1; display: block; object-fit: cover; }
   .ov { position: absolute; left: 6%; right: 6%; color: var(--ink); }
-  .title { top: 5.2%; text-align: center; }
-  .title .t1 { font-size: 10.5cqw; font-weight: 700; line-height: 1; letter-spacing: .02em; }
-  .title .t2 { font-size: 4.2cqw; color: var(--accent); margin-top: 1.2cqw; }
-  .rail { top: 14.2%; display: flex; justify-content: space-between; align-items: center; }
+  .title { top: 3%; text-align: center; }
+  .title .t1 { font-size: 9.6cqw; font-weight: 700; line-height: 1; letter-spacing: .02em; }
+  .title .t2 { font-size: 4.2cqw; color: var(--accent); margin-top: .9cqw; line-height: 1; }
+  .rail { top: 11.7%; display: flex; justify-content: space-between; align-items: center; }
   .rail::before { content: ""; position: absolute; left: 2%; right: 2%; top: 50%; height: .7cqw; background: var(--line); transform: translateY(-50%); }
   .rail button { position: relative; width: 6.4cqw; height: 6.4cqw; padding: 0; border: .7cqw solid var(--ink); background: #2b3a4a; color: var(--ink);
                  font: 600 3.4cqw/1 var(--display); cursor: pointer; }
   .rail button.done { background: var(--chili); }
   .rail button.now { background: var(--accent); color: #151b22; }
   .rail button:focus-visible, .ctl button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .meter { top: 18.6%; right: 40%; display: grid; gap: .9cqw; }
+  .meter { top: 16.1%; right: 40%; display: grid; gap: .9cqw; }
   .meter .lab { font-size: 3.2cqw; color: var(--accent); letter-spacing: .06em; }
   .meter .row { display: grid; grid-template-columns: 14cqw 1fr; align-items: center; gap: 1.5cqw; font-size: 3.3cqw; }
   .meter .track { position: relative; height: 2.2cqw; background: #151b22; border: .5cqw solid var(--ink); }
   .meter .fill { height: 100%; width: 0; background: var(--chili); transition: width .5s steps(8, end); }
   .meter .fill.aroma { background: var(--herb); }
   .meter .tick { position: absolute; top: -.7cqw; bottom: -.7cqw; width: .6cqw; background: var(--accent); }
-  .card { top: 35.6%; height: 11.4%; background: #151b22; border: .7cqw solid var(--ink); padding: 1.6cqw 2.6cqw; display: flex; flex-direction: column; justify-content: center; }
-  .card .l1 { font-size: 5.6cqw; font-weight: 700; line-height: 1.05; }
+  .card { top: 32.9%; height: 10.6%; background: #151b22; border: .7cqw solid var(--ink); padding: 1.3cqw 2.6cqw; display: flex; flex-direction: column; justify-content: center; }
+  .card .l1 { font-size: 5.2cqw; font-weight: 700; line-height: 1.05; }
   .card .l2 { font-size: 3.9cqw; color: var(--herb); line-height: 1.2; margin-top: .6cqw; }
   .card .src { font-size: 2.8cqw; color: var(--muted); text-align: right; margin-top: .5cqw; min-height: 2.8cqw; }
   .wm { top: 96.4%; text-align: center; font-size: 3.4cqw; color: var(--ink); text-shadow: 0 0 .8cqw #000, 0 0 .4cqw #000; }
@@ -178,7 +178,7 @@ const STEPS = [
   { k:'basil',  l1:'Holy basil', l2:'Goes in last, just until wilted', src:'Krit · Pailin', m:[82,22,68,78], lab:'NOW', inset:'holy basil' },
   { k:'serve',  l1:'To serve', l2:'Rice · crisp fried egg · chilli fish sauce', src:'', m:[82,22,68,78], lab:'NOW', inset:'finished dish' }
 ];
-const DUR = 3600, B = 214, IX = 118, IY = 60;   // step length (ms), counter-top y, inset origin
+const DUR = 3600, B = 214, IX = 118, IY = 52;   // step length (ms), counter-top y, inset origin
 const imgs = {}; for (const k in IMGS) { const im = new Image(); im.src = IMGS[k]; imgs[k] = im; }
 const under = {}; for (const k in UNDER) { const im = new Image(); im.src = UNDER[k].src; under[k] = im; }
 const UNDER_FOR = { target:'dish', pound:'mortar', pork:'wok', sauce:'wok', pepper:'wok', basil:'basil', serve:'dish' };
