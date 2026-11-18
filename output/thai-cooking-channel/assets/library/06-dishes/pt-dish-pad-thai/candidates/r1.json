@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 186,
+  "completion_tokens": 1629,
+  "total_tokens": 1815,
+  "cost": 0.0498,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0498,
+   "upstream_inference_prompt_cost": 0.00093,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 36.8,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/06-dishes/pt-dish-pad-thai/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "On a plain round white ceramic plate in the centre: one serving of Thai pad thai \u2014 thin flat rice noodles stir-fried pale golden-brown and dry (no pooled sauce), mixed with small cubes of browned pressed tofu, small dried shrimp, bits of chopped sweet preserved radish, scrambled egg pieces, mung bean sprouts and short lengths of garlic chives. Not orange or red: the noodles are a light tan-brown. On the plate edge: a wedge of lime, a small heap of fresh bean sprouts, a few whole garlic chives, a small mound of crushed roasted peanuts and a pinch of dried chilli flakes.\n\nPhotorealistic overhead food photograph, camera pointing straight down. Natural soft daylight from the upper left, realistic textures. Plain warm cream background. No hands, no people, no text, no letters, no labels, no logos, no brand names, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 833,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}
