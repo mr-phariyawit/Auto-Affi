@@ -39,6 +39,6 @@
 
 | แพลตฟอร์ม | สถานะ | ตรวจแล้ว | ยังขาด |
 |---|---|---|---|
-| YouTube | **Public** https://www.youtube.com/shorts/zhKAKijW5QA (Postiz cmwm48bik08g0qu079oso02gv) | เล่นได้ 44.1 วินาที, ไม่ private/unlisted, paid promotion ขึ้นในข้อมูลหน้า, ลิงก์ Shopee 6 ตัว + #โฆษณา #ad, คอมเมนต์เปิด, Studio: AI use = Yes | ป้าย AI ยังไม่ขึ้นบนหน้าสาธารณะ (ตรวจซ้ำภายหลัง) |
-| Facebook | **Live** https://www.facebook.com/reel/3691412584344982 (Postiz cmwm487vg08fyqu07gv0wnsmy) | เล่นได้ 44.07 วินาที, แคปชันครบถึง #tamarind, ลิงก์กดได้ 7 ตัว, #โฆษณา #ad บรรทัดแรก | ป้าย Branded content/Paid partnership ใส่ไม่ได้หลังโพสต์ (ตั้งได้ตอนสร้างโพสต์เท่านั้น — บทเรียน EP01 ที่ผมอ่านไม่ทันก่อนโพสต์) · ป้าย AI ยังหาเมนูแก้ไม่เจอ |
+| YouTube | **Public** https://www.youtube.com/shorts/zhKAKijW5QA (Postiz cmwm48bik08g0qu079oso02gv) | เล่นได้ 44.1 วินาที, ไม่ private/unlisted, paid promotion ขึ้นในข้อมูลหน้า, ลิงก์ Shopee 6 ตัว + #โฆษณา #ad, คอมเมนต์เปิด, Studio: AI use = Yes | ไม่มี — ตรวจซ้ำแล้ว ป้าย AI ขึ้นบนหน้าสาธารณะ |
+| Facebook | **Live** https://www.facebook.com/reel/3691412584344982 (Postiz cmwm487vg08fyqu07gv0wnsmy) | เล่นได้ 44.07 วินาที, แคปชันครบถึง #tamarind, ลิงก์กดได้ 7 ตัว, #โฆษณา #ad บรรทัดแรก | ป้าย Branded content/Paid partnership ใส่ไม่ได้หลังโพสต์ (ตั้งได้ตอนสร้างโพสต์เท่านั้น — บทเรียน EP01 ที่ผมอ่านไม่ทันก่อนโพสต์) · ป้าย AI: **ใส่แล้ว** (สลับเป็นเพจ → ไทม์ไลน์เพจ → … → Edit post → Add AI label → Save รอจนบันทึกเสร็จ) โพสต์ขึ้น "AI content" · สลับเบราว์เซอร์กลับเป็นโปรไฟล์ส่วนตัวแล้ว |
 | Instagram | **ไม่ได้โพสต์** Postiz ERROR "This account doesn't support Trial Reels" (cmwm489yr08a5l8076irkqvp7) | — | รอเจ้าของช่องตัดสิน: โพสต์เป็น Reel ปกติ หรือรอ |
