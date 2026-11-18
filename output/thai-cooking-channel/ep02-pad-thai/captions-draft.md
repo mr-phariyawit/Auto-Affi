@@ -45,8 +45,8 @@ Pad thai — sour, sweet, salty, equal. Never mainly sweet.
 
 ## สิ่งที่ต้องรู้ก่อนโพสต์ (บทเรียนจาก EP01 ในโน้ตของเซสชันแยก)
 
-1. **Facebook:** Postiz โพสต์วิดีโอเป็น Reel ได้ แต่ตั้ง Branded content tag ไม่ได้ ต้องตั้งตอนสร้างโพสต์ ถ้าจะทำตามกฎ Branded Content ของ Meta ต้องอัปโหลดผ่าน Page composer และต้องเปิด Branded content tag ใน Creator Dashboard ก่อน ซึ่งเท่ากับยอมรับนโยบายของ Meta จึงต้องให้เจ้าของช่องตกลงเอง
-2. **Instagram:** Postiz ไม่มีปุ่ม Paid partnership และหน้าแก้ไขในแอปก็ไม่มี (ตรวจกับ EP01 แล้ว) ต้องเปิดตอนโพสต์ในแอป IG เอง
+1. **Facebook:** เพจเปิด Branded content tag แล้ว (โพสต์ EP01 ใช้ป้ายนี้แล้ว ตามโน้ตเซสชันหลัก 18 พ.ย.) แต่ Postiz ตั้งป้ายนี้ไม่ได้ ต้องเพิ่มป้ายผ่านหน้าโพสต์/แก้โพสต์ของเพจหลังโพสต์ แล้วเปิดดูว่าขึ้นจริง
+2. **Instagram:** Postiz ไม่มีปุ่ม Paid partnership และบัญชียังใช้ป้ายนี้ไม่ได้ (ดูข้อ 6)
 3. **YouTube:** Postiz ไม่มีช่อง paid promotion ให้โพสต์เป็น private ก่อน แล้วติ๊กใน Studio ค่อยเปิดสาธารณะ (วิธีเดียวกับ EP01)
 4. **การ์ดท้าย ≤ 3 วินาที:** ตรวจแล้วกับหน้ากฎ Meta (facebook.com/business/help/221149188908254 เปิด 18 พ.ย.) ว่าการ์ดท้ายต้องไม่ค้างเกิน 3 วินาทีติดกัน และห้ามมีการ์ดหัวเรื่องใน 3 วินาทีแรก EP02 จึงแสดงการ์ดท้ายแค่ 41.25–44.05 (2.8 วินาที)
 5. **Instagram = trial reel ทุกครั้ง** (กติกาข้อ 6.5): Postiz `--settings '{"post_type":"post","made_with_ai":true,"is_trial_reel":true,"graduation_strategy":"SS_PERFORMANCE"}' --shortLink false` ยังไม่ได้ตรวจว่า Postiz ส่งเป็น trial reel ได้จริง ต้องเปิดโพสต์ดูหลังโพสต์
