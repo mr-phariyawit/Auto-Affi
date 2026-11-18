@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Soak rice noodles in room-temperature water for an hour.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 3.611,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 29,
+  "candidatesTokenCount": 90,
+  "totalTokenCount": 119,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 29
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 90
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

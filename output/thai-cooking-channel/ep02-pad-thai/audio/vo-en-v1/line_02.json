@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: In 1942, Thailand's leader urged Thais to eat noodles.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 5.211,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 35,
+  "candidatesTokenCount": 130,
+  "totalTokenCount": 165,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 35
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 130
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

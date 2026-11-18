@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Sweet from palm sugar, salty from fish sauce.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 3.891,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 27,
+  "candidatesTokenCount": 97,
+  "totalTokenCount": 124,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 27
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 97
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

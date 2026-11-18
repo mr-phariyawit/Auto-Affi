@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Pad thai: sour, sweet, salty, equal. Never mainly sweet.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 5.691,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 32,
+  "candidatesTokenCount": 142,
+  "totalTokenCount": 174,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 32
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 142
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}
