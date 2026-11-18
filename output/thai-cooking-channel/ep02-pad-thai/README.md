@@ -33,3 +33,12 @@
 - บั๊กที่เจอ: ผืนภาพครึ่งล่างสูง 1920 px (กฎ canvas พื้นฐาน height:100% ทับ) ภาพจึงถูกยืดและหลุดจอใน v1 · ช่วงมะขามแสดงหม้อซอสก่อนเวลา → ย้ายไปช่วงน้ำตาล
 - เจ้าของช่องดูตัวอย่าง 5 วินาทีแล้วสั่ง "OK, render full"
 - **ตรวจแล้ว** `final/ep02-v2.mp4`: 1322 เฟรม 44.07 วินาที, -14.0 LUFS, peak -1.0, STT ครบบท, ซับตรงบท 8/8 (`pixel/check/subtitle-diff.txt`), กล่องซับในพื้นที่ปลอดภัยทุกบรรทัด (`pixel/check/subtitle-box.txt`), การ์ดท้าย 2.8 วินาที, ไม่มีการ์ดหัวเรื่องใน 3 วินาทีแรก
+| 10 โพสต์ | เจ้าของช่องอนุมัติแคปชัน 18 พ.ย. 2026: "Approve, post all 3" (FB / IG / YT) | `captions-draft.md` |
+
+## โพสต์ (18 พ.ย. 2026)
+
+| แพลตฟอร์ม | สถานะ | ตรวจแล้ว | ยังขาด |
+|---|---|---|---|
+| YouTube | **Public** https://www.youtube.com/shorts/zhKAKijW5QA (Postiz cmwm48bik08g0qu079oso02gv) | เล่นได้ 44.1 วินาที, ไม่ private/unlisted, paid promotion ขึ้นในข้อมูลหน้า, ลิงก์ Shopee 6 ตัว + #โฆษณา #ad, คอมเมนต์เปิด, Studio: AI use = Yes | ป้าย AI ยังไม่ขึ้นบนหน้าสาธารณะ (ตรวจซ้ำภายหลัง) |
+| Facebook | **Live** https://www.facebook.com/reel/3691412584344982 (Postiz cmwm487vg08fyqu07gv0wnsmy) | เล่นได้ 44.07 วินาที, แคปชันครบถึง #tamarind, ลิงก์กดได้ 7 ตัว, #โฆษณา #ad บรรทัดแรก | ป้าย Branded content/Paid partnership ใส่ไม่ได้หลังโพสต์ (ตั้งได้ตอนสร้างโพสต์เท่านั้น — บทเรียน EP01 ที่ผมอ่านไม่ทันก่อนโพสต์) · ป้าย AI ยังหาเมนูแก้ไม่เจอ |
+| Instagram | **ไม่ได้โพสต์** Postiz ERROR "This account doesn't support Trial Reels" (cmwm489yr08a5l8076irkqvp7) | — | รอเจ้าของช่องตัดสิน: โพสต์เป็น Reel ปกติ หรือรอ |
