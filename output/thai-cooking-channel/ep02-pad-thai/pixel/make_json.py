@@ -34,6 +34,18 @@ def crop_landscape(img, w=RW, h=RH, top_offset=None):
         top = max(0, min(top_offset, new_h - h))
     return img.crop((0, top, w, top + h))
 
+def contain_blur(img, w=RW, h=RH):
+    """Whole image fitted to the box height, centred, over a darkened blurred cover-fill of itself."""
+    from PIL import ImageFilter, ImageEnhance
+    sw, sh = img.size
+    bg = img.resize((w, round(sh * w / sw)), Image.LANCZOS)
+    t = (bg.size[1] - h) // 2
+    bg = bg.crop((0, t, w, t + h)).filter(ImageFilter.GaussianBlur(18))
+    bg = ImageEnhance.Brightness(bg).enhance(0.55)
+    fg = img.resize((round(sw * h / sh), h), Image.LANCZOS)
+    bg.paste(fg, ((w - fg.size[0]) // 2, 0))
+    return bg
+
 def crop_square(img, side=IW):
     """Centre-crop to square, then resize."""
     sw, sh = img.size
@@ -64,7 +76,7 @@ real_map = {
 real_out = {}
 for key, (rel, top_off) in real_map.items():
     img = load(rel)
-    cropped = crop_landscape(img, top_offset=top_off)
+    cropped = contain_blur(img)   # v2 (owner 2026-11-18): show the whole photo, not a tight crop
     real_out[key] = to_b64(cropped)
     print(f'real  {key:20s} {cropped.size}  top_offset={top_off}')
 

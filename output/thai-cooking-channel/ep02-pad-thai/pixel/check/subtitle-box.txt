@@ -1,0 +1,9 @@
+3.2 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":1,"en":"Pad thai: sour, sweet, salty, "}
+9.35 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":1,"en":"In 1942, Thailand’s leader urg"}
+14.46 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":1,"en":"Soak rice noodles in room-temp"}
+19.75 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":2,"en":"Sour from tamarind. Buy Thai, "}
+25.18 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":1,"en":"Sweet from palm sugar, salty f"}
+29.85 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":1,"en":"Pick preserved radish labelled"}
+34.4 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":1,"en":"Toss until the noodles drink u"}
+38.5 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":2,"en":"In Thailand? Affiliate links i"}
+40.3 {"top":628,"bottom":837,"left":120,"right":888,"enLines":2,"thLines":2,"en":"In Thailand? Affiliate links i"}
