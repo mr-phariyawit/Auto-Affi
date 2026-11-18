@@ -49,5 +49,8 @@ English is the main line; Thai sits under it, smaller (about 60–65% of the Eng
 
 ## Platform split (summary — rules.md is the source)
 
+**TikTok is PAUSED since 2026-11-18 (owner's order): no posting, editing or deleting on TikTok, and no TikTok cut, until the owner restarts it.**
+
+
 - **TikTok**: no Shopee links, no "Shopee" / "link in bio" calls to buy, in caption or in the video. Render a TikTok cut whose end card has no Shopee box. Turn on the content disclosure only if the post earns commission (TikTok Shop). Caption edits are possible only in the first 7 days, once a day; commercial-content posts only in the app.
 - **Facebook / Instagram / YouTube**: Shopee product links + hub link in the caption/description, with the #โฆษณา #ad affiliate line, and each platform's paid-partnership / paid-promotion setting where its rules require it.
