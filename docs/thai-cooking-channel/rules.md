@@ -53,7 +53,7 @@
 2. ตรวจครบทุกด่านใน [soul-checklist.md](soul-checklist.md) ก่อนโพสต์ครั้งแรก ห้ามโพสต์ซ้ำเพื่อแก้
 3. หลังโพสต์ ต้องเปิดโพสต์จริงดู ไม่ใช่เชื่อสถานะ PUBLISHED อย่างเดียว
 4. repo นี้เป็นสาธารณะ ห้ามเก็บรูปบัตรหรือข้อมูลส่วนตัวในโปรเจกต์ และถามก่อน push ทุกครั้ง
-5. Instagram: โพสต์ Reel แบบ trial reel ทุกครั้ง (ให้คนที่ยังไม่ได้ติดตามเห็นก่อน) ใน Postiz ใส่ `--settings '{"post_type":"post","made_with_ai":true,"is_trial_reel":true,"graduation_strategy":"SS_PERFORMANCE"}'` และ `--shortLink false` เจ้าของช่องสั่ง 2026-11-18 เพื่อเพิ่มผู้ติดตามจาก 0 ([แนวทางของ Instagram](https://creators.instagram.com/faq)) ยังไม่ได้ทดสอบจริงว่า Postiz ส่ง trial reel ได้สำเร็จ ตรวจในโพสต์จริงหลังโพสต์ครั้งแรก
+5. Instagram: โพสต์ Reel แบบ trial reel ทุกครั้ง (ให้คนที่ยังไม่ได้ติดตามเห็นก่อน) ใน Postiz ใส่ `--settings '{"post_type":"post","made_with_ai":true,"is_trial_reel":true,"graduation_strategy":"SS_PERFORMANCE"}'` และ `--shortLink false` เจ้าของช่องสั่ง 2026-11-18 เพื่อเพิ่มผู้ติดตามจาก 0 ([แนวทางของ Instagram](https://creators.instagram.com/faq)) **ผลทดสอบ 18 พ.ย. (ตอนที่ 2):** บัญชี @saitum528 ยังใช้ trial reel ไม่ได้ เจ้าของช่องเลือกให้ลงเป็น Reel ธรรมดาแทน (ใช้ settings เดิมแต่ตัด `is_trial_reel` และ `graduation_strategy` ออก) ลองตัวเลือก trial reel ใหม่เป็นครั้งคราวเมื่อบัญชีโตขึ้น
 
 ## 7. สิ่งที่เรียนเพิ่มจากการโพสต์ตอนที่ 1 (18 พ.ย. 2026)
 
