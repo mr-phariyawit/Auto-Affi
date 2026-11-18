@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pad Thai — pixel kitchen EP02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --page: #151b22; --panel: #1f2933; --ink: #f2ead8; --muted: #9fb0bf;
+    --accent: #ffd35a; --chili: #e0553b; --herb: #6cc05e; --line: #34475a;
+    --display: "Pixelify Sans", "Courier New", monospace;
+    --body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --thai: "Sarabun", "Noto Sans Thai", "IBM Plex Sans Thai", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--ink); font-family: var(--body); line-height: 1.6; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 48px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .stage { flex: 0 0 auto; width: min(100%, 360px); margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .notes { flex: 1 1 320px; min-width: 0; max-width: 62ch; }
+
+  .frame { position: relative; width: 100%; aspect-ratio: 9 / 16; container-type: inline-size;
+           border: 2px solid var(--line); background: #2b3a4a; overflow: hidden; font-family: var(--display); line-height: 1; font-variant-ligatures: none; }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  /* fx canvas: B=264 → (264+8)*6/1920 = 272*6/1920 = 85.0% */
+  .frame #fx { inset: auto 0 0 0; top: 85.0%; image-rendering: auto; border-top: .7cqw solid #c98f4e; }
+  .frame #insetimg { position: absolute; left: 65.56%; top: 16.25%; width: 26.67%; height: auto; aspect-ratio: 1; display: block; object-fit: cover; }
+  .ov { position: absolute; left: 6%; right: 6%; color: var(--ink); }
+  .title { top: 3%; text-align: center; }
+  .title .t1 { font-size: 9.6cqw; font-weight: 700; line-height: 1; letter-spacing: .02em; }
+  .title .t2 { font-size: 4.2cqw; color: var(--accent); margin-top: .9cqw; line-height: 1; }
+  .rail { top: 11.7%; display: flex; justify-content: space-between; align-items: center; }
+  .rail::before { content: ""; position: absolute; left: 2%; right: 2%; top: 50%; height: .7cqw; background: var(--line); transform: translateY(-50%); }
+  .rail button { position: relative; width: 6.4cqw; height: 6.4cqw; padding: 0; border: .7cqw solid var(--ink); background: #2b3a4a; color: var(--ink);
+                 font: 600 3.4cqw/1 var(--display); cursor: pointer; }
+  .rail button.done { background: var(--chili); }
+  .rail button.now  { background: var(--accent); color: #151b22; }
+  .rail button:focus-visible, .ctl button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* meters */
+  .meter { top: 15.625%; height: 16.42%; right: 40%; display: grid; align-content: space-between; }
+  .meter .lab { font-size: 3.2cqw; color: var(--accent); letter-spacing: .06em; }
+  .meter .row { display: grid; grid-template-columns: 14cqw 1fr; align-items: center; gap: 1.5cqw; font-size: 3.2cqw; height: 3.2cqw; }
+  .meter .track { position: relative; height: 2.2cqw; background: #151b22; border: .5cqw solid var(--ink); }
+  .meter .fill  { height: 100%; width: 0; background: var(--chili); transition: width .5s steps(8, end); }
+  .meter .fill.sp { background: var(--herb); }
+  .meter .tick  { position: absolute; top: -.7cqw; bottom: -.7cqw; width: .6cqw; background: var(--accent); }
+  /* step card */
+  .card { top: 32.9%; height: 10.6%; background: #151b22; border: .7cqw solid var(--ink); padding: 1.3cqw 2.6cqw; display: flex; flex-direction: column; justify-content: center; }
+  .card .l1  { font-size: 5.2cqw; font-weight: 700; line-height: 1.05; }
+  .card .l2  { font-size: 3.9cqw; color: var(--herb); line-height: 1.2; margin-top: .6cqw; }
+  .card .src { font-size: 2.8cqw; color: var(--muted); text-align: right; margin-top: .5cqw; min-height: 2.8cqw; }
+  /* subtitle band: sits between card bottom (~43.5%) and chef head (54%) */
+  /* right: 17% (wider than 27.8%) so sub8's 37-char line 2 clears at 3.5cqw */
+  .subtitle { position: absolute; left: 11.1%; right: 27.8%; top: 44.5%; pointer-events: none; }
+  .sub-box  { background: rgba(0,0,0,.72); padding: 1.8cqw 2.5cqw; display: inline-block; max-width: 100%; }
+  .sub-en   { font-family: var(--body); font-size: 3.5cqw; font-weight: 500; color: #f2ead8; line-height: 1.3; white-space: pre-line; }
+  .sub-th   { font-family: var(--thai); font-size: 2.65cqw; font-weight: 400; color: #ddd0ba; line-height: 1.5; margin-top: .6cqw; white-space: pre-line; }
+  /* watermark */
+  .num { font-family: var(--body); font-weight: 700; }
+  .rail button { font-family: var(--body); font-weight: 700; }
+  .wm { top: 96.4%; text-align: center; font-size: 3.4cqw; font-family: var(--body); font-weight: 700; color: var(--ink); text-shadow: 0 0 .8cqw #000, 0 0 .4cqw #000; }
+  /* end card */
+  #endcard { display: none; position: absolute; inset: 0; z-index: 20; background: rgba(21,27,34,.98); flex-direction: column; justify-content: center; gap: 5cqw; padding: 0 20% 0 11%; }
+  #endcard .bx  { border: .7cqw solid var(--ink); background: #2b3a4a; padding: 3.4cqw; }
+  #endcard .hd  { font-size: 6.6cqw; font-weight: 700; color: var(--accent); }
+  #endcard .bd  { font-size: 4.7cqw; line-height: 1.25; margin-top: 1.8cqw; }
+  #endcard .tag { font-size: 3.3cqw; color: var(--muted); margin-top: 1.8cqw; }
+  /* render mode: bare 1080x1920 */
+  html.render body { background: #000; }
+  html.render .wrap { padding: 0; max-width: none; display: block; }
+  html.render .stage { width: 1080px; margin: 0; gap: 0; }
+  html.render .frame { border: 0; }
+  html.render .ctl, html.render .notes { display: none; }
+  html.render .meter .fill { transition: none; }
+  /* controls */
+  .ctl { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ctl button { font: 600 15px/1 var(--display); padding: 10px 14px; background: var(--panel); color: var(--ink); border: 2px solid var(--line); cursor: pointer; }
+  .ctl button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .ctl .seg { display: flex; }
+  .ctl .seg button + button { border-left: 0; }
+  h1, h2, .ctl button { font-variant-ligatures: none; }
+  h1 { font: 700 30px/1.15 var(--display); margin: 0 0 6px; }
+  h2 { font: 600 19px/1.25 var(--display); color: var(--accent); margin: 26px 0 6px; }
+  p, li { font-size: 15.5px; }
+  p { margin: 0 0 10px; }
+  ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  .lede { color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .meter .fill { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="180" height="320" role="img" aria-label="Pixel-art kitchen: a chef prepares pad thai noodles"></canvas>
+      <img id="insetimg" alt="" width="264" height="264">
+      <canvas id="fx" width="720" height="392" role="img" aria-label="Realistic close-up of the cooking stage with smoke and sizzle effects"></canvas>
+      <div class="ov title"><div class="t1">Pad Thai</div><div class="t2">Thai stir-fried rice noodles</div></div>
+      <div class="ov rail" id="rail"></div>
+      <div class="ov meter">
+        <div class="lab" id="mlab">TARGET</div>
+        <div class="row"><span>Sour</span><div class="track"><div class="fill" id="f0"></div><div class="tick" style="left:70%"></div></div></div>
+        <div class="row"><span>Sweet</span><div class="track"><div class="fill" id="f1"></div><div class="tick" style="left:70%"></div></div></div>
+        <div class="row"><span>Salty</span><div class="track"><div class="fill" id="f2"></div><div class="tick" style="left:70%"></div></div></div>
+        <div class="row"><span>Spicy</span><div class="track"><div class="fill sp" id="f3"></div><div class="tick" style="left:15%"></div></div></div>
+      </div>
+      <div class="ov card"><div class="l1" id="l1">Target taste</div><div class="l2" id="l2">Sour · sweet · salty, equal</div><div class="src" id="src"></div></div>
+      <!-- subtitle band: between card bottom and chef head -->
+      <div class="subtitle" id="subtitle">
+        <div class="sub-box">
+          <div class="sub-en" id="sub-en"></div>
+          <div class="sub-th" id="sub-th"></div>
+        </div>
+      </div>
+      <div id="endcard">
+        <div class="bx"><div class="hd">In Thailand?</div><div class="bd">Affiliate links in the caption</div><div class="tag">Ad · affiliate link</div></div>
+        <div class="bx"><div class="hd">Elsewhere?</div><div class="bd">Your Asian grocer</div></div>
+      </div>
+      <div class="ov wm">@saitum528</div>
+    </div>
+    <div class="ctl">
+      <button id="play" type="button" aria-pressed="true">Pause</button>
+      <button id="snd" type="button" aria-pressed="false">Sound: off</button>
+      <div class="seg" role="group" aria-label="Close-up art source">
+        <button id="mR" type="button" aria-pressed="true">Realistic</button>
+        <button id="mB" type="button" aria-pressed="false">Pixelated art</button>
+        <button id="mA" type="button" aria-pressed="false">Code sprites</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h1>EP02 Pad Thai — pixel kitchen</h1>
+    <p class="lede">7 steps through the authentic pad thai recipe, pixel kitchen style.</p>
+  </div>
+</div>
+
+<script>
+const IMGS      = /*__IMGS__*/{};
+const UNDER     = /*__UNDER__*/{};
+const REAL      = /*__REAL__*/{};
+const INSET_REAL= /*__INSET_REAL__*/{};
+
+const W = 180, H = 320, cv = document.getElementById('cv'), g = cv.getContext('2d');
+g.imageSmoothingEnabled = false;
+const C = { wall:'#2b3a4a', tile:'#34475a', floor:'#1a222b', top:'#c98f4e', topHi:'#e0aa66', front:'#8a5a2e', drawer:'#6f4622',
+  steel:'#1e2229', steel2:'#3a404b', flame:'#ff9a2e', flame2:'#ffd35a', white:'#f2ead8', shade:'#cfc5ae', skin:'#e0a878', skin2:'#b97f55',
+  red:'#d1432b', red2:'#a02e1c', green:'#4f9a45', green2:'#2f6b34', pink:'#e8908a', pink2:'#c9655f', brown:'#8a5330', brown2:'#6a3c20',
+  amber:'#d98a1e', amber2:'#f0b040', glass:'#9fd0d6', pepK:'#2a2622', pepK2:'#57504a', pepW:'#d8cdb4', pepW2:'#b3a88e', yolk:'#f5b21a',
+  rice:'#f7f3e8', plate:'#e9e4d6', plate2:'#b9b3a3', stone:'#7d8088', stone2:'#5c5f66', steam:'#5d7286', inset:'#1b2530', accent:'#ffd35a', ink:'#f2ead8' };
+const R   = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+function ell(cx, cy, rx, ry, c, half) {
+  for (let y = -ry; y <= ry; y++) {
+    if (half === 'bottom' && y < 0) continue; if (half === 'top' && y > 0) continue;
+    const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry + 0.01)))); R(cx - w, cy + y, 2 * w + 1, 1, c);
+  }
+}
+function seg(x0, y0, x1, y1, th, c) {
+  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0;
+  for (let i = 0; i <= n; i++) R(x0 + (x1 - x0) * i / (n || 1), y0 + (y1 - y0) * i / (n || 1), th, th, c);
+}
+const rnd = i => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+// EP02 steps — id for content lookup, k for behaviour (chef pose, props, pixel wok, sounds)
+const STEPS = [
+  { id:'target',   k:'target', l1:'Target taste',          l2:'Sour · sweet · salty, equal',    src:'Pailin (Hot Thai Kitchen)', m:[70,70,70,15], lab:'TARGET' },
+  { id:'history',  k:'target', l1:'1942 noodle campaign',  l2:'Radio speech, 7 Nov 1942',                  src:'Silpa-Mag 2023',            m:[70,70,70,15], lab:'TARGET' },
+  { id:'soak',     k:'target', l1:'Rice noodles (sen chan)',l2:'Soak 1 hour, room-temp water',              src:'Pailin',                    m:[0,0,0,0],     lab:'NOW'    },
+  { id:'tamarind', k:'sauce',  l1:'Thai tamarind',          l2:'Not black Indian concentrate',              src:'Krit · Pailin',        m:[70,0,0,0],    lab:'NOW'    },
+  { id:'sugar',    k:'sauce',  l1:'Palm sugar + fish sauce',l2:'Sweet and salty, in the sauce',             src:'Krit Lheluemlai',           m:[70,70,70,0],  lab:'NOW'    },
+  { id:'radish',   k:'pork',   l1:'Sweet preserved radish', l2:'Tofu · dried shrimp · garlic',   src:'Pailin',                    m:[70,70,70,0],  lab:'NOW'    },
+  { id:'toss',     k:'basil',  l1:'Toss until dry',         l2:'Noodles drink up all the sauce',           src:'Pailin',                    m:[70,70,70,15], lab:'NOW'    }
+];
+
+// Subtitle lines — one per step (index 7 = end card)
+// EN: no forced line breaks (browser wraps to 2 lines naturally), except sub8 which
+//     uses a strategic \n to give 2 clean lines within 660 px at ~44 px font.
+// TH: no forced \n except sub8 (matches the EN 2-part structure).
+const SUBS = [
+  { en:'Pad thai: sour, sweet, salty, equal. Never mainly sweet.',
+    th:'ผัดไทย เปรี้ยว หวาน เค็ม เท่า ๆ กัน ต้องไม่หวานนำ' },
+  { en:'In 1942, Thailand’s leader urged Thais to eat noodles.',
+    th:'ปี 2485 จอมพล ป. ปราศรัยชวนคนไทยกินก๋วยเตี๋ยว' },
+  { en:'Soak rice noodles in room-temperature water for an hour.',
+    th:'แช่เส้นในน้ำอุณหภูมิห้องหนึ่งชั่วโมง' },
+  { en:'Sour from tamarind. Buy Thai, not black Indian concentrate.',
+    th:'เปรี้ยวจากมะขามเปียก เลือกมะขามไทย ไม่ใช่มะขามเข้มข้นสีดำของอินเดีย' },
+  { en:'Sweet from palm sugar, salty from fish sauce.',
+    th:'หวานจากน้ำตาลโตนด เค็มจากน้ำปลา' },
+  { en:'Pick preserved radish labelled sweet, or it’s too salty.',
+    th:'เลือกหัวไชโป๊ที่เขียนว่าหวาน ไม่งั้นจะเค็มเกิน' },
+  { en:'Toss until the noodles drink up all the sauce.',
+    th:'ผัดจนเส้นดูดน้ำซอสหมดกระทะ' },
+  // sub8: strategic \n so each half fits on one line within 660 px at 44 px font
+  { en:'In Thailand? Affiliate links in the caption. Elsewhere, try your Asian grocer.',
+    th:'อยู่ไทย ลิงก์แอฟฟิลิเอตอยู่ในแคปชัน อยู่ต่างประเทศ ลองร้านของชำเอเชียใกล้บ้าน' }
+];
+
+const DUR = 3600;
+// B = 243 (shifted down from EP01's 214 to open subtitle band)
+const B = 264, IX = 118, IY = 52;
+const imgs  = {}; for (const k in IMGS)  { const im = new Image(); im.src = IMGS[k];       imgs[k]  = im; }
+const under = {}; for (const k in UNDER) { const im = new Image(); im.src = UNDER[k].src;  under[k] = im; }
+const UNDER_FOR = { target:'dish', pound:'mortar', pork:'wok', sauce:'wok', pepper:'wok', basil:'basil', serve:'dish' };
+let mode = 'R', playing = !matchMedia('(prefers-reduced-motion: reduce)').matches, T = 0, last = performance.now(), shown = -1;
+
+/* ---------- close-up sprites (unchanged from EP01, keyed by st.k) ---------- */
+function chilli(ox, oy, x0, y0, x1, y1, bend, col, col2) {
+  for (let i = 0; i <= 22; i++) { const t = i / 22, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t + Math.sin(t * Math.PI) * bend, th = Math.max(1, Math.round(5 - 4 * t));
+    R(ox + x, oy + y - th / 2, 2, th, col); if (th > 2) R(ox + x, oy + y - th / 2, 2, 1, col2); }
+  R(ox + x0 - 3, oy + y0 - 2, 4, 2, C.green2); R(ox + x0 - 5, oy + y0 - 4, 2, 3, C.green2);
+}
+function leaf(ox, oy, cx, cy, len, wid, dx, dy) {
+  for (let i = 0; i < len; i++) { const t = i / (len - 1), w = Math.max(1, Math.round(wid * Math.sin(Math.PI * Math.pow(t, 0.8)))) + (i % 3 === 0 ? 1 : 0);
+    const x = cx + dx * i, y = cy + dy * i; R(ox + x - w * Math.abs(dy), oy + y - w * Math.abs(dx), dy ? 2 * w + 1 : 1, dx ? 2 * w + 1 : 1, i % 3 === 0 ? C.green2 : C.green); }
+  for (let i = 0; i < len; i++) R(ox + cx + dx * i, oy + cy + dy * i, 1, 1, '#8fd07f');
+}
+function dishSprite(ox, oy, s) {
+  const q = v => Math.round(v * s);
+  ell(ox + q(24), oy + q(28), q(22), q(14), C.plate2); ell(ox + q(24), oy + q(27), q(22), q(14), C.plate); ell(ox + q(24), oy + q(27), q(18), q(11), '#f4f0e4');
+  ell(ox + q(15), oy + q(29), q(9), q(6), C.rice);
+  ell(ox + q(32), oy + q(28), q(10), q(7), C.brown);
+  for (let i = 0; i < 14 * s; i++) { const a = rnd(i) * 6.28, r = rnd(i + 50); R(ox + q(32) + Math.cos(a) * q(8) * r, oy + q(28) + Math.sin(a) * q(5) * r, 1, 1, i % 3 ? (i % 2 ? C.red : C.green) : C.brown2); }
+  ell(ox + q(17), oy + q(21), q(8), q(5), C.white); ell(ox + q(17), oy + q(21), q(3), q(2), C.yolk);
+  if (s === 1) { for (let i = 0; i < 9; i++) { const a = i / 9 * 6.28; R(ox + 17 + Math.cos(a) * 8, oy + 21 + Math.sin(a) * 5, 2, 1, '#c98a3e'); }
+    R(ox + 29, oy + 24, 4, 2, C.green2); R(ox + 34, oy + 30, 4, 2, C.green2); R(ox + 37, oy + 25, 3, 2, C.green); }
+}
+function insetSprite(k, ox, oy) {
+  if (k === 'target' || k === 'serve') dishSprite(ox, oy, 1);
+  else if (k === 'sauce') { R(ox + 20, oy + 3, 8, 4, C.red); R(ox + 21, oy + 7, 6, 8, C.glass); R(ox + 15, oy + 15, 18, 29, C.amber); R(ox + 16, oy + 16, 2, 26, C.amber2);
+    R(ox + 31, oy + 16, 1, 27, '#a8660f'); R(ox + 18, oy + 23, 12, 13, C.white); }
+  else if (k === 'pork') { ell(ox + 24, oy + 29, 17, 10, C.pink2); ell(ox + 24, oy + 27, 17, 10, C.pink);
+    for (let i = 0; i < 46; i++) { const a = rnd(i) * 6.28, r = Math.sqrt(rnd(i + 9)); R(ox + 24 + Math.cos(a) * 15 * r, oy + 27 + Math.sin(a) * 8 * r, i % 4 === 0 ? 3 : 2, 1, i % 3 === 0 ? C.white : (i % 3 === 1 ? C.pink2 : '#f4b0aa')); } }
+  else if (k === 'basil') { seg(ox + 24, oy + 44, ox + 24, oy + 10, 1, '#7a4a6a'); leaf(ox, oy, 23, 12, 16, 5, -1, 0); leaf(ox, oy, 25, 16, 16, 5, 1, 0); leaf(ox, oy, 23, 28, 14, 4, -1, 0); leaf(ox, oy, 25, 32, 14, 4, 1, 0);
+    for (let i = 0; i < 5; i++) R(ox + 23 + (i % 2) * 2, oy + 4 + i * 1.4, 2, 1, '#e7b6d0'); }
+}
+function drawInset(st, tick) {
+  R(IX - 2, IY - 2, 52, 52, C.accent); R(IX, IY, 48, 48, C.inset);
+  const bob = (tick % 12 < 6) ? 0 : 1, k = st.k, im = imgs[k];
+  if (mode === 'B' && im && im.complete && im.naturalWidth) g.drawImage(im, IX, IY + bob);
+  else insetSprite(k, IX, IY + bob);
+}
+
+/* ---------- kitchen diorama ---------- */
+function kitchen() {
+  R(0, 0, W, H, C.wall);
+  for (let y = 150; y < B; y += 16) R(0, y, W, 1, C.tile);
+  for (let x = 10; x < W; x += 20) R(x, 150, 1, B - 150, C.tile);
+  R(0, B + 52, W, H - B - 52, C.floor);
+  ell(88, B + 52, 16, 2, '#141a21');
+  R(80, B + 8, 7, 40, '#2a3038'); R(90, B + 8, 7, 40, '#232830');
+  R(78, B + 47, 10, 5, C.steel); R(89, B + 47, 10, 5, C.steel);
+  R(84, B + 8, 9, 14, C.white); R(84, B + 20, 9, 2, C.shade);
+}
+const SHELF = B - 38;
+function props(st, p, tick, idx) {
+  const k = st.k, used = (i, thr) => idx > i || (idx === i && p > thr);
+  R(4, SHELF, 70, 2, C.topHi); R(4, SHELF + 2, 70, 1, C.front); R(10, SHELF + 3, 2, 4, C.front); R(66, SHELF + 3, 2, 4, C.front);
+  R(104, SHELF, 72, 2, C.topHi); R(104, SHELF + 2, 72, 1, C.front); R(110, SHELF + 3, 2, 4, C.front); R(168, SHELF + 3, 2, 4, C.front);
+  const at = (x, fn) => { g.save(); g.translate(x, SHELF); g.scale(2, 2); fn(); g.restore(); };
+  // rice noodles (sen chan) on left shelf
+  at(6, () => { R(0, -4, 10, 4, C.shade); R(1, -5, 8, 1, C.shade); R(2, -3, 6, 2, '#ead9b8'); R(3, -4, 4, 1, '#ead9b8'); });
+  // tamarind block
+  at(26, () => { R(0, -4, 10, 4, C.brown); R(1, -5, 8, 2, C.brown2); R(2, -3, 2, 2, C.amber); R(6, -3, 2, 2, C.amber); });
+  // palm sugar + fish sauce
+  at(42, () => { R(0, -5, 6, 5, C.amber2); R(1, -6, 4, 1, C.amber); R(8, -8, 4, 8, C.amber); R(9, -9, 2, 2, C.amber2); });
+  // preserved radish jar
+  at(62, () => { if (!used(5, 0.0)) { R(0, -7, 8, 7, C.glass); R(1, -8, 6, 2, C.red); R(2, -4, 4, 3, '#cde88a'); } });
+  // wok on right side
+  at(108, () => { R(1, -3, 10, 3, C.steel2); R(0, -5, 12, 2, C.steel); });
+  // sprouts / beansprouts
+  at(126, () => { R(0, -5, 10, 5, C.white); R(2, -6, 6, 1, C.white); R(1, -3, 2, 2, C.herb); R(5, -3, 2, 2, C.herb); R(8, -4, 2, 2, C.herb); });
+  // eggs
+  at(144, () => { R(0, -4, 5, 4, '#ead9b8'); R(1, -5, 3, 1, '#ead9b8'); R(0, -1, 5, 1, '#cdb893'); });
+  // dried shrimp
+  at(158, () => { if (!used(5, 0.1)) { R(0, -4, 10, 4, C.amber2); R(1, -5, 8, 1, C.amber2); R(2, -3, 2, 2, C.red); R(6, -3, 2, 2, C.red); } });
+}
+function pointer(st, tick, p) {
+  const a = { sauce:[65, 14], pork:[46, 20], basil:[130, 26] }[st.k]; if (!a) return;
+  const gone = { pork:0.12, basil:0.1 }[st.k], inWok = gone !== undefined && p > gone;
+  if (inWok) a[0] = 131;
+  const ay = (inWok ? B - 30 : SHELF - a[1] - 6) - (tick % 8 < 4 ? 0 : 1);
+  R(a[0] - 3, ay, 7, 2, C.accent); R(a[0] - 2, ay + 2, 5, 1, C.accent); R(a[0] - 1, ay + 3, 3, 1, C.accent); R(a[0], ay + 4, 1, 1, C.accent);
+}
+function tabletop() {
+  R(6, B, W - 12, 3, C.topHi); R(6, B + 3, W - 12, 4, C.top); R(6, B + 7, W - 12, 1, C.front);
+}
+function mortar(active, tick) {
+  for (let i = 0; i < 12; i++) { const w = 12 - Math.round(i * 0.45); R(54 - 12 + (12 - w), B - 14 + i, 2 * w, 1, i < 2 ? C.stone : (i % 4 === 3 ? C.stone2 : C.stone)); }
+  R(40, B - 15, 28, 2, '#9a9da5'); R(50, B - 2, 8, 2, C.stone2);
+}
+function wok(st, p, tick) {
+  R(106, B - 4, 50, 4, C.steel2); R(110, B - 6, 42, 2, C.steel);
+  if (st.k !== 'target') { const f = tick % 4 < 2; R(120, B - 8, 4, 2, f ? C.flame : C.flame2); R(128, B - 9, 4, 3, f ? C.flame2 : C.flame); R(136, B - 8, 4, 2, f ? C.flame : C.flame2); }
+  ell(131, B - 15, 23, 8, C.steel, 'bottom'); R(108, B - 16, 47, 2, C.steel2); R(154, B - 17, 12, 3, C.steel2); R(164, B - 17, 4, 3, '#7a4a2a');
+  const k = st.k; let col = null;
+  if (k === 'pork')  col = p < 0.55 ? C.pink : C.brown;
+  if (k === 'sauce') col = C.brown;
+  if (k === 'basil') col = C.brown;
+  if (col) { ell(131, B - 13, 18, 3, col);
+    if (k !== 'pound') for (let i = 0; i < 16; i++) { R(115 + rnd(i) * 32 + ((tick >> 2) + i) % 2, B - 15 + rnd(i + 20) * 4, 2, 1, (i % 3 === 0 ? C.red : (i % 3 === 1 ? C.green : C.brown2))); }
+    if (k === 'basil') { const n = Math.floor(3 + p * 9); for (let i = 0; i < n; i++) { const x = 116 + rnd(i + 70) * 28, y = B - 16 + rnd(i + 80) * 4; R(x, y, 4, 2, i % 2 ? C.green : C.green2); R(x + 1, y, 1, 1, '#8fd07f'); } }
+    if (k !== 'pound') for (let i = 0; i < 5; i++) { const ph = (tick * 1.1 + i * 9) % 26; R(118 + i * 6 + Math.round(Math.sin((tick + i * 5) / 5) * 2), B - 20 - ph, 2, 2, C.steam); } }
+}
+const bobOf = (k, tick, p) =>
+  k === 'basil' ? (tick % 8 < 4 ? -1 : 0) : ((tick % 12 < 6 ? 0 : 1));
+function face(cx, y0, k, p, tick) {
+  const E = C.steel, M = '#7a2218', blink = tick % 40 < 2;
+  const eye = (x, y, w, h) => R(cx + x, y0 + y, w, h, E);
+  const smile  = () => { R(cx - 3, y0 - 47, 1, 1, M); R(cx - 2, y0 - 46, 5, 1, M); R(cx + 3, y0 - 47, 1, 1, M); };
+  const happyE = () => { R(cx - 5, y0 - 50, 1, 1, E); R(cx - 4, y0 - 51, 2, 1, E); R(cx - 2, y0 - 50, 1, 1, E); R(cx + 1, y0 - 50, 1, 1, E); R(cx + 2, y0 - 51, 2, 1, E); R(cx + 4, y0 - 50, 1, 1, E); };
+  if (k === 'target') { eye(-4, -51, 2, blink ? 1 : 2); eye(2, -51, 2, blink ? 1 : 2); smile(); }
+  else if (k === 'pork')  { eye(-3, -50, 2, 2); eye(3, -50, 2, 2); R(cx, y0 - 46, 2, 2, M); }
+  else if (k === 'sauce') { R(cx - 4, y0 - 50, 2, 1, E); eye(3, -51, 2, 2); R(cx - 1, y0 - 46, 3, 1, E); R(cx + 2, y0 - 45, 1, 1, C.red); }
+  else if (k === 'basil') { happyE(); smile(); R(cx - 6, y0 - 48, 2, 1, '#e58a7a'); R(cx + 5, y0 - 48, 2, 1, '#e58a7a'); }
+}
+function emote(cx, y0, k, p, tick) {
+  const x = cx - 20, y = y0 - 66 - (tick % 10 < 5 ? 0 : 1), A = C.accent, H = '#e0553b';
+  const heart = (hx, hy) => { R(hx, hy, 2, 1, H); R(hx + 3, hy, 2, 1, H); R(hx - 1, hy + 1, 7, 2, H); R(hx, hy + 3, 5, 1, H); R(hx + 1, hy + 4, 3, 1, H); R(hx + 2, hy + 5, 1, 1, H); };
+  if (k === 'target') { R(x + 3, y, 1, 7, A); R(x, y + 3, 7, 1, A); R(x + 2, y + 2, 3, 3, A); }
+  if (k === 'pork')   { R(x, y + 5, 1, 1, C.white); R(x + 3, y + 5, 1, 1, C.white); R(x + 6, y + 5, 1, 1, C.white); }
+  if (k === 'sauce')  { R(x + 3, y, 2, 4, A); R(x + 3, y + 5, 2, 2, A); }
+  if (k === 'basil')  { heart(x + 1, y + 1); const q = (tick % 24) / 24; R(cx + 12 + Math.round(Math.sin(q * 6.28) * 2), y0 - 52 - q * 14, 2, 1, '#8fd07f'); R(cx + 15 - Math.round(Math.sin(q * 6.28) * 2), y0 - 46 - q * 14, 2, 1, '#8fd07f'); }
+}
+function chef(st, p, tick) {
+  const cx = 88, k = st.k, bob = bobOf(k, tick, p), y0 = B + bob;
+  R(cx - 11, y0 - 40, 23, 40 - Math.min(0, bob), C.white); R(cx + 8, y0 - 40, 4, 40, C.shade); R(cx - 1, y0 - 34, 2, 2, C.shade); R(cx - 1, y0 - 26, 2, 2, C.shade); R(cx - 1, y0 - 18, 2, 2, C.shade);
+  R(cx - 7, y0 - 43, 15, 4, C.red); R(cx - 3, y0 - 44, 7, 2, C.skin2);
+  R(cx - 7, y0 - 56, 15, 13, C.skin); R(cx + 5, y0 - 56, 3, 13, C.skin2);
+  face(cx, y0, k, p, tick);
+  R(cx - 8, y0 - 60, 17, 5, C.white); R(cx - 10, y0 - 66, 21, 7, C.white); R(cx + 7, y0 - 66, 4, 11, C.shade);
+}
+function hands(st, p, tick) {
+  const cx = 88, k = st.k, bob = bobOf(k, tick, p), y0 = B + bob;
+  let lh = [cx - 24, B - 4], rh = [cx + 20, B - 4], tool = null;
+  if (k === 'pork' || k === 'basil') { rh = [118 + Math.round(Math.sin(tick / 3) * 9) + 12, B - 22]; tool = 'spatula'; }
+  if (k === 'sauce') { rh = [124, B - 29 + Math.round(Math.sin(tick / 6) * 1)]; tool = 'bottle'; }
+  if (k === 'target') { lh = [cx - 18, B - 10]; rh = [cx + 18, B - 10]; }
+  seg(cx - 10, y0 - 34, lh[0], lh[1], 4, C.white); seg(cx + 9, y0 - 34, rh[0], rh[1], 4, C.shade);
+  R(lh[0] - 1, lh[1], 5, 4, C.skin); R(rh[0] - 1, rh[1], 5, 4, C.skin);
+  if (tool === 'spatula') { seg(rh[0] + 1, rh[1] + 3, rh[0] - 3, B - 15, 2, '#7a4a2a'); R(rh[0] - 6, B - 15, 7, 2, C.steel2); }
+  if (tool === 'bottle')  { R(rh[0] - 6, rh[1] - 3, 5, 12, C.amber); R(rh[0] - 5, rh[1] - 1, 3, 5, C.white); R(rh[0] - 8, rh[1] + 6, 3, 3, C.red);
+    if (p > 0.15 && p < 0.8) for (let y = rh[1] + 10; y < B - 16; y += 2) R(rh[0] - 7 + ((y + tick) % 4 < 2 ? 0 : 1), y, 1, 2, C.amber2); }
+}
+function underTable(st, p, tick) {
+  const y0 = B + 8, hh = H - y0; R(0, y0, W, hh, C.inset); R(0, y0, W, 1, C.tile);
+  const key = UNDER_FOR[st.k], u = UNDER[key], im = under[key]; if (!u || !im || !im.complete || !im.naturalWidth) return;
+  const ox = Math.round((W - u.w) / 2), oy = y0 + 2; g.drawImage(im, ox, oy);
+  if (key !== 'wok') return;
+  const cx = ox + u.cx, cy = oy + u.cy, r = u.r, k = st.k;
+  if (k === 'pork') { const rr = Math.round(r * Math.min(1, 0.35 + p)); ell(cx, cy, rr, Math.round(rr * 0.9), p < 0.55 ? C.pink : C.brown);
+    for (let i = 0; i < 26; i++) { const a = rnd(i) * 6.28, q = Math.sqrt(rnd(i + 5)); R(cx + Math.cos(a) * rr * q * 0.85, cy + Math.sin(a) * rr * q * 0.75, 2, 1, p < 0.55 ? (i % 2 ? C.white : C.pink2) : (i % 3 === 0 ? C.red : (i % 3 === 1 ? C.green : C.brown2))); } }
+  if (k === 'sauce') { ell(cx, cy, r, Math.round(r * 0.9), C.brown);
+    for (let i = 0; i < 30; i++) { const a = rnd(i) * 6.28, q = Math.sqrt(rnd(i + 5)); R(cx + Math.cos(a) * r * q * 0.85, cy + Math.sin(a) * r * q * 0.75, 2, 1, i % 3 === 0 ? C.red : (i % 3 === 1 ? C.green : C.brown2)); } }
+  for (let i = 0; i < 4; i++) { const ph = (tick * 0.9 + i * 8) % 22; R(cx - 9 + i * 6 + Math.round(Math.sin((tick + i * 4) / 5) * 2), cy - r - 2 - ph * 0.5, 2, 2, C.steam); }
+}
+
+/* ---------- realistic bottom-half: full-resolution image + code effects ---------- */
+const fxc = document.getElementById('fx'), f = fxc.getContext('2d'), FW = 720, FH = 392;
+const real = {}; for (const k in REAL) { const im = new Image(); im.src = REAL[k]; real[k] = im; }
+function puff(x, y, r, a, warm) {
+  const gr = f.createRadialGradient(x, y, 0, x, y, r);
+  gr.addColorStop(0, `rgba(${warm ? '255,244,228' : '236,240,244'},${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  f.fillStyle = gr; f.beginPath(); f.arc(x, y, r, 0, 6.2832); f.fill();
+}
+function smoke(t, strength, cx, cy, spread, warm) {
+  if (!strength) return; f.save(); f.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 16; i++) { const life = 2600 + rnd(i) * 1400, ph = ((t + rnd(i + 11) * life) % life) / life;
+    const x = cx + (rnd(i + 3) - 0.5) * spread + Math.sin(ph * 5 + i) * 26 * ph, y = cy - ph * 300 - 10, r = 34 + ph * 120;
+    puff(x, y, r, Math.sin(Math.PI * ph) * 0.2 * strength, warm); }
+  f.restore();
+}
+function sizzle(t, n, cx, cy, rx, ry) {
+  const b = Math.floor(t / 70); f.save(); f.globalCompositeOperation = 'screen';
+  for (let i = 0; i < n; i++) { const a = rnd(b * 13 + i) * 6.2832, q = Math.sqrt(rnd(b * 7 + i + 3));
+    f.fillStyle = `rgba(255,236,190,${0.25 + rnd(b + i) * 0.5})`; f.beginPath();
+    f.arc(cx + Math.cos(a) * rx * q, cy + Math.sin(a) * ry * q, 1.2 + rnd(i + b) * 2.2, 0, 6.2832); f.fill(); }
+  f.restore();
+}
+function drawFx(st, p) {
+  f.clearRect(0, 0, FW, FH); f.fillStyle = '#1b2530'; f.fillRect(0, 0, FW, FH);
+  const ok = im => im && im.complete && im.naturalWidth;
+  const img = (k, a) => { if (ok(real[k]) && a > 0) { f.globalAlpha = Math.min(1, a); f.drawImage(real[k], 0, 0, FW, FH); f.globalAlpha = 1; } };
+  const ramp = (v, lo, hi) => Math.min(1, Math.max(0, (v - lo) / (hi - lo)));
+  const id = st.id, t = T, x = 360, y = 196, rx = 200, ry = 135;
+
+  if (id === 'target') {
+    img('pt-dish', 1);
+    smoke(t, 0.4, x, y, 300, false);
+  } else if (id === 'history') {
+    img('pt-history', 1);
+  } else if (id === 'soak') {
+    img('pt-soak', 1);
+    // gentle water shimmer
+    f.save(); f.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 8; i++) { const ph = (t * 0.4 + i * 400) % 2000 / 2000;
+      puff(200 + rnd(i) * 320, 200 + rnd(i + 5) * 160, 40 + ph * 60, Math.sin(Math.PI * ph) * 0.06, false); }
+    f.restore();
+  } else if (id === 'tamarind') {
+    img('pt-tamarind', 1);
+    img('pt-sauce', ramp(p, 0.1, 0.5));
+    if (p > 0.05) { sizzle(t, 18, x, y, rx * 0.5, ry * 0.5); }
+    smoke(t, 0.35, x, y, 280, true);
+  } else if (id === 'sugar') {
+    img('pt-sauce', 1);
+    sizzle(t, 50, x, y, rx * 0.8, ry * 0.8);
+    smoke(t, 0.8, x, y, 300, true);
+  } else if (id === 'radish') {
+    img('pt-aromatics', 1);
+    sizzle(t, 42, x, y, rx * 0.7, ry * 0.7);
+    smoke(t, 0.75, x, y, 320, true);
+  } else if (id === 'toss') {
+    img('pt-aromatics', 1);
+    img('pt-done', ramp(p, 0.1, 0.5));
+    sizzle(t, 55, x, y, rx * 0.85, ry * 0.85);
+    smoke(t, 1.0, x, y, 380, false);
+  }
+  // vignette
+  const vg = f.createRadialGradient(FW / 2, FH / 2, FH * 0.35, FW / 2, FH / 2, FW * 0.62);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.38)');
+  f.fillStyle = vg; f.fillRect(0, 0, FW, FH);
+}
+
+function draw() {
+  if (!(T >= 0)) T = 0;
+  const idx = Math.floor(T / DUR) % STEPS.length, st = STEPS[idx], p = (T % DUR) / DUR, tick = Math.floor(T / 83);
+  kitchen(); props(st, p, tick, idx); chef(st, p, tick); tabletop(); mortar(false, tick); wok(st, p, tick); hands(st, p, tick);
+  emote(88, B + bobOf(st.k, tick, p), st.k, p, tick); pointer(st, tick, p);
+  R(0, B + 8, W, H - B - 8, C.inset);
+  drawFx(st, p);
+  drawInset(st, tick);
+  if (idx !== shown) { shown = idx;
+    // inset image — keyed by st.id
+    { const im = document.getElementById('insetimg'), src = INSET_REAL[st.id];
+      if (mode === 'R' && src) { if (im.getAttribute('src') !== src) im.src = src; im.alt = st.id; im.style.display = 'block'; } else im.style.display = 'none'; }
+    const numify = t => t.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/\d+/g, d => '<span class="num">' + d + '</span>');   // pixel font makes 5 look like S and 2 like 8
+    document.getElementById('l1').innerHTML = numify(st.l1);
+    document.getElementById('l2').innerHTML = numify(st.l2);
+    document.getElementById('src').innerHTML = st.src ? numify('Source: ' + st.src) : '';
+    document.getElementById('mlab').textContent = st.lab;
+    st.m.forEach((v, i) => document.getElementById('f' + i).style.width = v + '%');
+    [...rail.children].forEach((b, i) => { b.className = i < idx ? 'done' : (i === idx ? 'now' : ''); b.setAttribute('aria-current', i === idx ? 'step' : 'false'); });
+    // subtitle
+    const sub = SUBS[idx] || SUBS[0];
+    document.getElementById('sub-en').textContent = sub.en;
+    document.getElementById('sub-th').textContent  = sub.th;
+    document.getElementById('subtitle').style.display = '';
+  }
+}
+
+/* ---------- sound (unchanged from EP01, keyed by st.k) ---------- */
+const SND_DATA = /*__SND__*/{};
+let actx = null, soundOn = false, bufs = {}, musicNode = null, master = null, fired = new Set(), stepSerial = -1, lastHit = -1;
+const sndLog = [];
+function b64buf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+async function soundInit() {
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+  actx = new AC(); master = actx.createGain(); master.gain.value = 0.9; master.connect(actx.destination);
+  await Promise.all(Object.keys(SND_DATA).map(k => new Promise(res => actx.decodeAudioData(b64buf(SND_DATA[k]), b => { bufs[k] = b; res(); }, () => res()))));
+  return true;
+}
+function playBuf(name, gain=1, rate=1, dur) { sndLog.push(name); if (!soundOn || !actx || !bufs[name]) return;
+  const src = actx.createBufferSource(), g2 = actx.createGain(); src.buffer = bufs[name]; src.playbackRate.value = rate; g2.gain.value = gain; src.connect(g2); g2.connect(master);
+  if (dur) { g2.gain.setValueAtTime(gain, actx.currentTime + dur * 0.6); g2.gain.linearRampToValueAtTime(0.0001, actx.currentTime + dur); src.start(0, 0, dur); } else src.start(); }
+function tone(name, freqs, step=0.09, type='triangle', gain=0.12) { sndLog.push(name); if (!soundOn || !actx) return;
+  freqs.forEach((fq, i) => { const o = actx.createOscillator(), g2 = actx.createGain(), t0 = actx.currentTime + i * step; o.type = type; o.frequency.value = fq;
+    g2.gain.setValueAtTime(0.0001, t0); g2.gain.linearRampToValueAtTime(gain, t0 + 0.01); g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35); o.connect(g2); g2.connect(master); o.start(t0); o.stop(t0 + 0.4); }); }
+const EVENTS = {
+  target:   [[150, () => tone('sparkle', [1319,1568,2093], 0.07, 'sine', 0.1)]],
+  pork:     [[220, () => playBuf('sizzle', 0.5)]],
+  sauce:    [[430, () => playBuf('pour', 0.9)], [700, () => playBuf('sizzle', 0.6, 1.1)]],
+  basil:    [[360, () => playBuf('sizzle', 0.4, 0.9, 2.4)]]
+};
+function soundTick() {
+  const serial = Math.floor(T / DUR), k = STEPS[serial % STEPS.length].k, local = T % DUR;
+  if (serial !== stepSerial) { stepSerial = serial; fired = new Set(); }
+  (EVENTS[k] || []).forEach(([at, fn], i) => { if (local >= at && !fired.has(i)) { fired.add(i); if (local - at < 400) fn(); } });
+}
+function musicSync() { if (!actx) return;
+  if (soundOn && playing) { if (actx.state === 'suspended') actx.resume();
+    if (!musicNode && bufs.music) { musicNode = actx.createBufferSource(); const g2 = actx.createGain(); g2.gain.value = 0.16; musicNode.buffer = bufs.music; musicNode.loop = true; musicNode.connect(g2); g2.connect(master); musicNode.start(); } }
+  else if (actx.state === 'running') actx.suspend();
+}
+
+const rail = document.getElementById('rail');
+STEPS.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = i === 0 ? '★' : i;
+  b.setAttribute('aria-label', 'Step: ' + s.l1); b.addEventListener('click', () => { T = i * DUR + 1; shown = -1; stepSerial = -1; draw(); }); rail.appendChild(b); });
+
+const playBtn = document.getElementById('play');
+function setPlay(v) { playing = v; playBtn.textContent = v ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', v); last = performance.now(); musicSync(); }
+const sndBtn = document.getElementById('snd');
+sndBtn.addEventListener('click', async () => {
+  if (!actx) { sndBtn.textContent = 'Sound: loading'; const ok = await soundInit().catch(() => false); if (!ok) { sndBtn.textContent = 'Sound unavailable'; return; } }
+  soundOn = !soundOn; sndBtn.textContent = soundOn ? 'Sound: on' : 'Sound: off'; sndBtn.setAttribute('aria-pressed', soundOn); musicSync();
+});
+playBtn.addEventListener('click', () => setPlay(!playing));
+const mR = document.getElementById('mR'), mA = document.getElementById('mA'), mB = document.getElementById('mB');
+function setMode(m) { mode = m; mR.setAttribute('aria-pressed', m === 'R'); mA.setAttribute('aria-pressed', m === 'A'); mB.setAttribute('aria-pressed', m === 'B'); shown = -1; draw(); }
+mR.addEventListener('click', () => setMode('R')); mA.addEventListener('click', () => setMode('A')); mB.addEventListener('click', () => setMode('B'));
+setPlay(playing);
+let lastRaf = 0;
+function frame(now) {
+  if (playing) T += Math.max(0, Math.min(100, now - last));
+  last = now;
+  try { draw(); if (playing) soundTick(); } catch(e) { console.error(e); }
+}
+function loop(now) { lastRaf = performance.now(); frame(now); requestAnimationFrame(loop); }
+setInterval(() => { const n = performance.now(); if (n - lastRaf > 300) frame(n); }, 100);
+requestAnimationFrame(loop);
+
+/* ---------- render mode: frames driven by __seek(seconds) ---------- */
+if (new URLSearchParams(location.search).has('render')) {
+  playing = false;
+  document.documentElement.classList.add('render');
+  document.querySelector('.wm').textContent = '@saitum528';
+  // EP02 segment times (8 entries: step 0–6 start times + end-card start)
+  const SEG = [0.0, 6.39, 12.3, 16.61, 22.88, 27.47, 32.22, 36.57];
+  const END_CARD_START = SEG[7];
+  // End card only 41.25–44.05 s (Meta branded-content rule: ≤3 s full-screen)
+  const END_CARD_OPEN = 41.25;
+  window.__seek = s => {
+    // step index stays at 6 (toss) for s >= SEG[6]; __seek never pushes past 6
+    let i = 0; while (i < 6 && s >= SEG[i + 1]) i++;
+    T = (i + Math.min(0.9999, (s - SEG[i]) / (SEG[i + 1] - SEG[i]))) * DUR;
+    draw();
+    // end card: only last 2.8 s
+    const showEc = s >= END_CARD_OPEN;
+    document.getElementById('endcard').style.display = showEc ? 'flex' : 'none';
+    // subtitle 7 ("In Thailand?") shows from SEG[7]=36.57 to END_CARD_OPEN; hidden during end card
+    if (s >= END_CARD_START && !showEc) {
+      document.getElementById('sub-en').textContent = SUBS[7].en;
+      document.getElementById('sub-th').textContent  = SUBS[7].th;
+      document.getElementById('subtitle').style.display = '';
+    } else if (showEc) {
+      document.getElementById('subtitle').style.display = 'none';
+    }
+    return true;
+  };
+}
+</script>
+</body>
+</html>

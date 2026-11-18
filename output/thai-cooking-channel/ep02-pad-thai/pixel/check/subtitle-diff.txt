@@ -1,0 +1,9 @@
+1 EN True TH True 
+2 EN True TH True 
+3 EN True TH True 
+4 EN True TH True 
+5 EN True TH True 
+6 EN True TH True 
+7 EN True TH True 
+8 EN True TH True 
+count script 8 subs 8 ALL MATCH
