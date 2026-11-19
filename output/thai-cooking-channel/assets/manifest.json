@@ -4,7 +4,7 @@
  "route": "OpenRouter /api/v1/images",
  "aspect": "3:4",
  "quality": "high",
- "spend_cap_usd": 6.0148,
+ "spend_cap_usd": 6.6448,
  "max_tries_per_asset": 3,
  "created": "2026-11-16",
  "assets": [
@@ -491,6 +491,196 @@
     "by": "main session 2026-11-18",
     "file": "qa.md"
    }
+  },
+  {
+   "id": "ty-dish-tom-yum-kung",
+   "pillar": "06-dishes",
+   "name_th": "ต้มยำกุ้งน้ำใสในชาม",
+   "name_en": "Finished clear tom yum kung, overhead",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/06-dishes/ty-dish-tom-yum-kung",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0498,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-scene-riverside",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ชุมชนริมน้ำที่ราบภาคกลาง",
+   "name_en": "Riverside community in Thailand's Central Plains",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/05-cooking-scenes/ty-scene-riverside",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-veg-three-herbs-ginger",
+   "pillar": "02-thai-vegetables",
+   "name_th": "ตะไคร้ ข่า ใบมะกรูด เทียบขิง",
+   "name_en": "Lemongrass, galangal, makrut lime leaves, with ginger set apart",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/02-thai-vegetables/ty-veg-three-herbs-ginger",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0499,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-veg-bruised-herbs",
+   "pillar": "02-thai-vegetables",
+   "name_th": "ตะไคร้ทุบ ใบมะกรูดฉีก ข่าหั่น",
+   "name_en": "Smashed lemongrass, torn lime leaves, sliced galangal on a board",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/02-thai-vegetables/ty-veg-bruised-herbs",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-meat-river-prawn-heads",
+   "pillar": "04-thai-meats",
+   "name_th": "กุ้งแม่น้ำ มันกุ้งสีส้มในหัว",
+   "name_en": "Raw river prawns, one head opened to show orange fat",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/04-thai-meats/ty-meat-river-prawn-heads",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0496,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-cook-pot-herbs",
+   "pillar": "05-cooking-scenes",
+   "name_th": "หม้อน้ำซุปกับสมุนไพร",
+   "name_en": "Pot of simmering clear stock with herbs, overhead",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/05-cooking-scenes/ty-cook-pot-herbs",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0496,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-cook-pot-mushroom-prawn",
+   "pillar": "05-cooking-scenes",
+   "name_th": "หม้อซุปใส่เห็ดฟางกับกุ้ง",
+   "name_en": "Same pot with straw mushrooms and just-cooked prawns",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/05-cooking-scenes/ty-cook-pot-mushroom-prawn",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0613,
+   "final": "final.png",
+   "ref_from": "ty-cook-pot-herbs",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-sea-fish-sauce-lime",
+   "pillar": "01-seasonings",
+   "name_th": "น้ำปลา มะนาว พริกขี้หนู",
+   "name_en": "Fish sauce, Thai limes and bird's eye chillies",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/01-seasonings/ty-sea-fish-sauce-lime",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-cook-bowl-lime-off-heat",
+   "pillar": "05-cooking-scenes",
+   "name_th": "มะนาวในชามเสิร์ฟ นอกเตา",
+   "name_en": "Lime juice and chillies in the empty serving bowl, off the heat",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/05-cooking-scenes/ty-cook-bowl-lime-off-heat",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "ty-veg-frozen-herbs",
+   "pillar": "02-thai-vegetables",
+   "name_th": "ตะไคร้ ข่า ใบมะกรูดแช่แข็ง",
+   "name_en": "Frozen lemongrass, galangal and lime leaves in freezer bags",
+   "episode": "ep03-tom-yum-kung",
+   "dir": "library/02-thai-vegetables/ty-veg-frozen-herbs",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0494,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
   }
  ],
  "generation_authorisation": "Operator ordered asset generation with Sunburst via OpenRouter in chat on 2026-11-16 (explicit command). The operator did not review the individual prompts; they were written by creative-lead and audited by audit-lead on 2026-11-16 (12 PASS, 2 PASS-WITH-FIXES, fixes applied). No reference photos.",
@@ -501,7 +691,7 @@
   "veg-thai-chillies",
   "veg-thai-garlic"
  ],
- "spent_usd": 1.6448,
+ "spent_usd": 2.1524,
  "images_generated": 20,
  "cap_history": [
   {
@@ -510,6 +700,13 @@
    "round_cap_usd": 5.0,
    "cap_set_to": 6.0148,
    "by": "owner: 'Approve, cap USD 5' then 'Go, generate'"
+  },
+  {
+   "date": "2026-11-19",
+   "episode": "ep03-tom-yum-kung",
+   "round_cap_usd": 5.0,
+   "cap_set_to": 6.6448,
+   "by": "owner: 'Approve, cap USD 5' (prompts still need owner go)"
   }
  ]
 }

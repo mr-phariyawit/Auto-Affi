@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 131,
+  "completion_tokens": 1629,
+  "total_tokens": 1760,
+  "cost": 0.049525,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.049525,
+   "upstream_inference_prompt_cost": 0.000655,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 34.2,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/05-cooking-scenes/ty-scene-riverside/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "A calm riverside community in the Central Plains of Thailand in soft morning light: traditional teak wooden houses on stilts with steep gabled roofs lining a wide brown river, a small wooden rowing boat moored at a wooden landing, banana and coconut palms, and a distant white-and-gold Thai Buddhist temple roof across the water. Gentle mist on the river.\n\nPhotorealistic travel landscape photograph, eye level from the opposite bank, wide composition with the houses filling the middle of the frame. Natural soft warm daylight, realistic textures. No people, no text, no letters, no signs, no logos, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 614,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

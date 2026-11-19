@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Keep the prawn heads. Their orange fat adds richness.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 3.891,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 28,
+  "candidatesTokenCount": 97,
+  "totalTokenCount": 125,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 28
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 97
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

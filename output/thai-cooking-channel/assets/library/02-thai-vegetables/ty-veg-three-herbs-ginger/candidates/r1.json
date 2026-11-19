@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 202,
+  "completion_tokens": 1629,
+  "total_tokens": 1831,
+  "cost": 0.04988,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.04988,
+   "upstream_inference_prompt_cost": 0.00101,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 31.3,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/02-thai-vegetables/ty-veg-three-herbs-ginger/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "On the left, the three tom yum herbs grouped together: three whole fresh lemongrass stalks with pale lower bulbs, a knob of fresh galangal with smooth pale cream-pink skin, faint rings and pinkish shoots, and a small pile of glossy dark green double-lobed makrut lime leaves. On the far right, clearly separated by empty space, one knob of ordinary ginger with thin tan-brown skin for comparison. The galangal and the ginger must look clearly different: galangal paler, smoother, ringed and pink-tipped; ginger browner and knobbly.\n\nPhotorealistic studio food photograph, slightly elevated three-quarter view, the subject centred and filling most of the frame. Plain warm cream background with only a soft contact shadow. Natural soft daylight from the upper left, crisp realistic textures. No hands, no people, no text, no letters, no labels, no logos, no brand names, no packaging, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 897,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

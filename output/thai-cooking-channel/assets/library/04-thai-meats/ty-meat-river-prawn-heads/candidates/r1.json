@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 143,
+  "completion_tokens": 1629,
+  "total_tokens": 1772,
+  "cost": 0.049585,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.049585,
+   "upstream_inference_prompt_cost": 0.000715,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 35.1,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/04-thai-meats/ty-meat-river-prawn-heads/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "Three large raw Thai giant freshwater prawns (river prawns) with long blue-grey claws and translucent blue-grey shells, laid on a white plate. One prawn head is cut open lengthwise to show the bright orange-yellow head fat (tomalley) inside. Raw, not cooked, not pink.\n\nPhotorealistic studio food photograph, slightly elevated three-quarter view, the subject centred and filling most of the frame. Plain warm cream background with only a soft contact shadow. Natural soft daylight from the upper left, crisp realistic textures. No hands, no people, no text, no letters, no labels, no logos, no brand names, no packaging, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 634,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

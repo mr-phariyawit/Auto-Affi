@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Abroad? Frozen lemongrass and galangal work. In Thailand, affiliate links are in the caption.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 6.291,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 36,
+  "candidatesTokenCount": 157,
+  "totalTokenCount": 193,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 36
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 157
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

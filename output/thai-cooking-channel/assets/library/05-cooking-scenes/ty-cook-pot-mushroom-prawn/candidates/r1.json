@@ -1,0 +1,52 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 1619,
+  "completion_tokens": 1629,
+  "total_tokens": 3248,
+  "cost": 0.061321,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.061321,
+   "upstream_inference_prompt_cost": 0.012451,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 37.0,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/05-cooking-scenes/ty-cook-pot-mushroom-prawn/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [
+  [
+   "1-pot-herbs.png",
+   [
+    1152,
+    1536
+   ]
+  ]
+ ],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "Use IMAGE 1 as the exact pot, burner, camera position, framing and lighting; keep the pot and framing identical. Now the same clear stock also holds halved straw mushrooms and six whole freshwater prawns with heads on that have only just turned pink-orange, still plump and glossy, with a few small orange oil droplets on the surface from the prawn heads. The broth stays clear, not milky, not red.\n\nPhotorealistic overhead food photograph, camera pointing straight down. Natural soft daylight from the upper left, realistic textures. The pot sits on a dark gas burner with a plain warm cream surround. No hands, no people, no text, no letters, no labels, no logos, no brand names, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 1,
+ "prompt_sha_len": 695,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}
