@@ -1,0 +1,52 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 1644,
+  "completion_tokens": 1629,
+  "total_tokens": 3273,
+  "cost": 0.061446,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.061446,
+   "upstream_inference_prompt_cost": 0.012576,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 35.5,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/05-cooking-scenes/kp-cook-wok-rice/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [
+  [
+   "01-wok-egg.png",
+   [
+    1152,
+    1536
+   ]
+  ]
+ ],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "Use IMAGE 1 as the exact wok, burner, camera position, framing and lighting: the same dark seasoned carbon-steel wok seen from directly above, the same size and position, the same cream background at the corners. Keep the wok and framing identical and only change the food described.\n\nCooked jasmine rice has been added and tossed with the egg: separate grains lightly tinted pale golden-brown from soy sauce, small soft pieces of scrambled egg mixed through, a light dusting of ground white pepper. A few grains lightly toasted. Thin wisps of steam. No vegetables, no meat, no utensils.\n\nPhotorealistic overhead food photograph, camera pointing straight down. Natural soft daylight from the upper left, realistic textures. Plain warm cream background. No hands, no people, no text, no letters, no labels, no logos, no brand names, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 1,
+ "prompt_sha_len": 845,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

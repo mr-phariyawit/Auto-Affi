@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Cook jasmine rice drier: one cup rice, one cup water.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 3.771,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 30,
+  "candidatesTokenCount": 94,
+  "totalTokenCount": 124,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 30
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 94
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

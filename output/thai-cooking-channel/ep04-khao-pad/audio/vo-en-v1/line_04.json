@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Turn the heat up. Eggs go in, only half set.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 3.651,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 30,
+  "candidatesTokenCount": 91,
+  "totalTokenCount": 121,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 30
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 91
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

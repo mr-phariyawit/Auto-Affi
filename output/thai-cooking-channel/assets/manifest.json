@@ -4,7 +4,7 @@
  "route": "OpenRouter /api/v1/images",
  "aspect": "3:4",
  "quality": "high",
- "spend_cap_usd": 6.6448,
+ "spend_cap_usd": 4.1524,
  "max_tries_per_asset": 3,
  "created": "2026-11-16",
  "assets": [
@@ -681,6 +681,196 @@
     "by": "main session 2026-11-19",
     "file": "qa.md"
    }
+  },
+  {
+   "id": "kp-dish-khao-pad-pu",
+   "pillar": "06-dishes",
+   "name_th": "ข้าวผัดปูจานสำเร็จ",
+   "name_en": "Finished Thai crab fried rice with lime and cucumber",
+   "episode": "ep04-khao-pad",
+   "dir": "library/06-dishes/kp-dish-khao-pad-pu",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0497,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-cook-jasmine-rice-dry",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ข้าวหอมมะลิหุงแห้ง เม็ดร่วน",
+   "name_en": "Cooked jasmine rice, dry and separate grains",
+   "episode": "ep04-khao-pad",
+   "dir": "library/05-cooking-scenes/kp-cook-jasmine-rice-dry",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0496,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-cook-wok-garlic",
+   "pillar": "05-cooking-scenes",
+   "name_th": "กระเทียมเจียวในกระทะ เริ่มเหลือง",
+   "name_en": "Wok with chopped garlic just turning golden",
+   "episode": "ep04-khao-pad",
+   "dir": "library/05-cooking-scenes/kp-cook-wok-garlic",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0614,
+   "final": "final.png",
+   "ref_from": "cook-wok-empty",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-cook-wok-egg",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ไข่ในกระทะ สุกครึ่งเดียว ลายหินอ่อน",
+   "name_en": "Same wok, eggs half set with marbled yolk and white",
+   "episode": "ep04-khao-pad",
+   "dir": "library/05-cooking-scenes/kp-cook-wok-egg",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0614,
+   "final": "final.png",
+   "ref_from": "kp-cook-wok-garlic",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-cook-wok-rice",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ข้าวคลุกไข่ในกระทะ",
+   "name_en": "Same wok, rice tossed with egg and seasoning",
+   "episode": "ep04-khao-pad",
+   "dir": "library/05-cooking-scenes/kp-cook-wok-rice",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0614,
+   "final": "final.png",
+   "ref_from": "kp-cook-wok-egg",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-cook-wok-crab",
+   "pillar": "05-cooking-scenes",
+   "name_th": "โปะเนื้อปู ใบหอม ผักชี ปิดไฟ",
+   "name_en": "Same wok, crab meat, green onion and cilantro on top",
+   "episode": "ep04-khao-pad",
+   "dir": "library/05-cooking-scenes/kp-cook-wok-crab",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0613,
+   "final": "final.png",
+   "ref_from": "kp-cook-wok-rice",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-sea-soy-fish-pepper-sugar",
+   "pillar": "01-seasonings",
+   "name_th": "ซีอิ๊วขาว น้ำปลา พริกไทยขาว น้ำตาล",
+   "name_en": "Thai soy sauce, fish sauce, white pepper and sugar in plain dishes",
+   "episode": "ep04-khao-pad",
+   "dir": "library/01-seasonings/kp-sea-soy-fish-pepper-sugar",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-meat-crab-lump",
+   "pillar": "04-thai-meats",
+   "name_th": "เนื้อปูก้อน",
+   "name_en": "Lump crab meat in a bowl beside a cooked crab claw",
+   "episode": "ep04-khao-pad",
+   "dir": "library/04-thai-meats/kp-meat-crab-lump",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-meat-shrimp-pork-chicken",
+   "pillar": "04-thai-meats",
+   "name_th": "กุ้ง หมู ไก่ ทางเลือกแทนปู",
+   "name_en": "Raw shrimp, sliced pork and sliced chicken as swaps",
+   "episode": "ep04-khao-pad",
+   "dir": "library/04-thai-meats/kp-meat-shrimp-pork-chicken",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kp-veg-lime-cucumber-prik-nam-pla",
+   "pillar": "02-thai-vegetables",
+   "name_th": "มะนาว แตงกวา พริกน้ำปลา",
+   "name_en": "Lime wedges, cucumber slices and prik nam pla",
+   "episode": "ep04-khao-pad",
+   "dir": "library/02-thai-vegetables/kp-veg-lime-cucumber-prik-nam-pla",
+   "status": "qa-pass",
+   "tries": 1,
+   "cost_usd": 0.0496,
+   "final": "final.png",
+   "ref_from": null,
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-19",
+    "file": "qa.md"
+   }
   }
  ],
  "generation_authorisation": "Operator ordered asset generation with Sunburst via OpenRouter in chat on 2026-11-16 (explicit command). The operator did not review the individual prompts; they were written by creative-lead and audited by audit-lead on 2026-11-16 (12 PASS, 2 PASS-WITH-FIXES, fixes applied). No reference photos.",
@@ -691,7 +881,7 @@
   "veg-thai-chillies",
   "veg-thai-garlic"
  ],
- "spent_usd": 2.1524,
+ "spent_usd": 2.6955,
  "images_generated": 20,
  "cap_history": [
   {
@@ -707,6 +897,13 @@
    "round_cap_usd": 5.0,
    "cap_set_to": 6.6448,
    "by": "owner: 'Approve, cap USD 5' (prompts still need owner go)"
+  },
+  {
+   "date": "2026-11-19",
+   "episode": "ep04-khao-pad",
+   "round_cap_usd": 2.0,
+   "cap_set_to": 4.1524,
+   "by": "owner: 'Approve, cap USD 2' (prompts still need owner go)"
   }
  ]
 }

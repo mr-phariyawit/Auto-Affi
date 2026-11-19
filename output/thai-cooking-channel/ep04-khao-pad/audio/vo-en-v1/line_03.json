@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Fry garlic on medium heat until the smallest bits turn golden.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 4.651,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 29,
+  "candidatesTokenCount": 116,
+  "totalTokenCount": 145,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 29
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 116
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}
