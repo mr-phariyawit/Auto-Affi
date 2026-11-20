@@ -1,0 +1,7 @@
+EP05 final mix STT (gemini-stt.py on final/ep05-v1-audio.wav) vs VO column of script/vo-script-v2.md
+All 13 lines present, in order, every sentence heard. Differences found by reading both:
+- chillies -> "chilis" (x5), flavour/colour -> "flavor"/"color": STT spelling only, not a spoken difference
+- gapi -> "kapi": same Thai word (กะปิ), romanisation only
+- premade -> "pre-made"; punctuation/comma differences
+- 12b "In Thailand, affiliate links..." -> "If in Thailand, affiliate links...": extra "If" in STT; per-take STT of line_12b alone reads "In Thailand, affiliate links are in the caption." so the "If" is likely an STT artifact at the 12a/12b joint (12a ends 152.17 s, 12b starts 152.62 s); NOT verified by ear
+No missing, repeated or garbled words found.

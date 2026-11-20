@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Stir in Thai basil just until it wilts. Taste, and add more fish sauce if needed. It should be spicy and salty, with only a lick of sweetness from the coconut. Serve with jasmine rice.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 12.571,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 59,
+  "candidatesTokenCount": 314,
+  "totalTokenCount": 373,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 59
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 314
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

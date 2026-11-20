@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Bring some coconut milk to a full boil, add the paste, and fry it, stirring often, until the coconut oil starts to separate. Those little green dots of oil show the paste has released its flavour.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 10.971,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 59,
+  "candidatesTokenCount": 274,
+  "totalTokenCount": 333,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 59
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 274
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

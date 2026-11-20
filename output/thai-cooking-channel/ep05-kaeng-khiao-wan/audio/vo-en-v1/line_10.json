@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Add chicken thigh, the most common choice and the tastiest, then the rest of the coconut milk, stock, fish sauce and palm sugar. Bruise the makrut lime leaves and tear them in.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 11.491,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 58,
+  "candidatesTokenCount": 287,
+  "totalTokenCount": 345,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 58
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 287
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

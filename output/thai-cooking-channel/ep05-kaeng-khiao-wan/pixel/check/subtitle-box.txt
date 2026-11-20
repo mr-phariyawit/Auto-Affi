@@ -1,0 +1,19 @@
+01 t=7.32 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+02 t=21.45 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+03 t=35.91 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+04 t=48.39 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+05 t=59.77 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+06 t=71.81 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+07 t=83.91 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+08 t=97.32 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+09 t=110.02 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+10 t=122.15 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+11 t=133.8 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+12a t=145.94 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+12b t=152.98 sub-box [120,628,888,837] EN 38.88px TH 25.38px safe(x120–888,y288–840) OK overflow false overlaps none title [65,58,1015,216] wm [65,1851,1015,1888]
+end t=154.7 endcard [0,0,1080,1920] subtitle hidden
+endcard-probe t=153.3 display=none
+endcard-probe t=153.34 display=flex
+endcard-probe t=153.36 display=flex
+endcard-probe t=156.1 display=flex
+no page errors

@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Short on time? Store-bought paste is fine, and most Thai people buy it premade too. Most commercial pastes skip shrimp paste, so add a little. Brands vary hugely in strength, so taste as you go.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 12.611,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 62,
+  "candidatesTokenCount": 315,
+  "totalTokenCount": 377,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 62
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 315
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

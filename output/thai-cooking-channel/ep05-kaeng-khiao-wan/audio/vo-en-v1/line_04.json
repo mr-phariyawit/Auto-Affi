@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Toast coriander seeds and cumin seeds, then grind them into a fine powder with white peppercorns. A coffee grinder gets them really fine.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 8.731,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 45,
+  "candidatesTokenCount": 218,
+  "totalTokenCount": 263,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 45
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 218
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

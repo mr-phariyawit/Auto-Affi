@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 170,
+  "completion_tokens": 1629,
+  "total_tokens": 1799,
+  "cost": 0.04972,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.04972,
+   "upstream_inference_prompt_cost": 0.00085,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 32.1,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/02-thai-vegetables/kw-veg-paste-herbs/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "Fresh Thai curry-paste herbs laid out in a neat row, each finely prepared: thinly sliced pale lower part of lemongrass stalks, finely chopped cream-pink fresh galangal with one small whole knob beside it, a small heap of finely chopped dark green makrut lime zest next to one whole bumpy wrinkled makrut lime, and two fresh coriander roots with a little stem, cleaned. All raw and fresh.\n\nPhotorealistic studio food photograph, slightly elevated three-quarter view, the subject centred and filling most of the frame. Plain warm cream background with only a soft contact shadow. Natural soft daylight from the upper left, crisp realistic textures. No hands, no people, no text, no letters, no labels, no logos, no brand names, no packaging, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 753,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}

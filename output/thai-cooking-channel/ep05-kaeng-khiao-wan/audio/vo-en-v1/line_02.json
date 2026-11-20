@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: The green comes from fresh green chillies, which is unusual, because most other Thai curries use red chillies. Wan means sweet, but here it describes a soft, pale shade of green, not the taste.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 12.731,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 61,
+  "candidatesTokenCount": 318,
+  "totalTokenCount": 379,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 61
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 318
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

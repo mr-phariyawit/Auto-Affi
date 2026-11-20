@@ -1,0 +1,28 @@
+{
+ "model": "gemini-2.5-pro-preview-tts",
+ "voice": "Sulafat",
+ "text": "Say at a brisk, lively pace, like a warm confident cooking-show narrator: Use Thai green chillies or serrano peppers for heat, plus milder green chillies, like Korean green peppers or jalapeños, for more chilli flavour without too much heat. Wear gloves, and remove the seeds if you like it milder.",
+ "style": "",
+ "system": "",
+ "mime": "audio/L16;codec=pcm;rate=24000",
+ "seconds": 14.411,
+ "rate": 24000,
+ "usage": {
+  "promptTokenCount": 66,
+  "candidatesTokenCount": 360,
+  "totalTokenCount": 426,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 66
+   }
+  ],
+  "candidatesTokensDetails": [
+   {
+    "modality": "AUDIO",
+    "tokenCount": 360
+   }
+  ],
+  "serviceTier": "standard"
+ }
+}

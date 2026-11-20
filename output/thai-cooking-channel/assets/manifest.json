@@ -4,7 +4,7 @@
  "route": "OpenRouter /api/v1/images",
  "aspect": "3:4",
  "quality": "high",
- "spend_cap_usd": 4.1524,
+ "spend_cap_usd": 4.6955,
  "max_tries_per_asset": 3,
  "created": "2026-11-16",
  "assets": [
@@ -871,6 +871,215 @@
     "by": "main session 2026-11-19",
     "file": "qa.md"
    }
+  },
+  {
+   "id": "kw-dish-green-curry-chicken",
+   "pillar": "06-dishes",
+   "name_th": "แกงเขียวหวานไก่",
+   "name_en": "Thai green curry with chicken",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/06-dishes/kw-dish-green-curry-chicken",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0497,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-spice-fresh-green-chillies",
+   "pillar": "03-thai-spices",
+   "name_th": "พริกเขียวเผ็ด และพริกเขียวเผ็ดน้อย",
+   "name_en": "Spicy and mild fresh green chillies",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/03-thai-spices/kw-spice-fresh-green-chillies",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0498,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-spice-toasting-seeds",
+   "pillar": "03-thai-spices",
+   "name_th": "คั่วเมล็ดผักชี ยี่หร่า พริกไทยขาว",
+   "name_en": "Toasting coriander and cumin seeds with white peppercorns",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/03-thai-spices/kw-spice-toasting-seeds",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0497,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-veg-paste-herbs",
+   "pillar": "02-thai-vegetables",
+   "name_th": "ตะไคร้ ข่า ผิวมะกรูด รากผักชี",
+   "name_en": "Lemongrass, galangal, makrut lime zest, coriander root",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/02-thai-vegetables/kw-veg-paste-herbs",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0497,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-cook-mortar-chillies",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ครกโขลกพริกเขียวกับเกลือ",
+   "name_en": "Mortar with pounded green chillies and salt",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/05-cooking-scenes/kw-cook-mortar-chillies",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-cook-mortar-paste",
+   "pillar": "05-cooking-scenes",
+   "name_th": "พริกแกงเขียวเนื้อเนียน",
+   "name_en": "Finished green curry paste in the mortar",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/05-cooking-scenes/kw-cook-mortar-paste",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": "kw-cook-mortar-chillies",
+   "cost_usd": 0.0614,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-sea-storebought-paste",
+   "pillar": "01-seasonings",
+   "name_th": "พริกแกงสำเร็จรูป",
+   "name_en": "Store-bought green curry paste",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/01-seasonings/kw-sea-storebought-paste",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0495,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-cook-pot-paste-oil",
+   "pillar": "05-cooking-scenes",
+   "name_th": "ผัดพริกแกงในกะทิจนแตกมัน",
+   "name_en": "Curry paste fried in coconut milk until the oil separates",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/05-cooking-scenes/kw-cook-pot-paste-oil",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0496,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-cook-pot-chicken-eggplant",
+   "pillar": "05-cooking-scenes",
+   "name_th": "หม้อแกง + ไก่ มะเขือเปราะ ใบมะกรูด",
+   "name_en": "Curry with chicken, Thai eggplant and makrut lime leaves",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/05-cooking-scenes/kw-cook-pot-chicken-eggplant",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": "kw-cook-pot-paste-oil",
+   "cost_usd": 0.0613,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-cook-pot-basil-finish",
+   "pillar": "05-cooking-scenes",
+   "name_th": "หม้อแกง ปิดท้ายด้วยโหระพา",
+   "name_en": "Finished curry with Thai basil",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/05-cooking-scenes/kw-cook-pot-basil-finish",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": "kw-cook-pot-chicken-eggplant",
+   "cost_usd": 0.0612,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
+  },
+  {
+   "id": "kw-veg-thai-eggplant-bamboo",
+   "pillar": "02-thai-vegetables",
+   "name_th": "มะเขือเปราะในน้ำ + หน่อไม้กระป๋องล้างแล้ว",
+   "name_en": "Thai eggplant in water and rinsed bamboo shoots",
+   "episode": "ep05-kaeng-khiao-wan",
+   "dir": "library/02-thai-vegetables/kw-veg-thai-eggplant-bamboo",
+   "status": "qa-pass",
+   "tries": 1,
+   "ref_from": null,
+   "cost_usd": 0.0496,
+   "final": "final.png",
+   "qa": {
+    "round": 1,
+    "verdict": "qa-pass",
+    "by": "main session 2026-11-20",
+    "file": "qa.md"
+   }
   }
  ],
  "generation_authorisation": "Operator ordered asset generation with Sunburst via OpenRouter in chat on 2026-11-16 (explicit command). The operator did not review the individual prompts; they were written by creative-lead and audited by audit-lead on 2026-11-16 (12 PASS, 2 PASS-WITH-FIXES, fixes applied). No reference photos.",
@@ -881,7 +1090,7 @@
   "veg-thai-chillies",
   "veg-thai-garlic"
  ],
- "spent_usd": 2.6955,
+ "spent_usd": 3.2765,
  "images_generated": 20,
  "cap_history": [
   {
@@ -903,6 +1112,13 @@
    "episode": "ep04-khao-pad",
    "round_cap_usd": 2.0,
    "cap_set_to": 4.1524,
+   "by": "owner: 'Approve, cap USD 2' (prompts still need owner go)"
+  },
+  {
+   "date": "2026-11-20",
+   "episode": "ep05-kaeng-khiao-wan",
+   "round_cap_usd": 2.0,
+   "cap_set_to": 4.6955,
    "by": "owner: 'Approve, cap USD 2' (prompts still need owner go)"
   }
  ]

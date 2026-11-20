@@ -1,0 +1,44 @@
+{
+ "model": null,
+ "provider": null,
+ "id": null,
+ "usage": {
+  "prompt_tokens": 156,
+  "completion_tokens": 1629,
+  "total_tokens": 1785,
+  "cost": 0.04965,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.04965,
+   "upstream_inference_prompt_cost": 0.00078,
+   "upstream_inference_completions_cost": 0.04887
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 1629
+  }
+ },
+ "seconds": 30.6,
+ "out": "/Users/phariyawit.jiap/Documents/Auto-Affi/output/thai-cooking-channel/assets/library/02-thai-vegetables/kw-veg-thai-eggplant-bamboo/candidates/r1.png",
+ "out_size": [
+  1152,
+  1536
+ ],
+ "n_images": 1,
+ "text": null,
+ "refs": [],
+ "request": {
+  "model": "openai/gpt-image-2.5-sunburst",
+  "prompt": "Two small white bowls side by side. Left bowl: round Thai eggplants the size of golf balls, pale green with white streaks, two whole and three cut into wedges with pale cream flesh, sitting in clear water. Right bowl: rinsed pale cream-yellow sliced bamboo shoot strips, drained. Nothing else: no can, no tin, no packet, no label.\n\nPhotorealistic studio food photograph, slightly elevated three-quarter view, the subject centred and filling most of the frame. Plain warm cream background with only a soft contact shadow. Natural soft daylight from the upper left, crisp realistic textures. No hands, no people, no text, no letters, no labels, no logos, no brand names, no packaging, no watermark.",
+  "n": 1,
+  "aspect_ratio": "3:4",
+  "quality": "high"
+ },
+ "n_refs": 0,
+ "prompt_sha_len": 696,
+ "cost_usd": null,
+ "cost_err": "HTTP Error 400: Bad Request"
+}
