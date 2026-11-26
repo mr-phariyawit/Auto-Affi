@@ -50,3 +50,6 @@
 - YouTube Studio ในเบราว์เซอร์ในแอปเปิดช่อง AetherFlow Studio ไว้ → หน้า edit ขึ้น "Oops" → สลับช่องเป็น สายตํา Shop ผ่านเมนู avatar → Switch account ก่อน
 - เบราว์เซอร์ในแอปถูกซ่อน: หน้า youtube.com แสดงว่างเปล่า แต่ studio.youtube.com และ facebook/instagram ใช้ JS อ่านค่าได้
 - แคปชัน Instagram จำกัด 2,200 ตัวอักษร (Thai ก็นับเป็นตัว) — ตัดขั้นตอนเต็มออก ใส่ "เล่าไว้ในคลิป"
+
+- 2026-11-25 21:47: ตรวจแล้ว YT เปิดเป็น Short — /shorts/KXISNq_-iMQ ตอบ 200 ไม่ redirect, canonical = /shorts/, isShortsEligible:true (curl)
+- 2026-11-26: เจ้าของฟัง EP05 ด้วยหูแล้ว ("ฟัง ep05 แล้ว") ไม่ได้แจ้งปัญหา — รวมช่วงรอยต่อ 2:30–2:36
